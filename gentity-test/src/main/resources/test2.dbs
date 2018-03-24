@@ -8,7 +8,7 @@
 				<column name="ID" />
 			</index>
 		</table>
-		<table name="INGNORED_TABLE" >
+		<table name="IGNORED_TABLE" >
 			<column name="FOO" type="bigint" jt="-5" />
 			<column name="BAR" type="bigint" jt="-5" />
 		</table>
