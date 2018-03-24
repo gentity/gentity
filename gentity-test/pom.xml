@@ -42,6 +42,17 @@
 							<mappingConfigFile>src/main/resources/test2.genconfig</mappingConfigFile>
 						</configuration>
 					</execution>
+					<execution>
+						<id>entities-test3</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputDbsFile>src/main/resources/test3.dbs</inputDbsFile>
+							<mappingConfigFile>src/main/resources/test3.genconfig</mappingConfigFile>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 		</plugins>

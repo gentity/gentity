@@ -15,16 +15,22 @@
  */
 package org.bitbucket.gentity.core;
 
+import com.sun.codemodel.JAnnotationArrayMember;
 import com.sun.codemodel.JAnnotationUse;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JExpr;
+import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JPackage;
 import com.sun.codemodel.JType;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -33,12 +39,19 @@ import java.util.stream.Collectors;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import org.bitbucket.dbsjpagen.config.ConfigurationDto;
 import org.bitbucket.dbsjpagen.config.ExclusionDto;
 import org.bitbucket.dbsjpagen.config.MappingConfigDto;
+import org.bitbucket.dbsjpagen.config.OneToManyDto;
 import org.bitbucket.dbsjpagen.config.TableConfigurationDto;
 import org.bitbucket.dbsjpagen.dbsmodel.ColumnDto;
+import org.bitbucket.dbsjpagen.dbsmodel.ForeignKeyColumnDto;
+import org.bitbucket.dbsjpagen.dbsmodel.ForeignKeyDto;
 import org.bitbucket.dbsjpagen.dbsmodel.IndexUniqueDto;
 import org.bitbucket.dbsjpagen.dbsmodel.ProjectDto;
 import org.bitbucket.dbsjpagen.dbsmodel.TableDto;
@@ -52,12 +65,17 @@ public class Generator {
 	private final MappingConfigDto cfg;
 	private final ProjectDto project;
 	JCodeModel cm;
+	Map<String, JDefinedClass> tablesToEntities;
 	
 	private static final int MAX_CANDIDATES = 100;
 	private Set<String> excludedTables;
 	private Set<String> excludedTableColumns;
 	private Map<String, ConfigurationDto> tableConfigurations;
 	private ConfigurationDto globalConfiguration;
+	private Map<String, TableDto> tables;
+	private HashMap<String, OneToManyRelation> tableColumnOneToManyRelations;
+	private List<OneToManyRelation> oneToManyRelations;
+	private Map<String, List<OneToManyRelation>> oneToManyRelationReferences;
 	
 	public Generator(MappingConfigDto cfg, ProjectDto project) {
 		this.cfg = cfg;
@@ -72,23 +90,40 @@ public class Generator {
 		JPackage p = cm._package(cfg.getTargetPackageName());
 		try {
 			JClass serializableClass = cm.ref(Serializable.class);
+			
+			tablesToEntities = new HashMap<>();
+			
+			// filter tables and generate empty entity classes
 			for(TableDto table : project.getSchema().getTable()) {
 				if(isTableExcluded(table.getName())) {
 					continue;
 				}
 				JDefinedClass cls = p._class(JMod.PUBLIC, toClassName(p, table.getName()));
+				tablesToEntities.put(table.getName(), cls);
 				
 				cls._implements(serializableClass);
+			}
+			
+			// process table columns
+			for(Map.Entry<String, JDefinedClass> e : tablesToEntities.entrySet()) {
+				TableDto table = findTable(e.getKey());
+				JDefinedClass cls = e.getValue();
 				cls.annotate(Entity.class);
 				cls.annotate(Table.class)
 					.param("name", table.getName());
 				
-				for(ColumnDto column : table.getColumn()) {
-					if(!isColumnExcluded(table.getName(), column.getName())) {
-						genColumn(cls, table, column);
-					}
-				}
+				table.getColumn().stream()
+					.filter((column) -> (!isColumnExcluded(table.getName(), column.getName())))
+					.forEachOrdered((c) -> genColumn(cls, table, c));
 			}
+			
+			// add one-to-many relations
+			for(OneToManyRelation otm : getOneToManyRelations()) {
+				JDefinedClass cls = tablesToEntities.get(otm.getForeignKey().getToTable());
+				
+				genOneToMany(cls, otm);
+			}
+			
 		} catch(JClassAlreadyExistsException caex) {
 			throw new RuntimeException(caex);
 		}
@@ -100,7 +135,14 @@ public class Generator {
 		
 		String fieldName = toFieldName(cls, column.getName());
 		
-		JType colType = mapColumnType(column);
+		OneToManyRelation owner = findOneToManyOwner(table, column);
+		
+		JType colType;
+		if(owner == null) {
+			colType = mapColumnType(column);
+		} else {
+			colType = tablesToEntities.get(owner.getForeignKey().getToTable());
+		}
 		JFieldVar field = cls.field(JMod.PRIVATE, colType, fieldName);
 		
 		// @Id
@@ -108,17 +150,73 @@ public class Generator {
 			field.annotate(Id.class);
 		}
 		
-		// @Column
-		JAnnotationUse columnAnnotation = field
-			.annotate(Column.class);
-		columnAnnotation
-			.param("name", column.getName());
-		if(colType.equals(cm._ref(String.class))) {
-			columnAnnotation.param("length", column.getLength());
+		// @Column or @JoinColumn
+		if(owner == null) {
+			// @Column
+			JAnnotationUse columnAnnotation = field
+				.annotate(Column.class);
+			columnAnnotation
+				.param("name", column.getName());
+			if(colType.equals(cm._ref(String.class))) {
+				columnAnnotation.param("length", column.getLength());
+			}
+			if(isColumnNullable(column)) {
+				columnAnnotation.param("nullable", true);
+			}
+		} else {
+			// @ManyToOne
+			field.annotate(ManyToOne.class);
+			
+			List<ForeignKeyColumnDto> fkColumns = owner.getForeignKey().getFkColumn();
+			if(fkColumns.size() == 1) {
+				// @JoinColumn
+				field
+					.annotate(JoinColumn.class)
+					.param("name", fkColumns.get(0).getName());
+			} else {
+				// @JoinColumns (plural!)
+				JAnnotationArrayMember valueAnnotation = field
+					.annotate(JoinColumns.class)
+					.paramArray("value");
+				for(ForeignKeyColumnDto fkColumn : fkColumns) {
+					valueAnnotation
+						.annotate(JoinColumn.class)
+						.param("name", fkColumn.getName())
+						.param("referenceColumnName", fkColumn.getPk())
+						;
+				}
+			}
 		}
-		if(isColumnNullable(column)) {
-			columnAnnotation.param("nullable", true);
-		}
+	}
+	
+	private EntityRefFactory findEntityRefFactory(JDefinedClass cls, OneToManyRelation otm) {
+		// for now, all we support is List<> with a created ArrayList<> instance
+		return new EntityRefFactory() {
+			@Override
+			public JExpression createInitExpression() {
+				return JExpr._new(cm._ref(ArrayList.class));
+			}
+			@Override
+			public JClass getCollectionType(JDefinedClass elementType) {
+				return cm.ref(List.class)
+					.narrow(elementType);
+			}
+		};
+	}
+	
+	private void genOneToMany(JDefinedClass cls, OneToManyRelation otm) {
+		
+		EntityRefFactory factory = findEntityRefFactory(cls, otm);
+		JDefinedClass elementType = tablesToEntities.get(otm.getTable().getName());
+		JClass fieldType = factory.getCollectionType(elementType);
+		
+		
+		JFieldVar field = cls
+			.field(JMod.PRIVATE, fieldType, toFieldName(cls, otm.getTable().getName()));
+		
+		field.annotate(OneToMany.class);
+		field.init(factory.createInitExpression());
+			
 	}
 	
 	private boolean isColumnNullable(ColumnDto column) {
@@ -204,7 +302,7 @@ public class Generator {
 		return excludedTables.contains(tableName);
 	}
 	
-	private String toColumnExclusionKey(String tableName, String columnName) {
+	private String toTableColumnKey(String tableName, String columnName) {
 		return tableName + '|' + columnName;
 	}
 	
@@ -212,10 +310,10 @@ public class Generator {
 		if(excludedTableColumns == null) {
 			excludedTableColumns = cfg.getExclude().stream()
 				.filter(x -> x.getColumn() != null)
-				.map(x -> toColumnExclusionKey(x.getTable(), x.getColumn()))
+				.map(x -> toTableColumnKey(x.getTable(), x.getColumn()))
 				.collect(Collectors.toSet());
 		}
-		return excludedTableColumns.contains(toColumnExclusionKey(tableName, columnName));
+		return excludedTableColumns.contains(toTableColumnKey(tableName, columnName));
 	}
 
 	
@@ -268,6 +366,61 @@ public class Generator {
 		}
 		
 		return jtype;
+	}
+	
+	private TableDto findTable(String name) {
+		if(tables == null) {
+			tables = project.getSchema().getTable().stream()
+				.collect(Collectors.toMap(TableDto::getName, t->t));
+		}
+		return tables.get(name);
+	}
+	
+	private ForeignKeyDto findTableForeignKey(String tableName, String columnName) {
+		return findTable(tableName).getFk().stream()
+			.filter(fk -> columnName.equals(fk.getName()))
+			.findAny()
+			.orElse(null);
+	}
+	
+	private OneToManyRelation toOneToManyRelation(OneToManyDto oneToMany) {
+		TableDto table = Optional.of(findTable(oneToMany.getTable()))
+			.orElseThrow(()->new RuntimeException("table not found in oneToMany relation: '" + oneToMany.getTable() + "'"));
+		ForeignKeyDto fk = findTableForeignKey(table.getName(), oneToMany.getRelation().getForeignKey());
+		return new OneToManyRelation(table, fk);
+	}
+	
+	private List<OneToManyRelation> getOneToManyRelations() {
+		if(oneToManyRelations == null) {
+			oneToManyRelations = cfg.getOneToMany().stream()
+				.map(this::toOneToManyRelation)
+				.collect(Collectors.toList());
+		}
+		return oneToManyRelations;
+	}
+
+	
+	private OneToManyRelation findOneToManyOwner(TableDto table, ColumnDto column) {
+		if(tableColumnOneToManyRelations == null) {
+			tableColumnOneToManyRelations = new HashMap<>(); 
+			
+			for(OneToManyRelation otm : getOneToManyRelations()) {
+				for(ForeignKeyColumnDto fkColumn : otm.getForeignKey().getFkColumn()) {
+					String key = toTableColumnKey(otm.getTable().getName(), fkColumn.getName());
+					tableColumnOneToManyRelations.put(key, otm);
+				}
+			}
+		}
+		
+		return tableColumnOneToManyRelations.get(toTableColumnKey(table.getName(), column.getName()));
+	}
+
+	private List<OneToManyRelation> findOneToManyReferences(TableDto table) {
+		if(oneToManyRelationReferences == null) {
+			oneToManyRelationReferences = getOneToManyRelations().stream()
+				.collect(Collectors.groupingBy((otm -> otm.getForeignKey().getToTable())));
+		}
+		return oneToManyRelationReferences.get(table.getName());
 	}
 
 }

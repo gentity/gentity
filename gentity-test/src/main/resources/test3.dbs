@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="test" id="Project_3d20146" template="Default" database="HSql" >
+	<schema name="TEST1" schemaname="TEST1" >
+		<table name="CUSTOMER" >
+			<column name="ID" type="bigint" jt="-5" mandatory="y" />
+			<column name="NAME" type="varchar" length="100" jt="12" mandatory="y" />
+			<index name="PK_CUSTOMER_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+		</table>
+		<table name="IGNORED_TABLE" >
+			<column name="FOO" type="bigint" jt="-5" />
+			<column name="BAR" type="bigint" jt="-5" />
+		</table>
+		<table name="TABLE_WITH_IGNORED_COLS" >
+			<column name="FOO" type="bigint" jt="-5" />
+			<column name="BAR" type="bigint" jt="-5" />
+		</table>
+		<table name="USER" >
+			<column name="ID" type="integer" jt="4" mandatory="y" />
+			<column name="NAME" type="varchar" length="100" jt="12" />
+			<column name="CUSTOMER_ID" type="bigint" jt="-5" />
+			<index name="PK_USER_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+			<index name="IDX_USER_CUSTOMER_ID" unique="NORMAL" >
+				<column name="CUSTOMER_ID" />
+			</index>
+			<fk name="FK_USER_CUSTOMER" to_schema="TEST1" to_table="CUSTOMER" delete_action="cascade" update_action="cascade" >
+				<fk_column name="CUSTOMER_ID" pk="ID" />
+			</fk>
+		</table>
+	</schema>
+	<layout name="Default Layout" id="Layout_3fa23a3" show_relation="columns" >
+		<entity schema="TEST1" name="CUSTOMER" color="c8daf5" x="45" y="45" />
+		<entity schema="TEST1" name="USER" color="c8daf5" x="330" y="225" />
+		<callout x="90" y="105" pointer="NO" >
+			<comment><![CDATA[This project is in offline mode.
+Design the schema and save the design to project file. Later create or upgrade the schema on any database.
+Right-click the layout to add new tables. Drop this callout from its right-click pop-up menu.]]></comment>
+		</callout>
+	</layout>
+</project>
