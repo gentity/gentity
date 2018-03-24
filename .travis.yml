@@ -1,0 +1,5 @@
+# Travis CI build configuration file
+language: java
+
+# we need to build against Java 8; however, the plugin itself targets java 6 for compatibility with swagger-codegen
+jdk:
