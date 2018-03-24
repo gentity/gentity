@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mappingConfig
-	xmlns='https://bitbucket.org/gentity/gentity/ns'
+	xmlns='https://github.com/gentity/gentity/ns'
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="
-	    https://bitbucket.org/gentity/gentity/ns
-			../../../../gentity-core/src/main/resources/xsd/genconfig.xsd
+	    https://github.com/gentity/gentity/ns
+			https://raw.githubusercontent.com/gentity/gentity/master/gentity-core/src/main/resources/xsd/genconfig.xsd
 	"
 	targetPackageName='org.bitbucket.gentity.test.test2'
 	
