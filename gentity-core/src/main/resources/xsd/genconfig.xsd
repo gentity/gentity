@@ -28,6 +28,9 @@ limitations under the License.
 			<xs:element name='exclude' type='tns:Exclusion' minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element name="configuration" type='tns:Configuration' minOccurs="0" maxOccurs="1"/>
 			<xs:element name="table" type='tns:TableConfiguration' minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="oneToMany" type='tns:OneToMany' minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="manyToMany" type='tns:OneToMany' minOccurs="0" maxOccurs="unbounded"/>
+			
 		</xs:sequence>
 		
 		<xs:attribute name="targetPackageName" default="" type="xs:string"/>
@@ -71,4 +74,30 @@ limitations under the License.
 		<xs:attribute name='class' type="xs:string"/>
 	</xs:complexType>
 	
+	<xs:complexType name="XToMany">
+		<xs:attribute name='table' type='xs:string' />
+	</xs:complexType>
+	
+	<xs:complexType name="Relation">
+		<xs:attribute name="foreignKey" type="xs:string"/>
+	</xs:complexType>
+	
+	<xs:complexType name="OneToMany">
+		<xs:complexContent>
+			<xs:extension base="tns:XToMany">
+				<xs:sequence>
+					<xs:element name='relation' type='tns:Relation' minOccurs='1' maxOccurs='1'/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="ManyToMany">
+		<xs:complexContent>
+			<xs:extension base="tns:XToMany">
+				<xs:sequence>
+					<xs:element name='relation' type='tns:Relation' minOccurs='2' maxOccurs='2'/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
 </xs:schema>
