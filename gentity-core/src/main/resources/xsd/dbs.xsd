@@ -1,0 +1,169 @@
+
+
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+>
+  <xs:element name="project" type="Project"/>
+  <xs:complexType name="Column" mixed="true">
+    <xs:sequence>
+      <xs:element type="xs:string" name="defo" minOccurs="0"/>
+      <xs:element type="xs:string" name="comment" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:string" name="type" use="optional"/>
+    <xs:attribute type="xs:short" name="length" use="optional"/>
+    <xs:attribute type="xs:byte" name="jt" use="optional"/>
+    <xs:attribute type="xs:string" name="mandatory" use="optional"/>
+    <xs:attribute type="xs:byte" name="decimal" use="optional"/>
+    <xs:attribute type="xs:string" name="sequence" use="optional"/>
+  </xs:complexType>
+  <xs:simpleType name="IndexUnique">
+	  <xs:restriction base="xs:string">
+		  <xs:enumeration value="NORMAL"/>
+		  <xs:enumeration value="PRIMARY_KEY"/>
+	  </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="Index">
+    <xs:sequence>
+      <xs:element type="Column" name="column" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="IndexUnique" name="unique" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="Table">
+    <xs:sequence>
+      <xs:element type="xs:string" name="comment" minOccurs="0"/>
+      <xs:element type="Column" name="column" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element type="Index" name="index" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element type="ForeignKey" name="fk" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="ForeignKeyColumn">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="name" use="optional"/>
+        <xs:attribute type="xs:string" name="pk" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="ForeignKey">
+    <xs:sequence>
+      <xs:element type="ForeignKeyColumn" name="fk_column" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:string" name="to_schema" use="optional"/>
+    <xs:attribute type="xs:string" name="to_table" use="optional"/>
+    <xs:attribute type="xs:string" name="delete_action" use="optional"/>
+    <xs:attribute type="xs:string" name="update_action" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="Sequence">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="name" use="optional"/>
+        <xs:attribute type="xs:byte" name="start" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="Schema">
+    <xs:sequence>
+      <xs:element type="Table" name="table" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element type="Sequence" name="sequence" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name"/>
+    <xs:attribute type="xs:string" name="schemaname"/>
+  </xs:complexType>
+  <xs:complexType name="Connector">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="name"/>
+        <xs:attribute type="xs:string" name="database"/>
+        <xs:attribute type="xs:string" name="driver_class"/>
+        <xs:attribute type="xs:string" name="driver_jar"/>
+        <xs:attribute type="xs:string" name="driver_desc"/>
+        <xs:attribute type="xs:string" name="host"/>
+        <xs:attribute type="xs:short" name="port"/>
+        <xs:attribute type="xs:string" name="instance"/>
+        <xs:attribute type="xs:string" name="user"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="Entity" mixed="true">
+    <xs:sequence>
+      <xs:element type="Callout" name="callout" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="schema" use="optional"/>
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:string" name="color" use="optional"/>
+    <xs:attribute type="xs:short" name="x" use="optional"/>
+    <xs:attribute type="xs:short" name="y" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="Callout" mixed="true">
+    <xs:sequence>
+      <xs:element type="xs:string" name="comment" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:short" name="x" use="optional"/>
+    <xs:attribute type="xs:short" name="y" use="optional"/>
+    <xs:attribute type="xs:string" name="pointer" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="BrowseTable">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="schema" use="optional"/>
+        <xs:attribute type="xs:string" name="entity" use="optional"/>
+        <xs:attribute type="xs:byte" name="x" use="optional"/>
+        <xs:attribute type="xs:byte" name="y" use="optional"/>
+        <xs:attribute type="xs:short" name="width" use="optional"/>
+        <xs:attribute type="xs:short" name="height" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="Browser">
+    <xs:sequence>
+      <xs:element type="BrowseTable" name="browse_table"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="id" use="optional"/>
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:string" name="confirm_updates" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="Layout">
+    <xs:sequence>
+      <xs:element type="xs:string" name="comment"/>
+      <xs:element type="Entity" name="entity" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element type="Callout" name="callout" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element type="Browser" name="browser" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element type="Group" name="group" minOccurs="0"/>
+      <xs:element type="Script" name="script" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:string" name="id" use="optional"/>
+    <xs:attribute type="xs:string" name="show_relation" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="Group">
+    <xs:sequence>
+      <xs:element type="xs:string" name="comment"/>
+      <xs:element type="Entity" name="entity" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name"/>
+    <xs:attribute type="xs:string" name="color"/>
+  </xs:complexType>
+  <xs:complexType name="Script">
+    <xs:sequence>
+      <xs:element type="xs:string" name="string"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name"/>
+    <xs:attribute type="xs:string" name="id"/>
+    <xs:attribute type="xs:string" name="language"/>
+  </xs:complexType>
+  <xs:complexType name="Project">
+    <xs:sequence>
+      <xs:element type="Schema" name="schema"/>
+      <xs:element type="Connector" name="connector"/>
+      <xs:element type="Layout" name="layout" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name"/>
+    <xs:attribute type="xs:string" name="id"/>
+    <xs:attribute type="xs:string" name="template"/>
+    <xs:attribute type="xs:string" name="database"/>
+  </xs:complexType>
+</xs:schema>
+

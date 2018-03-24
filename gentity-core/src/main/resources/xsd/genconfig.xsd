@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+
+<xs:schema version="1.0"
+		   xmlns:xs="http://www.w3.org/2001/XMLSchema"
+		   targetNamespace="https://bitbucket.org/gentity/gentity/ns"
+		   xmlns:tns="https://bitbucket.org/gentity/gentity/ns"
+		   elementFormDefault="qualified">
+
+	<xs:element name="mappingConfig" type='tns:MappingConfig'/>
+	
+	<xs:complexType name="MappingConfig">
+		<xs:sequence>
+			<xs:element name='exclude' type='tns:Exclusion' minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="configuration" type='tns:Configuration' minOccurs="0" maxOccurs="1"/>
+			<xs:element name="table" type='tns:TableConfiguration' minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		
+		<xs:attribute name="targetPackageName" default="" type="xs:string"/>
+		
+	</xs:complexType>
+
+	<xs:complexType name="Configuration">
+		<xs:sequence>
+			<xs:element name='extends' type='tns:Extends' minOccurs="0" maxOccurs='1'/>
+			<xs:element name='implements' type='tns:Implements' minOccurs="0" maxOccurs='unbounded'/>
+		</xs:sequence>
+		
+		<xs:attribute name="classNameSuffix" default="" type="xs:string"/>
+		<xs:attribute name="classNamePrefix" default="" type="xs:string"/>
+		<xs:attribute name="fieldNameSuffix" default="" type="xs:string"/>
+		<xs:attribute name="fieldNamePrefix" default="" type="xs:string"/>
+	</xs:complexType>
+	
+	<xs:complexType name="Exclusion">
+		<xs:attribute name="table" type="xs:string"/>
+		<xs:attribute name="column" type="xs:string"/>
+	</xs:complexType>
+	
+	<xs:complexType name="TableConfiguration">
+		<xs:annotation>
+			<xs:documentation>Specifies Options for the entity generated from the
+			given table.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="tns:Configuration">
+				<xs:attribute name='table' type="xs:string"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	
+	<xs:complexType name="Extends">
+		<xs:attribute name='class' type="xs:string"/>
+	</xs:complexType>
+	
+	<xs:complexType name="Implements">
+		<xs:attribute name='class' type="xs:string"/>
+	</xs:complexType>
+	
+</xs:schema>
