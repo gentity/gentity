@@ -8,13 +8,28 @@
 				<column name="ID" />
 			</index>
 		</table>
-		<table name="IGNORED_TABLE" >
-			<column name="FOO" type="bigint" jt="-5" />
-			<column name="BAR" type="bigint" jt="-5" />
+		<table name="PRODUCT" >
+			<column name="ID" type="bigint" jt="-5" mandatory="y" />
+			<column name="NAME" type="varchar" length="100" jt="12" />
+			<index name="PK_PRODUCT_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
 		</table>
-		<table name="TABLE_WITH_IGNORED_COLS" >
-			<column name="FOO" type="bigint" jt="-5" />
-			<column name="BAR" type="bigint" jt="-5" />
+		<table name="CUSTOMER_PRODUCT" >
+			<column name="CUSTOMER_ID" type="bigint" jt="-5" mandatory="y" />
+			<column name="PRODUCT_ID" type="bigint" jt="-5" mandatory="y" />
+			<index name="IDX_CUSTOMER_PRODUCT_CUSTOMER_ID" unique="NORMAL" >
+				<column name="CUSTOMER_ID" />
+			</index>
+			<index name="IDX_CUSTOMER_PRODUCT_PRODUCT_ID" unique="NORMAL" >
+				<column name="PRODUCT_ID" />
+			</index>
+			<fk name="FK_CUSTOMER_PRODUCT_PRODUCT" to_schema="TEST1" to_table="PRODUCT" delete_action="cascade" update_action="cascade" >
+				<fk_column name="PRODUCT_ID" pk="ID" />
+			</fk>
+			<fk name="FK_CUSTOMER_PRODUCT_CUSTOMER" to_schema="TEST1" to_table="CUSTOMER" delete_action="cascade" update_action="cascade" >
+				<fk_column name="CUSTOMER_ID" pk="ID" />
+			</fk>
 		</table>
 		<table name="USER" >
 			<column name="ID" type="integer" jt="4" mandatory="y" />

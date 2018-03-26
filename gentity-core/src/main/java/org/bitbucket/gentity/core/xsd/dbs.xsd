@@ -141,7 +141,7 @@ limitations under the License.
   </xs:complexType>
   <xs:complexType name="Layout">
     <xs:sequence>
-      <xs:element type="xs:string" name="comment"/>
+      <xs:element type="xs:string" name="comment" minOccurs="0"/>
       <xs:element type="Entity" name="entity" maxOccurs="unbounded" minOccurs="0"/>
       <xs:element type="Callout" name="callout" maxOccurs="unbounded" minOccurs="0"/>
       <xs:element type="Browser" name="browser" maxOccurs="unbounded" minOccurs="0"/>
@@ -171,7 +171,7 @@ limitations under the License.
   <xs:complexType name="Project">
     <xs:sequence>
       <xs:element type="Schema" name="schema"/>
-      <xs:element type="Connector" name="connector"/>
+      <xs:element type="Connector" name="connector" minOccurs='0'/>
       <xs:element type="Layout" name="layout" maxOccurs="unbounded" minOccurs="0"/>
     </xs:sequence>
     <xs:attribute type="xs:string" name="name"/>

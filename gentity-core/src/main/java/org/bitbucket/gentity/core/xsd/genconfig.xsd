@@ -29,7 +29,7 @@ limitations under the License.
 			<xs:element name="configuration" type='tns:Configuration' minOccurs="0" maxOccurs="1"/>
 			<xs:element name="table" type='tns:TableConfiguration' minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element name="oneToMany" type='tns:OneToMany' minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element name="manyToMany" type='tns:OneToMany' minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="manyToMany" type='tns:ManyToMany' minOccurs="0" maxOccurs="unbounded"/>
 			
 		</xs:sequence>
 		
@@ -86,7 +86,7 @@ limitations under the License.
 		<xs:complexContent>
 			<xs:extension base="tns:XToMany">
 				<xs:sequence>
-					<xs:element name='relation' type='tns:Relation' minOccurs='1' maxOccurs='1'/>
+					<xs:element name='ownerRelation' type='tns:Relation' minOccurs='1' maxOccurs='1'/>
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>
@@ -95,7 +95,8 @@ limitations under the License.
 		<xs:complexContent>
 			<xs:extension base="tns:XToMany">
 				<xs:sequence>
-					<xs:element name='relation' type='tns:Relation' minOccurs='2' maxOccurs='2'/>
+					<xs:element name='ownerRelation' type='tns:Relation' minOccurs='1' maxOccurs='1'/>
+					<xs:element name='referencedRelation' type='tns:Relation' minOccurs='1' maxOccurs='1'/>
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>

@@ -32,12 +32,12 @@ limitations under the License.
 	mapping, list the relation explicitely:
 	-->
 	<oneToMany table='USER'>
-		<relation foreignKey='FK_USER_CUSTOMER'/>
+		<ownerRelation foreignKey='FK_USER_CUSTOMER'/>
 	</oneToMany>
 
 	<manyToMany table='CUSTOMER_PRODUCT'>
-		<relation foreignKey='FK_CUSTOMER_PRODUCT_CUSTOMER'/>
-		<relation foreignKey='FK_CUSTOMER_PRODUCT_PRODUCT'/>
+		<ownerRelation foreignKey='FK_CUSTOMER_PRODUCT_CUSTOMER'/>
+		<referencedRelation foreignKey='FK_CUSTOMER_PRODUCT_PRODUCT'/>
 	</manyToMany> 
 		
 </mappingConfig>
