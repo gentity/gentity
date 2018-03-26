@@ -22,18 +22,25 @@ import org.bitbucket.dbsjpagen.dbsmodel.TableDto;
  *
  * @author upachler
  */
-public class OneToManyRelation extends Relation{
+public class ManyToManyRelation extends Relation {
 	
-	private final ForeignKeyDto foreignKey;
+	
+	private final ForeignKeyDto foreignKey1;
+	private final ForeignKeyDto foreignKey2;
 
-	public OneToManyRelation(TableDto table, ForeignKeyDto foreignKey) {
+	public ManyToManyRelation(TableDto table, ForeignKeyDto foreignKey1, ForeignKeyDto foreignKey2) {
 		super(table);
-		this.foreignKey = foreignKey;
+		this.foreignKey1 = foreignKey1;
+		this.foreignKey2 = foreignKey2;
+	}
+
+
+	public ForeignKeyDto getOwnerForeignKey() {
+		return foreignKey1;
 	}
 	
-	public ForeignKeyDto getForeignKey() {
-		return foreignKey;
+	public ForeignKeyDto getReferencedForeignKey() {
+		return foreignKey2;
 	}
-	
 	
 }
