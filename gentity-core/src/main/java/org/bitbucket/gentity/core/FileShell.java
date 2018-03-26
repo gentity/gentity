@@ -18,12 +18,17 @@ package org.bitbucket.gentity.core;
 import com.sun.codemodel.JCodeModel;
 import java.io.File;
 import java.io.IOException;
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import org.bitbucket.dbsjpagen.config.MappingConfigDto;
-import org.bitbucket.dbsjpagen.config.ObjectFactory;
 import org.bitbucket.dbsjpagen.dbsmodel.ProjectDto;
+import org.bitbucket.gentity.core.xsd.R;
+import org.xml.sax.SAXException;
 
 /**
  *
@@ -32,12 +37,25 @@ import org.bitbucket.dbsjpagen.dbsmodel.ProjectDto;
 public class FileShell {
 	
 	public void generate(File inputFile, File configFile, File outputFolder) throws IOException {
+
+		Schema dbsSchema;
+		Schema genconfigSchema;
+		try {
+			dbsSchema = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
+				.newSchema(R.class.getResource("dbs.xsd"));
+			genconfigSchema = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
+				.newSchema(R.class.getResource("genconfig.xsd"));
+		} catch (SAXException ex) {
+			throw new RuntimeException(ex);
+		}
 		
 		MappingConfigDto config = new MappingConfigDto();
 		if(configFile != null) {
 			try {
-				JAXBElement<MappingConfigDto> configElement = (JAXBElement<MappingConfigDto>)JAXBContext.newInstance(org.bitbucket.dbsjpagen.config.ObjectFactory.class)
-					.createUnmarshaller()
+				Unmarshaller unmarshaller = JAXBContext.newInstance(org.bitbucket.dbsjpagen.config.ObjectFactory.class)
+					.createUnmarshaller();
+				unmarshaller.setSchema(genconfigSchema);
+				JAXBElement<MappingConfigDto> configElement = (JAXBElement<MappingConfigDto>)unmarshaller
 					.unmarshal(configFile);
 				config = configElement.getValue();
 				
@@ -50,8 +68,10 @@ public class FileShell {
 		
 		ProjectDto project;
 		try {
-			JAXBElement<ProjectDto> schemaElement = (JAXBElement<ProjectDto>) JAXBContext.newInstance(org.bitbucket.dbsjpagen.dbsmodel.ObjectFactory.class)
-				.createUnmarshaller()
+			Unmarshaller unmarshaller = JAXBContext.newInstance(org.bitbucket.dbsjpagen.dbsmodel.ObjectFactory.class)
+				.createUnmarshaller();
+			unmarshaller.setSchema(dbsSchema);
+			JAXBElement<ProjectDto> schemaElement = (JAXBElement<ProjectDto>)unmarshaller
 				.unmarshal(inputFile);
 			project = schemaElement.getValue();
 		} catch (JAXBException ex) {
