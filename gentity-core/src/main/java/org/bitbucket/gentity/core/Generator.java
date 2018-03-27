@@ -38,16 +38,20 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import org.bitbucket.dbsjpagen.config.ConfigurationDto;
 import org.bitbucket.dbsjpagen.config.ExclusionDto;
+import org.bitbucket.dbsjpagen.config.ManyToManyDto;
 import org.bitbucket.dbsjpagen.config.MappingConfigDto;
 import org.bitbucket.dbsjpagen.config.OneToManyDto;
 import org.bitbucket.dbsjpagen.config.TableConfigurationDto;
@@ -69,6 +73,18 @@ public class Generator {
 	JCodeModel cm;
 	Map<String, JDefinedClass> tablesToEntities;
 	
+	private final EntityRefFactory LIST_ENTITY_REF_FACTORY = new EntityRefFactory() {
+		@Override
+		public JExpression createInitExpression() {
+			return JExpr._new(cm._ref(ArrayList.class));
+		}
+		@Override
+		public JClass getCollectionType(JDefinedClass elementType) {
+			return cm.ref(List.class)
+				.narrow(elementType);
+		}
+	};
+
 	private static final int MAX_CANDIDATES = 100;
 	private Set<String> excludedTables;
 	private Set<String> excludedTableColumns;
@@ -78,6 +94,8 @@ public class Generator {
 	private HashMap<String, OneToManyRelation> tableColumnOneToManyRelations;
 	private List<OneToManyRelation> oneToManyRelations;
 	private Map<String, List<OneToManyRelation>> oneToManyRelationReferences;
+	private List<ManyToManyRelation> manyToManyRelations;
+	private Map<String, ManyToManyRelation> manyToManyRelationsJoinTables;
 	
 	public Generator(MappingConfigDto cfg, ProjectDto project) {
 		this.cfg = cfg;
@@ -97,7 +115,7 @@ public class Generator {
 			
 			// filter tables and generate empty entity classes
 			for(TableDto table : project.getSchema().getTable()) {
-				if(isTableExcluded(table.getName())) {
+				if(isTableExcluded(table.getName()) || isJoinTable(table.getName())) {
 					continue;
 				}
 				JDefinedClass cls = p._class(JMod.PUBLIC, toClassName(p, table.getName()));
@@ -126,6 +144,15 @@ public class Generator {
 				genOneToMany(cls, otm);
 			}
 			
+			// add many-to-manh relations
+			for(ManyToManyRelation mtm : getManyToManyRelations()) {
+				JDefinedClass ownerClass = tablesToEntities.get(mtm.getOwnerForeignKey().getToTable());
+				JDefinedClass referencedClass = tablesToEntities.get(mtm.getReferencedForeignKey().getToTable());
+				
+				String fieldName = genManyToManyOwner(ownerClass, mtm);
+				genManyToManyReferenced(referencedClass, mtm, fieldName);
+			}
+			
 		} catch(JClassAlreadyExistsException caex) {
 			throw new RuntimeException(caex);
 		}
@@ -137,7 +164,7 @@ public class Generator {
 		
 		String fieldName = toFieldName(cls, column.getName());
 		
-		OneToManyRelation owner = findOneToManyOwner(table, column);
+		OneToManyRelation owner = findOneToManyRelationOwner(table, column);
 		
 		JType colType;
 		if(owner == null) {
@@ -180,45 +207,65 @@ public class Generator {
 				JAnnotationArrayMember valueAnnotation = field
 					.annotate(JoinColumns.class)
 					.paramArray("value");
-				for(ForeignKeyColumnDto fkColumn : fkColumns) {
-					valueAnnotation
-						.annotate(JoinColumn.class)
-						.param("name", fkColumn.getName())
-						.param("referenceColumnName", fkColumn.getPk())
-						;
-				}
+				genJoinColumns(valueAnnotation, fkColumns);
 			}
 		}
 	}
 	
-	private EntityRefFactory findEntityRefFactory(JDefinedClass cls, OneToManyRelation otm) {
+	private void genJoinColumns(JAnnotationArrayMember joinColumnsArray, List<ForeignKeyColumnDto> fkColumns) {
+		for(ForeignKeyColumnDto fkColumn : fkColumns) {
+			joinColumnsArray
+				.annotate(JoinColumn.class)
+				.param("name", fkColumn.getName())
+				.param("referencedColumnName", fkColumn.getPk())
+				;
+		}
+	}
+	private EntityRefFactory findEntityRefFactory(JDefinedClass cls) {
 		// for now, all we support is List<> with a created ArrayList<> instance
-		return new EntityRefFactory() {
-			@Override
-			public JExpression createInitExpression() {
-				return JExpr._new(cm._ref(ArrayList.class));
-			}
-			@Override
-			public JClass getCollectionType(JDefinedClass elementType) {
-				return cm.ref(List.class)
-					.narrow(elementType);
-			}
-		};
+		return LIST_ENTITY_REF_FACTORY;
+	}
+	
+	private JFieldVar genRelationFieldVar(JDefinedClass cls, String targetTableName) {
+		EntityRefFactory factory = findEntityRefFactory(cls);
+		JDefinedClass elementType = tablesToEntities.get(targetTableName);
+		JClass fieldType = factory.getCollectionType(elementType);
+		
+		JFieldVar field = cls
+			.field(JMod.PRIVATE, fieldType, toFieldName(cls, targetTableName));
+
+		field.init(factory.createInitExpression());
+		return field;
 	}
 	
 	private void genOneToMany(JDefinedClass cls, OneToManyRelation otm) {
-		
-		EntityRefFactory factory = findEntityRefFactory(cls, otm);
-		JDefinedClass elementType = tablesToEntities.get(otm.getTable().getName());
-		JClass fieldType = factory.getCollectionType(elementType);
-		
-		
-		JFieldVar field = cls
-			.field(JMod.PRIVATE, fieldType, toFieldName(cls, otm.getTable().getName()));
-		
+		JFieldVar field = genRelationFieldVar(cls, otm.getTable().getName());
 		field.annotate(OneToMany.class);
-		field.init(factory.createInitExpression());
-			
+	}
+	
+	private String genManyToManyOwner(JDefinedClass cls, ManyToManyRelation mtm) {
+		JFieldVar field = genRelationFieldVar(cls, mtm.getReferencedForeignKey().getToTable());
+		
+		field.annotate(ManyToMany.class);
+		
+		JAnnotationUse joinTableAnnotation = field.annotate(JoinTable.class)
+			.param("name", mtm.getTable().getName());
+		
+		JAnnotationArrayMember joinColumnsArray = joinTableAnnotation
+			.paramArray("joinColumns");
+		genJoinColumns(joinColumnsArray, mtm.getOwnerForeignKey().getFkColumn());
+		
+		JAnnotationArrayMember inverseJoinColumnsArray = joinTableAnnotation
+			.paramArray("inverseJoinColumns");
+		genJoinColumns(inverseJoinColumnsArray, mtm.getReferencedForeignKey().getFkColumn());
+		return field.name();
+	}
+	
+	private void genManyToManyReferenced(JDefinedClass cls, ManyToManyRelation mtm, String mappedByFieldName) {
+		JFieldVar field = genRelationFieldVar(cls, mtm.getOwnerForeignKey().getToTable());
+		
+		field.annotate(ManyToMany.class)
+			.param("mappedBy", mappedByFieldName);
 	}
 	
 	private boolean isColumnNullable(ColumnDto column) {
@@ -392,24 +439,73 @@ public class Generator {
 			.orElse(null);
 	}
 	
+	private ForeignKeyDto toTableForeignKey(String tableName, String foreignKeyName) {
+		return Optional.of(findTableForeignKey(tableName, foreignKeyName))
+			.orElseThrow(()->new RuntimeException("foreign key '" + foreignKeyName + "' not found for table '" + tableName + "'"));
+	}
+	
 	private OneToManyRelation toOneToManyRelation(OneToManyDto oneToMany) {
 		TableDto table = Optional.of(findTable(oneToMany.getTable()))
 			.orElseThrow(()->new RuntimeException("table not found in oneToMany relation: '" + oneToMany.getTable() + "'"));
-		ForeignKeyDto fk = findTableForeignKey(table.getName(), oneToMany.getRelation().getForeignKey());
+		ForeignKeyDto fk = toTableForeignKey(table.getName(), oneToMany.getOwnerRelation().getForeignKey());
 		return new OneToManyRelation(table, fk);
+	}
+	
+	private ManyToManyRelation toManyToManyRelation(ManyToManyDto manyToMany) {
+		TableDto table = Optional.ofNullable(findTable(manyToMany.getTable()))
+			.orElseThrow(()->new RuntimeException("table not found in manyToMany relation: '" + manyToMany.getTable() + "'"));
+		// NOTE: We know that there must be exactly two  relations here
+		
+		String ownerFkName =  manyToMany.getOwnerRelation().getForeignKey();
+		String referencedFkName =  manyToMany.getReferencedRelation().getForeignKey();
+		ForeignKeyDto ownerFk = findTableForeignKey(table.getName(), ownerFkName);
+		ForeignKeyDto referencedFk = findTableForeignKey(table.getName(), referencedFkName);
+		return new ManyToManyRelation(table, ownerFk, referencedFk);
 	}
 	
 	private List<OneToManyRelation> getOneToManyRelations() {
 		if(oneToManyRelations == null) {
 			oneToManyRelations = cfg.getOneToMany().stream()
 				.map(this::toOneToManyRelation)
-				.collect(Collectors.toList());
+				.collect(Collectors.toCollection(ArrayList::new));
+			
+			Set<String> otmFkNames = oneToManyRelations.stream()
+				.map(otm -> otm.getForeignKey().getName())
+				.collect(Collectors.toSet());
+			Set<String> mtmFkNames = getManyToManyRelations().stream()
+				.flatMap(mtm -> Stream.of(mtm.getOwnerForeignKey(), mtm.getReferencedForeignKey()))
+				.map(ForeignKeyDto::getName)
+				.collect(Collectors.toSet());
+			
+			for(TableDto t : tables.values()) {
+				t.getFk().stream()
+					.filter(fk -> !otmFkNames.contains(fk.getName()))
+					.filter(fk -> !mtmFkNames.contains(fk.getName()))
+					.map(fk -> new OneToManyRelation(t, fk))
+					.forEach(oneToManyRelations::add);
+			}
 		}
 		return oneToManyRelations;
 	}
-
 	
-	private OneToManyRelation findOneToManyOwner(TableDto table, ColumnDto column) {
+	private List<ManyToManyRelation> getManyToManyRelations() {
+		if(manyToManyRelations == null) {
+			manyToManyRelations = cfg.getManyToMany().stream()
+				.map(this::toManyToManyRelation)
+				.collect(Collectors.toList());
+		}
+		return manyToManyRelations;
+	}
+	
+	private boolean isJoinTable(String tableName) {
+		if(manyToManyRelationsJoinTables == null) {
+			manyToManyRelationsJoinTables = getManyToManyRelations().stream()
+				.collect(Collectors.toMap(mtm->mtm.getTable().getName(), mtm->mtm));
+		}
+		return manyToManyRelationsJoinTables.containsKey(tableName);
+	}
+	
+	private OneToManyRelation findOneToManyRelationOwner(TableDto table, ColumnDto column) {
 		if(tableColumnOneToManyRelations == null) {
 			tableColumnOneToManyRelations = new HashMap<>(); 
 			
@@ -424,7 +520,7 @@ public class Generator {
 		return tableColumnOneToManyRelations.get(toTableColumnKey(table.getName(), column.getName()));
 	}
 
-	private List<OneToManyRelation> findOneToManyReferences(TableDto table) {
+	private List<OneToManyRelation> findOneToManyRelationReferences(TableDto table) {
 		if(oneToManyRelationReferences == null) {
 			oneToManyRelationReferences = getOneToManyRelations().stream()
 				.collect(Collectors.groupingBy((otm -> otm.getForeignKey().getToTable())));
