@@ -21,6 +21,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
 import org.bitbucket.gentity.core.FileShell;
 
 /**
@@ -39,7 +40,13 @@ public class GentityMojo extends AbstractMojo{
 	@Parameter( property = "generate.mappingConfigFile" )
 	private File mappingConfigFile;
 	
+	@Parameter (defaultValue="${project}", required=true, readonly=true)
+	private MavenProject project;
+
+	@Override
     public void execute() throws MojoExecutionException {
+		project.addCompileSourceRoot(outputFolder.getAbsolutePath());
+		
 		if(!outputFolder.exists()) {
 			if(!outputFolder.mkdirs()) {
 				throw new MojoExecutionException("output folder '" + outputFolder.toString() + "' does not exist, and cannot be created");
@@ -50,8 +57,9 @@ public class GentityMojo extends AbstractMojo{
 			throw new MojoExecutionException("input file '" + inputDbsFile.toString() + "' does not exist");
 		}
 		
-		if(mappingConfigFile != null && mappingConfigFile.exists()) {
+		if(mappingConfigFile != null && !mappingConfigFile.exists()) {
 			getLog().warn("specified mapping config file '" + mappingConfigFile + "' does not exist, continuing without it");
+			mappingConfigFile = null;
 		}
 		
 		FileShell shell = new FileShell();
