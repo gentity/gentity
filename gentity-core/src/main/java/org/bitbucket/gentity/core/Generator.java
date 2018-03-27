@@ -28,6 +28,8 @@ import com.sun.codemodel.JMod;
 import com.sun.codemodel.JPackage;
 import com.sun.codemodel.JType;
 import java.io.Serializable;
+import java.sql.Blob;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -230,17 +232,17 @@ public class Generator {
 			.anyMatch(col -> col.getName().equals(column.getName()));
 	}
 	
-	private String javatizeName(String name, boolean startUppercase) {
+	static String javatizeName(String name, boolean startUppercase) {
 		boolean needsUppercasing = startUppercase;
 		StringBuilder sb = new StringBuilder();
 		for(char c : name.toCharArray()) {
 			boolean alpha = (c >= 'a' && c<='z' || c>='A' && c<='Z');
 			if(!alpha) {
-				needsUppercasing = false;
+				needsUppercasing = true;
 				continue;
 			}	
 			
-			if(!needsUppercasing && !Character.isUpperCase(c)) {
+			if(needsUppercasing && !Character.isUpperCase(c)) {
 				c = Character.toUpperCase(c);
 				needsUppercasing = false;
 			}
@@ -356,6 +358,13 @@ public class Generator {
 			case "double":
 			case "double precision":
 				jtype = cm.DOUBLE;
+				break;
+			case "blob":
+			case "bytea":
+				jtype = cm.ref(Blob.class);
+				break;
+			case "timestamp":
+				jtype = cm.ref(Timestamp.class);
 				break;
 			default:
 				throw new RuntimeException("no mapping found for SQL type '" + column.getType() + "'");
