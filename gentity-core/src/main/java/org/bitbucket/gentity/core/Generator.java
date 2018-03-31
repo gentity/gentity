@@ -106,6 +106,9 @@ public class Generator {
 			cm = new JCodeModel();
 		}
 		JPackage p = cm._package(cfg.getTargetPackageName());
+		
+		AccessorGenerator accessorGenerator = new AccessorGenerator(cm);
+	
 		try {
 			JClass serializableClass = cm.ref(Serializable.class);
 			
@@ -150,6 +153,9 @@ public class Generator {
 				String fieldName = genManyToManyOwner(ownerClass, mtm);
 				genManyToManyReferenced(referencedClass, mtm, fieldName);
 			}
+			
+			// generate accessor methods
+			tablesToEntities.values().forEach(accessorGenerator::generateAccessors);
 			
 		} catch(JClassAlreadyExistsException caex) {
 			throw new RuntimeException(caex);
