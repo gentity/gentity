@@ -33,6 +33,7 @@ limitations under the License.
   <xs:simpleType name="IndexUnique">
 	  <xs:restriction base="xs:string">
 		  <xs:enumeration value="NORMAL"/>
+		  <xs:enumeration value="UNIQUE"/>
 		  <xs:enumeration value="PRIMARY_KEY"/>
 	  </xs:restriction>
   </xs:simpleType>
