@@ -15,15 +15,7 @@
  */
 package com.github.gentity.test;
 
-import java.util.HashMap;
-import java.util.Map;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import org.bitbucket.gentity.test.test1.CUSTOMER;
-import org.hsqldb.jdbc.JDBCDriver;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import com.github.gentity.test.test1.Customer;
 import org.junit.Test;
 
 /**
@@ -35,8 +27,8 @@ public class Test1 extends AbstractGentityTest{
 
 	@Test
 	public void test() {
-		em.persist(CUSTOMER.builder()
-			.NAME("Albert Einstein")
+		em.persist(Customer.builder()
+			.name("Albert Einstein")
 			.build()
 		);
 		

@@ -15,6 +15,7 @@
  */
 package org.bitbucket.gentity.core;
 
+import java.util.Locale;
 import java.util.function.Predicate;
 
 /**
@@ -37,11 +38,33 @@ class NameProvider {
 		throw new RuntimeException("too many attempts to form a name for table, last unsuccessful candidate was '" + candidate + "'");
 	}
 
+	private static boolean isAlpha(char c) {
+		return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z';
+	}
+	
+	private static boolean isAllUppercase(String s) {
+		for(int i=0; i<s.length(); ++i) {
+			char c = s.charAt(i);
+			if(isAlpha(c) && !Character.isUpperCase(c)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
 	String javatizeName(String name, boolean startUppercase) {
+		
+		// all-uppercase names like 'BANKACCOUNT' will be lowercased first 
+		// (resulting in 'bankaccount'. Input strings like 'BankAccount' will
+		// remain untouched
+		if(isAllUppercase(name)) {
+			name = name.toLowerCase(Locale.US);
+		}
+		
 		boolean needsUppercasing = startUppercase;
 		StringBuilder sb = new StringBuilder();
 		for (char c : name.toCharArray()) {
-			boolean alpha = c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z';
+			boolean alpha = isAlpha(c);
 			if (!alpha) {
 				needsUppercasing = true;
 				continue;

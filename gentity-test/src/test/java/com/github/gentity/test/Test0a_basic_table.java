@@ -15,7 +15,8 @@
  */
 package com.github.gentity.test;
 
-import com.github.gentity.test.test0a_basic_table.PERSON;
+import com.github.gentity.test.test0a_basic_table.Person;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -28,11 +29,33 @@ public class Test0a_basic_table extends AbstractGentityTest {
 	@Test
 	public void test() {
 		em.persist(
-			PERSON.builder()
-			.ID(1)
-			.FIRSTNAME("Albert")
-			.SURNAME("Einstein")
+			Person.builder()
+			.id(1)
+			.firstname("Albert")
+			.surname("Einstein")
 			.build()
 		);
+		em.persist(
+			Person.builder()
+			.id(2)
+			.firstname("Max")
+			.surname("Planck")
+			.build()
+		);
+		em.persist(
+			Person.builder()
+			.id(3)
+			.firstname("Nils")
+			.surname("Bohr")
+			.build()
+		);
+		
+		em.flush();
+		
+		Person p = em.createQuery("SELECT p FROM Person p WHERE p.firstname='Max'", Person.class)
+			.getSingleResult();
+		
+		Assert.assertEquals("Planck", p.getSurname());
+			
 	}
 }

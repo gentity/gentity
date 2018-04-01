@@ -23,7 +23,6 @@ limitations under the License.
 	    https://github.com/gentity/gentity/ns
 			https://raw.githubusercontent.com/gentity/gentity/master/gentity-core/src/main/resources/xsd/genconfig.xsd
 	"
-	targetPackageName='org.bitbucket.gentity.test.test2'
 >
 	<exclude table="IGNORED_TABLE"/>
 	<exclude table="TABLE_WITH_IGNORED_COLS" column="BAR"/>
