@@ -22,18 +22,19 @@ import static org.junit.Assert.*;
  *
  * @author upachler
  */
-public class GeneratorTest {
+public class NameProviderTest {
 	
-	public GeneratorTest() {
+	public NameProviderTest() {
 	}
 
 	@Test
 	public void testJavatizeName() {
-		assertEquals("foo", Generator.javatizeName("foo", false));
-		assertEquals("Foo", Generator.javatizeName("foo", true));
+		NameProvider np = new NameProvider();
+		assertEquals("foo", np.javatizeName("foo", false));
+		assertEquals("Foo", np.javatizeName("foo", true));
 		
-		assertEquals("fooBar", Generator.javatizeName("foo_bar", false));
-		assertEquals("FooBar", Generator.javatizeName("foo_bar", true));
+		assertEquals("fooBar", np.javatizeName("foo_bar", false));
+		assertEquals("FooBar", np.javatizeName("foo_bar", true));
 		
 		
 	}
