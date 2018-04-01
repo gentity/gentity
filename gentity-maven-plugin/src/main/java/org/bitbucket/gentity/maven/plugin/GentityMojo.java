@@ -31,14 +31,36 @@ import org.bitbucket.gentity.core.FileShell;
 @Mojo( name = "generate")
 public class GentityMojo extends AbstractMojo{
 	
+	/**
+	 * Input DbSchema file that is the source for the entity generator.
+	 */
 	@Parameter( property = "generate.inputDbsFile", required = true )
 	private File inputDbsFile;
 	
+	/**
+	 * The base directory into which the sources are generated. If the sources
+	 * are generated into a specific package, do not specify this here, but 
+	 * use the {@code targetPackageName} property instead.
+	 */
 	@Parameter( property = "generate.outputFolder", defaultValue = "target/generated-sources/gentity" )
 	private File outputFolder;
 	
+	/**
+	 * Path to the mapping configuration file. If not specfied, a default 
+	 * configuration will be used. Use the mapping configuration file to 
+	 * customize the entity generation process, (e.g. to specify which 
+	 * associations are one-to-many and which are many-to-many)
+	 */
 	@Parameter( property = "generate.mappingConfigFile" )
 	private File mappingConfigFile;
+	
+	/**
+	 * The name of the java package that the sources are generated into. This
+	 * setting can be overridden in the mapping configuration file by specifying
+	 * a non-empty package name there.
+	 */
+	@Parameter( property = "generate.targetPackageName" )
+	private String targetPackageName;
 	
 	@Parameter (defaultValue="${project}", required=true, readonly=true)
 	private MavenProject project;
@@ -63,6 +85,8 @@ public class GentityMojo extends AbstractMojo{
 		}
 		
 		FileShell shell = new FileShell();
+		shell.setTargetPackageName(targetPackageName);
+		
 		try {
 			shell.generate(inputDbsFile, mappingConfigFile, outputFolder);
 		} catch (IOException ex) {
