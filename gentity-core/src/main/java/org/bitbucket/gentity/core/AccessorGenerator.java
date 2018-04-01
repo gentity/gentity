@@ -80,7 +80,7 @@ class AccessorGenerator {
 	}
 	
 	String initialUppercaseOf(String name) {
-		return name.charAt(0) + name.substring(1);
+		return Character.toUpperCase(name.charAt(0)) + name.substring(1);
 	}
 	
 	void genGetter(JDefinedClass cls, JFieldVar field) {

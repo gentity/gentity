@@ -5,12 +5,12 @@
              version="2.1">
 			 
 	<persistence-unit name="Test0a_basic_table" transaction-type="RESOURCE_LOCAL">
-		<class>com.github.gentity.test.test0a_basic_table.PERSON</class>
+		<class>com.github.gentity.test.test0a_basic_table.Person</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 	<persistence-unit name="Test1" transaction-type="RESOURCE_LOCAL">
-		<class>org.bitbucket.gentity.test.test1.CUSTOMER</class>
-		<class>org.bitbucket.gentity.test.test1.USER</class>
+		<class>com.github.gentity.test.test1.Customer</class>
+		<class>com.github.gentity.test.test1.User</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 </persistence>

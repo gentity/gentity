@@ -33,9 +33,13 @@ public class NameProviderTest {
 		assertEquals("foo", np.javatizeName("foo", false));
 		assertEquals("Foo", np.javatizeName("foo", true));
 		
+		// test first character uppercasing
 		assertEquals("fooBar", np.javatizeName("foo_bar", false));
 		assertEquals("FooBar", np.javatizeName("foo_bar", true));
 		
+		// test lowercasing all-uppercase names
+		assertEquals("foobar", np.javatizeName("FOOBAR", false));
+		assertEquals("fooBar", np.javatizeName("fooBar", false));
 		
 	}
 	
