@@ -22,9 +22,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import org.hsqldb.jdbc.JDBCDriver;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 
 /**
  *
@@ -32,11 +30,18 @@ import org.junit.BeforeClass;
  */
 public class AbstractGentityTest {
 
-	protected static EntityManager em;
-	protected static EntityManagerFactory emf;
+	private final String persistenceUnitName;
+	
+	protected EntityManager em;
+	protected EntityManagerFactory emf;
 
-	@BeforeClass
-	public static void init() {
+	public AbstractGentityTest() {
+		this.persistenceUnitName = getClass().getSimpleName();
+	}
+
+	
+	@Before
+	public void beforeTest() {
 		Map<String, String> emProperties = new HashMap<String, String>() {
 			{
 				put("javax.persistence.jdbc.driver", JDBCDriver.class.getName());
@@ -46,25 +51,19 @@ public class AbstractGentityTest {
 				put("eclipselink.ddl-generation", "create-tables");
 			}
 		};
-		Test1.emf = Persistence.createEntityManagerFactory("test1", emProperties);
-		Test1.em = Test1.emf.createEntityManager();
-	}
+		emf = Persistence.createEntityManagerFactory(persistenceUnitName, emProperties);
+		em = emf.createEntityManager();
 
-	@Before
-	public void beforeTest() {
 		em.getTransaction().begin();
 	}
 	
 	@After
 	public void afterTest() {
 		em.getTransaction().rollback();
-	}
-	
-	@AfterClass
-	public static void shutdown() {
-		Test1.em.createNativeQuery("SHUTDOWN");
-		Test1.em.clear();
-		Test1.emf.close();
+
+		em.createNativeQuery("SHUTDOWN");
+		em.clear();
+		emf.close();
 	}
 	
 	protected EntityManager em() {

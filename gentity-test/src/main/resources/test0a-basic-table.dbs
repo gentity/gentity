@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="test0" id="Project_13045f4" template="Default" database="HSql" >
+	<schema name="TEST0A" schemaname="TEST0A" >
+		<table name="PERSON" >
+			<column name="ID" type="bigint" length="100" jt="-5" mandatory="y" />
+			<column name="FIRSTNAME" type="varchar" length="100" jt="12" mandatory="y" />
+			<column name="SURNAME" type="varchar" length="100" jt="12" mandatory="y" />
+			<index name="PK_PERSON_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+		</table>
+	</schema>
+	<layout name="Default Layout" id="Layout_5dfac38" show_relation="columns" >
+		<entity schema="TEST0A" name="PERSON" color="c8daf5" x="45" y="45" />
+	</layout>
+</project>
