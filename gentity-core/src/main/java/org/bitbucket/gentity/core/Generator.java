@@ -85,7 +85,7 @@ public class Generator {
 		}
 	};
 
-	private static final int MAX_CANDIDATES = 100;
+	private NameProvider nameProvider;
 	private Set<String> excludedTables;
 	private Set<String> excludedTableColumns;
 	private Map<String, ConfigurationDto> tableConfigurations;
@@ -110,7 +110,8 @@ public class Generator {
 		JPackage p = cm._package(cfg.getTargetPackageName());
 		
 		AccessorGenerator accessorGenerator = new AccessorGenerator(cm);
-	
+		nameProvider = new NameProvider();
+		
 		try {
 			JClass serializableClass = cm.ref(Serializable.class);
 			
@@ -285,52 +286,19 @@ public class Generator {
 			.anyMatch(col -> col.getName().equals(column.getName()));
 	}
 	
-	static String javatizeName(String name, boolean startUppercase) {
-		boolean needsUppercasing = startUppercase;
-		StringBuilder sb = new StringBuilder();
-		for(char c : name.toCharArray()) {
-			boolean alpha = (c >= 'a' && c<='z' || c>='A' && c<='Z');
-			if(!alpha) {
-				needsUppercasing = true;
-				continue;
-			}	
-			
-			if(needsUppercasing && !Character.isUpperCase(c)) {
-				c = Character.toUpperCase(c);
-				needsUppercasing = false;
-			}
-			
-			sb.append(c);
-		}
-		return sb.toString();
-	}
-	
-	private String findNonexistingName(String prefix, String suffix, Predicate<String> existenceTest) {
-		String candidate = "";
-		for(int n=0; n<MAX_CANDIDATES; ++n) {
-			String candidateNumber = n==0 ? "" : Integer.toString(n);
-			candidate = prefix + candidateNumber + suffix;
-			
-			if(!existenceTest.test(candidate)) {
-				return candidate;
-			}
-		}
-		throw new RuntimeException("too many attempts to form a name for table, last unsuccessful candidate was '" + candidate + "'");
-	}
-	
 	private String toClassName(JPackage p, String name) {
 		
-		String baseName = javatizeName(name, true);
+		String baseName = nameProvider.javatizeName(name, true);
 		
 		ConfigurationDto cfg = findClassOptions(name);
-		return findNonexistingName(cfg.getClassNamePrefix() + baseName, cfg.getClassNameSuffix(), p::isDefined);
+		return nameProvider.findNonexistingName(cfg.getClassNamePrefix() + baseName, cfg.getClassNameSuffix(), p::isDefined);
 	}
 
 	private String toFieldName(JDefinedClass cls, String name) {
-		String baseName = javatizeName(name, false);
+		String baseName = nameProvider.javatizeName(name, false);
 		
 		ConfigurationDto cfg = findClassOptions(name);
-		return findNonexistingName(cfg.getFieldNamePrefix() + baseName, cfg.getFieldNameSuffix(), cls.fields()::containsKey);
+		return nameProvider.findNonexistingName(cfg.getFieldNamePrefix() + baseName, cfg.getFieldNameSuffix(), cls.fields()::containsKey);
 	}
 	
 	private ConfigurationDto findClassOptions(String name) {
