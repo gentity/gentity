@@ -189,8 +189,8 @@ public class Generator {
 			if(colType.equals(cm._ref(String.class))) {
 				columnAnnotation.param("length", column.getLength());
 			}
-			if(isColumnNullable(column)) {
-				columnAnnotation.param("nullable", true);
+			if(!isColumnNullable(column)) {
+				columnAnnotation.param("nullable", false);
 			}
 		} else {
 			// @ManyToOne
