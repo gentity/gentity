@@ -21,6 +21,17 @@
 				<version>${project.version}</version>
 				<executions>
 					<execution>
+						<id>entities-test0a-basic-table</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputDbsFile>src/main/resources/test0a-basic-table.dbs</inputDbsFile>
+							<targetPackageName>com.github.gentity.test.test0a_basic_table</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
 						<id>entities-test1</id>
 						<phase>generate-sources</phase>
 						<goals>
