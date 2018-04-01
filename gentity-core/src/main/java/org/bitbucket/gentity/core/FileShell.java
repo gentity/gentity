@@ -36,6 +36,12 @@ import org.xml.sax.SAXException;
  */
 public class FileShell {
 	
+	private String targetPackageName;
+
+	public void setTargetPackageName(String targetPackageName) {
+		this.targetPackageName = targetPackageName;
+	}
+	
 	public void generate(File inputFile, File configFile, File outputFolder) throws IOException {
 
 		Schema dbsSchema;
@@ -64,6 +70,13 @@ public class FileShell {
 				checkForIOException(ex);
 				throw new RuntimeException(ex);
 			}
+		}
+		
+		// if a targetPackageName was specified to this shell instance and the
+		// configured value for the package name is empty (the default), the
+		// value is overridden with the one specified in the shell
+		if(targetPackageName != null && config.getTargetPackageName().isEmpty()) {
+			config.setTargetPackageName(targetPackageName);
 		}
 		
 		ProjectDto project;
