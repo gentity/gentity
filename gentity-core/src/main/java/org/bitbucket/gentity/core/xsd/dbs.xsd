@@ -28,6 +28,7 @@ limitations under the License.
     <xs:attribute type="xs:byte" name="jt" use="optional"/>
     <xs:attribute type="xs:string" name="mandatory" use="optional"/>
     <xs:attribute type="xs:byte" name="decimal" use="optional"/>
+    <xs:attribute type="xs:string" name="autoincrement" use="optional"/>
     <xs:attribute type="xs:string" name="sequence" use="optional"/>
   </xs:complexType>
   <xs:simpleType name="IndexUnique">
