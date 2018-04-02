@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="test0" id="Project_13045f4" template="Default" database="PostgreSQL" >
+	<schema name="test0b" schemaname="test0b" >
+		<table name="person" >
+			<column name="id" type="bigint" length="0" decimal="0" jt="-5" mandatory="y" sequence="seq_person_id" />
+			<column name="firstname" type="varchar" length="100" decimal="0" jt="12" mandatory="y" />
+			<column name="surname" type="varchar" length="100" decimal="0" jt="12" mandatory="y" />
+			<index name="pk_person_id" unique="PRIMARY_KEY" >
+				<column name="id" />
+			</index>
+		</table>
+		<sequence name="seq_person_id" start="1" />
+	</schema>
+	<layout name="default layout" id="Layout_5dfac38" show_relation="columns" >
+		<entity schema="test0b" name="person" color="c8daf5" x="45" y="45" />
+	</layout>
+</project>

@@ -32,6 +32,28 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>entities-test0b-basic-table-sequence</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputDbsFile>src/main/resources/test0b-basic-table-sequence.dbs</inputDbsFile>
+							<targetPackageName>com.github.gentity.test.test0b_basic_table_sequence</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
+						<id>entities-test0c-basic-table-autoincrement</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputDbsFile>src/main/resources/test0c-basic-table-autoincrement.dbs</inputDbsFile>
+							<targetPackageName>com.github.gentity.test.test0c_basic_table_autoincrement</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
 						<id>entities-test1</id>
 						<phase>generate-sources</phase>
 						<goals>
