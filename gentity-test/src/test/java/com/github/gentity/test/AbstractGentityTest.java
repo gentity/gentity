@@ -29,7 +29,33 @@ import org.junit.Before;
  * @author count
  */
 public class AbstractGentityTest {
-
+	
+	/*
+	If this is set to true, it will use the external hsqldb that is specfied
+	in EXTERNAL_HSQLDB_URL. To run the tests from the external hsqldb, do this
+	(but beware, rollback is disabled in this case):
+	
+	* download hsqldb-*.zip from http://hsqldb.org (alternatively, use the jar 
+	  from your local maven repo, but you'll need to adjust the paths below)
+	* unzip the file into a directory that we'll call $HSQLDIR.
+	* cd into $HSQLDIR
+	* In shell window 1, we run the server:
+	  - 'cd $HSQLDIR/data' (the data directory unpacked from your zip file)
+	  - run 'java -cp ../lib/hsqldb.jar org.hsqldb.Server -database.0 file:mydb -dbname.0 xdb'
+	  - keep the server running as long as you want the database around;
+	  - to clear the database, shutdown the server and delete files in $HSQLDIR/data
+	* In shell window 2, we run the HSQLDB Manager tool:
+	  - 'cd $HSQLDIR'
+	  - 'java -cp lib/hsqldb.jar org.hsqldb.util.DatabaseManagerSwing'
+	  - As JDBC URL, use 'jdbc:hsqldb:hsql://localhost/xdb;shutdown=false;autocommit=true'
+	    (the same as the value in the member variable EXTERNAL_HSQLDB_URL)
+	*/
+	private static final boolean EXTERNAL_HSQLDB_ENABLED = false;
+	
+	private static final String EXTERNAL_HSQLDB_URL = "jdbc:hsqldb:hsql://localhost/xdb;shutdown=false;autocommit=true";
+	
+	private static final String INTERNAL_HSQLDB_URL = "jdbc:hsqldb:mem:test;shutdown=false;autocommit=true";
+	
 	private final String persistenceUnitName;
 	
 	protected EntityManager em;
@@ -42,10 +68,11 @@ public class AbstractGentityTest {
 	
 	@Before
 	public void beforeTest() {
+		String jdbcUrl = EXTERNAL_HSQLDB_ENABLED ? EXTERNAL_HSQLDB_URL : INTERNAL_HSQLDB_URL;
 		Map<String, String> emProperties = new HashMap<String, String>() {
 			{
 				put("javax.persistence.jdbc.driver", JDBCDriver.class.getName());
-				put("javax.persistence.jdbc.url", "jdbc:hsqldb:mem:test;shutdown=false;autocommit=true");
+				put("javax.persistence.jdbc.url", jdbcUrl);
 				put("javax.persistence.jdbc.user", "SA");
 				put("javax.persistence.jdbc.password", "");
 				put("eclipselink.ddl-generation", "create-tables");
@@ -59,8 +86,14 @@ public class AbstractGentityTest {
 	
 	@After
 	public void afterTest() {
-		em.getTransaction().rollback();
-
+		if(EXTERNAL_HSQLDB_ENABLED) {
+			// commit transaction when configured for an external HSQLDB, so
+			// the changes a test makes are visible
+			em.getTransaction().commit();
+		} else {
+			em.getTransaction().rollback();
+		}
+		
 		em.createNativeQuery("SHUTDOWN");
 		em.clear();
 		emf.close();
