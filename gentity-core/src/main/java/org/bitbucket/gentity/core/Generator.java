@@ -32,15 +32,18 @@ import java.sql.Blob;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
@@ -48,6 +51,8 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.SequenceGenerators;
 import javax.persistence.Table;
 import org.bitbucket.dbsjpagen.config.ConfigurationDto;
 import org.bitbucket.dbsjpagen.config.ExclusionDto;
@@ -60,6 +65,7 @@ import org.bitbucket.dbsjpagen.dbsmodel.ForeignKeyColumnDto;
 import org.bitbucket.dbsjpagen.dbsmodel.ForeignKeyDto;
 import org.bitbucket.dbsjpagen.dbsmodel.IndexUniqueDto;
 import org.bitbucket.dbsjpagen.dbsmodel.ProjectDto;
+import org.bitbucket.dbsjpagen.dbsmodel.SequenceDto;
 import org.bitbucket.dbsjpagen.dbsmodel.TableDto;
 
 /**
@@ -91,6 +97,7 @@ public class Generator {
 	private Map<String, ConfigurationDto> tableConfigurations;
 	private ConfigurationDto globalConfiguration;
 	private Map<String, TableDto> tables;
+	private Map<String, SequenceDto> sequences;
 	private HashMap<String, OneToManyRelation> tableColumnOneToManyRelations;
 	private List<OneToManyRelation> oneToManyRelations;
 	private Map<String, List<OneToManyRelation>> oneToManyRelationReferences;
@@ -126,6 +133,34 @@ public class Generator {
 				tablesToEntities.put(table.getName(), cls);
 				
 				cls._implements(serializableClass);
+			}
+			
+			// for all entity-mapped tables, find entities where we need to
+			// map sequences
+			Set<String> mappedSequenceNames = new HashSet<>();
+			for(Map.Entry<String, JDefinedClass> e : tablesToEntities.entrySet()) {
+				String tableName = e.getKey();
+				JDefinedClass cls = e.getValue();
+				TableDto table = findTable(tableName);
+				List<String> tableSequenceNames = new ArrayList<>();
+				for(ColumnDto col : table.getColumn()) {
+					String seqName = findPrimaryKeyColumnGeneratorSequence(table, col);
+					if(seqName != null && mappedSequenceNames.add(seqName)) {
+						tableSequenceNames.add(seqName);
+					}
+				}
+				
+				if(tableSequenceNames.size() == 1) {
+					genSequence(cls.annotate(SequenceGenerator.class), findSequence(tableSequenceNames.get(0)));
+				} else if(tableSequenceNames.size()>1) {
+					JAnnotationArrayMember pa = cls.annotate(SequenceGenerators.class)
+						.paramArray("value");
+					
+					for(String n : tableSequenceNames) {
+						JAnnotationUse au = pa.annotate(SequenceGenerator.class);
+						genSequence(au, findSequence(n));
+					}
+				}
 			}
 			
 			// process table columns
@@ -167,6 +202,15 @@ public class Generator {
 		return cm;
 	}
 	
+	private void genSequence(JAnnotationUse au, SequenceDto sequence) {
+		au.param("name", sequence.getName());
+		Long start = sequence.getStart();
+		boolean startIsDefault = (start == null || Long.valueOf(1).equals(start));
+		if(!startIsDefault){
+			au.param("start", start);
+		}
+	}
+	
 	private void genColumn(JDefinedClass cls, TableDto table, ColumnDto column) {
 		
 		String fieldName = toFieldName(cls, column.getName());
@@ -175,7 +219,7 @@ public class Generator {
 		
 		JType colType;
 		if(owner == null) {
-			colType = mapColumnType(column);
+			colType = mapColumnType(table, column);
 		} else {
 			colType = tablesToEntities.get(owner.getForeignKey().getToTable());
 		}
@@ -184,6 +228,14 @@ public class Generator {
 		// @Id
 		if(isColumnPrimaryKey(table, column)) {
 			field.annotate(Id.class);
+			GenerationType strategy = findPrimaryKeyColumnGenerationStrategy(table, column);
+			if(strategy != null) {
+				JAnnotationUse gv = field.annotate(GeneratedValue.class)
+					.param("strategy", strategy);
+				if(strategy == GenerationType.SEQUENCE) {
+					gv.param("generator", findPrimaryKeyColumnGeneratorSequence(table, column));
+				}
+			}
 		}
 		
 		// @Column or @JoinColumn
@@ -196,7 +248,7 @@ public class Generator {
 			if(colType.equals(cm._ref(String.class))) {
 				columnAnnotation.param("length", column.getLength());
 			}
-			if(!isColumnNullable(column)) {
+			if(!isColumnNullable(column) && !isColumnPrimaryKey(table, column)) {
 				columnAnnotation.param("nullable", false);
 			}
 		} else {
@@ -345,7 +397,7 @@ public class Generator {
 	}
 	
 	
-	private JType mapColumnType(ColumnDto column) {
+	private JType mapColumnType(TableDto table, ColumnDto column) {
 		String type = normalizeTypeName(column.getType());
 		
 		JType jtype;
@@ -391,7 +443,7 @@ public class Generator {
 				throw new RuntimeException("no mapping found for SQL type '" + column.getType() + "'");
 		}
 		
-		if(isColumnNullable(column)) {
+		if(isColumnNullable(column) || findPrimaryKeyColumnGenerationStrategy(table, column) != null) {
 			jtype = jtype.boxify();
 		}
 		
@@ -404,6 +456,14 @@ public class Generator {
 				.collect(Collectors.toMap(TableDto::getName, t->t));
 		}
 		return tables.get(name);
+	}
+	
+	private SequenceDto findSequence(String sequenceName) {
+		if(sequences == null) {
+			sequences = project.getSchema().getSequence().stream()
+				.collect(Collectors.toMap(SequenceDto::getName, s->s));
+		}
+		return sequences.get(sequenceName);
 	}
 	
 	private ForeignKeyDto findTableForeignKey(String tableName, String columnName) {
@@ -500,6 +560,27 @@ public class Generator {
 				.collect(Collectors.groupingBy((otm -> otm.getForeignKey().getToTable())));
 		}
 		return oneToManyRelationReferences.get(table.getName());
+	}
+
+	private GenerationType findPrimaryKeyColumnGenerationStrategy(TableDto table, ColumnDto column) {
+		if(!isColumnPrimaryKey(table, column)) {
+			return null;
+		}
+		if(column.getSequence() != null) {
+			return GenerationType.SEQUENCE;
+		} else if("y".equals(column.getAutoincrement())) {
+			return GenerationType.IDENTITY;
+		} else {
+			return null;
+		}
+	}
+
+	private String findPrimaryKeyColumnGeneratorSequence(TableDto table, ColumnDto column) {
+		if(findPrimaryKeyColumnGenerationStrategy(table, column) == GenerationType.SEQUENCE) {
+			return column.getSequence();
+		} else {
+			return null;
+		}
 	}
 
 }

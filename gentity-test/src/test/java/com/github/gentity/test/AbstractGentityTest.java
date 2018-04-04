@@ -45,7 +45,7 @@ public class AbstractGentityTest {
 		Map<String, String> emProperties = new HashMap<String, String>() {
 			{
 				put("javax.persistence.jdbc.driver", JDBCDriver.class.getName());
-				put("javax.persistence.jdbc.url", "jdbc:hsqldb:mem:test;shutdown=false;autocommit=true");
+				put("javax.persistence.jdbc.url", "jdbc:hsqldb:mem:" + persistenceUnitName + ";shutdown=false;autocommit=true");
 				put("javax.persistence.jdbc.user", "SA");
 				put("javax.persistence.jdbc.password", "");
 				put("eclipselink.ddl-generation", "create-tables");
