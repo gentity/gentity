@@ -27,6 +27,8 @@ import com.sun.codemodel.JMod;
 import com.sun.codemodel.JVar;
 import java.lang.annotation.Annotation;
 import java.util.Optional;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 
 /**
  *
@@ -37,23 +39,11 @@ class AccessorGenerator {
 	private final JCodeModel cm;
 	private static final String BUILDER_INSTANCE_NAME = "instance";
 	private static final String BUILD_METHOD_NAME = "build";
-	private static final String BUILDER_INTERFACE_NAME = "Builder";
 	private static final String BUILDER_IMPL_CLASS_NAME = "BuilderImpl";
 	private static final String BUILDER_FACTORY_METHOD_NAME = "builder";
 
 	public AccessorGenerator(JCodeModel cm) {
 		this.cm = cm;
-	}
-	
-	private static class BuilderSet{
-		final JDefinedClass builderInterface;
-		final JDefinedClass builderImplClass;
-
-		public BuilderSet(JDefinedClass builderInterface, JDefinedClass builderImplClass) {
-			this.builderInterface = builderInterface;
-			this.builderImplClass = builderImplClass;
-		}
-		
 	}
 	
 	Optional<JAnnotationUse> annotationUseFor(JVar jvar, Class<? extends Annotation> annotation) {
@@ -73,9 +63,11 @@ class AccessorGenerator {
 			
 			genGetter(cls, field);
 			
-			genSetter(cls, field);
-			
-			genBuilderMethod(builderClass, field);
+			if(!isGeneratedColumnField(field)) {
+				genSetter(cls, field);
+
+				genBuilderMethod(builderClass, field);
+			}
 		}
 	}
 	
@@ -125,6 +117,12 @@ class AccessorGenerator {
 			._return(JExpr._new(builderClass));
 		
 		return builderClass;
+	}
+
+	private boolean isGeneratedColumnField(JFieldVar field) {
+		return annotationUseFor(field, Id.class)
+			.flatMap(au -> annotationUseFor(field, GeneratedValue.class))
+			.isPresent();
 	}
 	
 }
