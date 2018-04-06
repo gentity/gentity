@@ -54,7 +54,7 @@ public class AbstractGentityTest {
 	
 	private static final String EXTERNAL_HSQLDB_URL = "jdbc:hsqldb:hsql://localhost/xdb;shutdown=false;autocommit=true";
 	
-	private static final String INTERNAL_HSQLDB_URL = "jdbc:hsqldb:mem:test;shutdown=false;autocommit=true";
+	private static final String INTERNAL_HSQLDB_URL_FORMAT = "jdbc:hsqldb:mem:%s;shutdown=false;autocommit=true";
 	
 	private final String persistenceUnitName;
 	
@@ -68,7 +68,7 @@ public class AbstractGentityTest {
 	
 	@Before
 	public void beforeTest() {
-		String jdbcUrl = EXTERNAL_HSQLDB_ENABLED ? EXTERNAL_HSQLDB_URL : INTERNAL_HSQLDB_URL;
+		String jdbcUrl = EXTERNAL_HSQLDB_ENABLED ? EXTERNAL_HSQLDB_URL : String.format(INTERNAL_HSQLDB_URL_FORMAT, persistenceUnitName);
 		Map<String, String> emProperties = new HashMap<String, String>() {
 			{
 				put("javax.persistence.jdbc.driver", JDBCDriver.class.getName());
