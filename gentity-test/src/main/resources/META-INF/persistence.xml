@@ -3,7 +3,18 @@
              xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence
              http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd"
              version="2.1">
-			 
+
+		<!-- 
+			copy/paste the following properties into a persistence unit's
+			<properties> section to enable logging and/or generate a DDL script
+			
+			<property name="eclipselink.ddl-generation.output-mode" value="both"/>
+
+			<property name="eclipselink.logging.level" value="FINE"/>
+			<property name="eclipselink.logging.level.sql" value="FINE"/>
+			<property name="eclipselink.logging.parameters" value="true"/>
+		-->
+				 
 	<persistence-unit name="Test0a_basic_table" transaction-type="RESOURCE_LOCAL">
 		<class>com.github.gentity.test.test0a_basic_table.Person</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
