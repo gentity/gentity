@@ -65,6 +65,17 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>entities-test1a-one-to-many</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputDbsFile>src/main/resources/test1a-one-to-many.dbs</inputDbsFile>
+							<targetPackageName>com.github.gentity.test.test1a_one_to_many</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
 						<id>entities-test2</id>
 						<phase>generate-sources</phase>
 						<goals>

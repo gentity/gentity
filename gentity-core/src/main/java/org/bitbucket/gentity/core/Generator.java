@@ -37,7 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.persistence.Column;
@@ -213,15 +214,23 @@ public class Generator {
 	
 	private void genColumn(JDefinedClass cls, TableDto table, ColumnDto column) {
 		
-		String fieldName = toFieldName(cls, column.getName());
-		
 		OneToManyRelation owner = findOneToManyRelationOwner(table, column);
 		
 		JType colType;
+		String fieldName;
 		if(owner == null) {
 			colType = mapColumnType(table, column);
+			fieldName = toFieldName(cls, column.getName());
 		} else {
 			colType = tablesToEntities.get(owner.getForeignKey().getToTable());
+			Pattern FK_COL_NAME_PATTERN = Pattern.compile("(.*)_(.+)");
+			Matcher m = FK_COL_NAME_PATTERN.matcher(column.getName());
+			List<ForeignKeyColumnDto> fkCols = owner.getForeignKey().getFkColumn();
+			if(fkCols.size()==1 && m.matches() && m.group(2).equals(fkCols.get(0).getPk())) {
+				fieldName = toFieldName(cls, m.group(1));
+			} else {
+				fieldName = toFieldName(cls, column.getName());
+			}
 		}
 		JFieldVar field = cls.field(JMod.PRIVATE, colType, fieldName);
 		
