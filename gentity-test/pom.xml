@@ -76,6 +76,17 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>entities-test1b-one-to-one</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputDbsFile>src/main/resources/test1b-one-to-one.dbs</inputDbsFile>
+							<targetPackageName>com.github.gentity.test.test1b_one_to_one</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
 						<id>entities-test2</id>
 						<phase>generate-sources</phase>
 						<goals>
