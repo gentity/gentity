@@ -48,7 +48,15 @@
 		<developerConnection>scm:git:https://github.com/gentity/gentity.git</developerConnection>
 		<url>https://github.com/gentity/gentity</url>
 	</scm>
-
+	<url>https://github.com/gentity/gentity</url>
+	<developers>
+		<developer>
+			<name>Uwe Pachler</name>
+			<email>gentity.dev@gmail.com</email>
+			<organization>The Gentity Project</organization>
+			<organizationUrl>https://github.com/gentity/gentity</organizationUrl>
+		</developer>
+	</developers>
 	<build>
 		<plugins>
 			<plugin>
