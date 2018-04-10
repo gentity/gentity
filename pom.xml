@@ -6,6 +6,7 @@
 	<version>0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>gentity</name>
+	<description>JPA Entity class generator from DBSchema (*.dbs) database models (see https://www.dbschema.com)</description>
 	<modules>
 		<module>gentity-test</module>
 		<module>gentity-maven-plugin</module>
