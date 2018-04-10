@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.bitbucket.gentity.core;
+package com.github.gentity.core;
 
 import com.sun.codemodel.JCodeModel;
 import java.io.File;
@@ -25,9 +25,9 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-import org.bitbucket.dbsjpagen.config.MappingConfigDto;
-import org.bitbucket.dbsjpagen.dbsmodel.ProjectDto;
-import org.bitbucket.gentity.core.xsd.R;
+import com.github.dbsjpagen.config.MappingConfigDto;
+import com.github.dbsjpagen.dbsmodel.ProjectDto;
+import com.github.gentity.core.xsd.R;
 import org.xml.sax.SAXException;
 
 /**
@@ -58,7 +58,7 @@ public class FileShell {
 		MappingConfigDto config = new MappingConfigDto();
 		if(configFile != null) {
 			try {
-				Unmarshaller unmarshaller = JAXBContext.newInstance(org.bitbucket.dbsjpagen.config.ObjectFactory.class)
+				Unmarshaller unmarshaller = JAXBContext.newInstance(com.github.dbsjpagen.config.ObjectFactory.class)
 					.createUnmarshaller();
 				unmarshaller.setSchema(genconfigSchema);
 				JAXBElement<MappingConfigDto> configElement = (JAXBElement<MappingConfigDto>)unmarshaller
@@ -81,7 +81,7 @@ public class FileShell {
 		
 		ProjectDto project;
 		try {
-			Unmarshaller unmarshaller = JAXBContext.newInstance(org.bitbucket.dbsjpagen.dbsmodel.ObjectFactory.class)
+			Unmarshaller unmarshaller = JAXBContext.newInstance(com.github.dbsjpagen.dbsmodel.ObjectFactory.class)
 				.createUnmarshaller();
 			unmarshaller.setSchema(dbsSchema);
 			JAXBElement<ProjectDto> schemaElement = (JAXBElement<ProjectDto>)unmarshaller

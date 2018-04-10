@@ -13,34 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.bitbucket.gentity.core;
+package com.github.gentity.core;
 
-import org.junit.Test;
-import static org.junit.Assert.*;
+import com.github.dbsjpagen.dbsmodel.ForeignKeyDto;
+import com.github.dbsjpagen.dbsmodel.TableDto;
 
 /**
  *
  * @author upachler
  */
-public class NameProviderTest {
+public class ManyToManyRelation extends Relation {
 	
-	public NameProviderTest() {
+	
+	private final ForeignKeyDto foreignKey1;
+	private final ForeignKeyDto foreignKey2;
+
+	public ManyToManyRelation(TableDto table, ForeignKeyDto foreignKey1, ForeignKeyDto foreignKey2) {
+		super(table);
+		this.foreignKey1 = foreignKey1;
+		this.foreignKey2 = foreignKey2;
 	}
 
-	@Test
-	public void testJavatizeName() {
-		NameProvider np = new NameProvider();
-		assertEquals("foo", np.javatizeName("foo", false));
-		assertEquals("Foo", np.javatizeName("foo", true));
-		
-		// test first character uppercasing
-		assertEquals("fooBar", np.javatizeName("foo_bar", false));
-		assertEquals("FooBar", np.javatizeName("foo_bar", true));
-		
-		// test lowercasing all-uppercase names
-		assertEquals("foobar", np.javatizeName("FOOBAR", false));
-		assertEquals("fooBar", np.javatizeName("fooBar", false));
-		
+
+	public ForeignKeyDto getOwnerForeignKey() {
+		return foreignKey1;
+	}
+	
+	public ForeignKeyDto getReferencedForeignKey() {
+		return foreignKey2;
 	}
 	
 }

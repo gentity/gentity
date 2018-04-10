@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.bitbucket.gentity.core;
+package com.github.gentity.core;
 
-import org.bitbucket.dbsjpagen.dbsmodel.ForeignKeyDto;
-import org.bitbucket.dbsjpagen.dbsmodel.TableDto;
+import com.github.dbsjpagen.dbsmodel.ForeignKeyDto;
+import com.github.dbsjpagen.dbsmodel.TableDto;
 
 /**
  * represents a one-to-many or one-to-one relation

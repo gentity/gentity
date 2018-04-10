@@ -13,12 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.bitbucket.gentity.core.xsd;
+package com.github.gentity.core;
+
+import com.github.dbsjpagen.dbsmodel.TableDto;
 
 /**
- * Resource anchor class
- * @author upachler
+ *
+ * @author count
  */
-public class R {
+public abstract class Relation {
+
+	protected final TableDto table;
+	
+	protected Relation(TableDto table) {
+		this.table = table;
+	}
+	public TableDto getTable() {
+		return table;
+	}
 	
 }

@@ -24,7 +24,7 @@ limitations under the License.
 	<jxb:bindings schemaLocation="dbs.xsd">
 		<jxb:schemaBindings>
 	
-			<jxb:package name="org.bitbucket.dbsjpagen.dbsmodel"/>
+			<jxb:package name="com.github.dbsjpagen.dbsmodel"/>
 			
 			<jxb:nameXmlTransform>
 				<jxb:typeName suffix="Dto"/>
@@ -35,7 +35,7 @@ limitations under the License.
 	
 	<jxb:bindings schemaLocation="genconfig.xsd">
 		<jxb:schemaBindings>
-			<jxb:package name="org.bitbucket.dbsjpagen.config"/>
+			<jxb:package name="com.github.dbsjpagen.config"/>
 			<jxb:nameXmlTransform>
 				<jxb:typeName suffix="Dto"/>
 			</jxb:nameXmlTransform> 
