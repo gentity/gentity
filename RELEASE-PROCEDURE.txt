@@ -1,0 +1,32 @@
+
+# before beginning, make sure you have set up PGP as specified here:
+# http://central.sonatype.org/pages/working-with-pgp-signatures.html
+
+#set username & password
+
+set GIT_USER='...'
+set GIT_PASSWORD='...'
+
+
+# To release, make sure that:
+# * you're on a release branch easygeoing-M.m.x (e.g easygeoing-0.3.x)
+# * the version number is set correctly to three components (e.g 0.3.0-SNAPSHOT)
+# * JAVADOC BUILDS!!!!
+# then, do...
+
+
+mvn release:clean release:prepare "-Dusername=$GIT_USER" "-Dpassword=$GIT_PASSWORD"
+
+then..
+mvn release:perform "-Dusername=$GIT_USER" "-Dpassword=$GIT_PASSWORD"
+
+
+
+If something goes wrong, do
+
+mvn release:rollback "-Dusername=$GIT_USER" "-Dpassword=$GIT_PASSWORD"
+
+AND (see mvn output for tag-name):
+
+git tag -d <tag-name>
+git push origin :refs/tags/<tag-name>
