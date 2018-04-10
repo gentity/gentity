@@ -31,6 +31,7 @@ import java.io.Serializable;
 import java.sql.Blob;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -52,6 +53,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.SequenceGenerators;
 import javax.persistence.Table;
@@ -91,6 +93,8 @@ public class Generator {
 				.narrow(elementType);
 		}
 	};
+	
+	private final Pattern FK_COL_NAME_PATTERN = Pattern.compile("(.*)_(.+)");
 
 	private NameProvider nameProvider;
 	private Set<String> excludedTables;
@@ -99,9 +103,11 @@ public class Generator {
 	private ConfigurationDto globalConfiguration;
 	private Map<String, TableDto> tables;
 	private Map<String, SequenceDto> sequences;
-	private HashMap<String, OneToManyRelation> tableColumnOneToManyRelations;
-	private List<OneToManyRelation> oneToManyRelations;
-	private Map<String, List<OneToManyRelation>> oneToManyRelationReferences;
+	private Map<String, OneToXRelation> tableColumnOneToOneRelations;
+	private Map<String, OneToXRelation> tableColumnOneToManyRelations;
+	private List<OneToXRelation> oneToOneRelations;
+	private List<OneToXRelation> oneToManyRelations;
+	private Map<String, List<OneToXRelation>> oneToManyRelationReferences;
 	private List<ManyToManyRelation> manyToManyRelations;
 	private Map<String, ManyToManyRelation> manyToManyRelationsJoinTables;
 	
@@ -178,7 +184,7 @@ public class Generator {
 			}
 			
 			// add one-to-many relations
-			for(OneToManyRelation otm : getOneToManyRelations()) {
+			for(OneToXRelation otm : getOneToManyRelations()) {
 				JDefinedClass cls = tablesToEntities.get(otm.getForeignKey().getToTable());
 				
 				genOneToMany(cls, otm);
@@ -214,18 +220,21 @@ public class Generator {
 	
 	private void genColumn(JDefinedClass cls, TableDto table, ColumnDto column) {
 		
-		OneToManyRelation owner = findOneToManyRelationOwner(table, column);
+		OneToXRelation oneToManyOwner = findOneToManyRelationOwner(table, column);
+		OneToXRelation oneToOneOwner = findOneToOneRelationOwner(table, column);
+		ForeignKeyDto ownerFk;
+		ownerFk = oneToManyOwner!=null ? oneToManyOwner.getForeignKey() : null;
+		ownerFk = ownerFk==null && oneToOneOwner!=null ? oneToOneOwner.getForeignKey() : ownerFk;
 		
 		JType colType;
 		String fieldName;
-		if(owner == null) {
+		if(ownerFk == null) {
 			colType = mapColumnType(table, column);
 			fieldName = toFieldName(cls, column.getName());
 		} else {
-			colType = tablesToEntities.get(owner.getForeignKey().getToTable());
-			Pattern FK_COL_NAME_PATTERN = Pattern.compile("(.*)_(.+)");
+			colType = tablesToEntities.get(ownerFk.getToTable());
 			Matcher m = FK_COL_NAME_PATTERN.matcher(column.getName());
-			List<ForeignKeyColumnDto> fkCols = owner.getForeignKey().getFkColumn();
+			List<ForeignKeyColumnDto> fkCols = ownerFk.getFkColumn();
 			if(fkCols.size()==1 && m.matches() && m.group(2).equals(fkCols.get(0).getPk())) {
 				fieldName = toFieldName(cls, m.group(1));
 			} else {
@@ -248,7 +257,7 @@ public class Generator {
 		}
 		
 		// @Column or @JoinColumn
-		if(owner == null) {
+		if(ownerFk == null) {
 			// @Column
 			JAnnotationUse columnAnnotation = field
 				.annotate(Column.class);
@@ -261,15 +270,22 @@ public class Generator {
 				columnAnnotation.param("nullable", false);
 			}
 		} else {
-			// @ManyToOne
-			field.annotate(ManyToOne.class);
+			// @ManyToOne / @OneToOne
+			if(oneToManyOwner != null) {
+				field.annotate(ManyToOne.class);
+			} else {
+				field.annotate(OneToOne.class);
+			}
 			
-			List<ForeignKeyColumnDto> fkColumns = owner.getForeignKey().getFkColumn();
+			List<ForeignKeyColumnDto> fkColumns = ownerFk.getFkColumn();
 			if(fkColumns.size() == 1) {
+				ForeignKeyColumnDto fkColumn = fkColumns.get(0);
 				// @JoinColumn
-				field
-					.annotate(JoinColumn.class)
-					.param("name", fkColumns.get(0).getName());
+				JAnnotationUse joinColumnAnnotation = field.annotate(JoinColumn.class);
+				joinColumnAnnotation.param("name", fkColumn.getName());
+				if(!isColumnNullable(column)) {
+					joinColumnAnnotation.param("nullable", false);
+				}
 			} else {
 				// @JoinColumns (plural!)
 				JAnnotationArrayMember valueAnnotation = field
@@ -306,7 +322,7 @@ public class Generator {
 		return field;
 	}
 	
-	private void genOneToMany(JDefinedClass cls, OneToManyRelation otm) {
+	private void genOneToMany(JDefinedClass cls, OneToXRelation otm) {
 		JFieldVar field = genRelationFieldVar(cls, otm.getTable().getName());
 		field.annotate(OneToMany.class);
 	}
@@ -487,11 +503,11 @@ public class Generator {
 			.orElseThrow(()->new RuntimeException("foreign key '" + foreignKeyName + "' not found for table '" + tableName + "'"));
 	}
 	
-	private OneToManyRelation toOneToManyRelation(OneToManyDto oneToMany) {
+	private OneToXRelation toOneToManyRelation(OneToManyDto oneToMany) {
 		TableDto table = Optional.of(findTable(oneToMany.getTable()))
 			.orElseThrow(()->new RuntimeException("table not found in oneToMany relation: '" + oneToMany.getTable() + "'"));
 		ForeignKeyDto fk = toTableForeignKey(table.getName(), oneToMany.getOwnerRelation().getForeignKey());
-		return new OneToManyRelation(table, fk);
+		return new OneToXRelation(table, fk);
 	}
 	
 	private ManyToManyRelation toManyToManyRelation(ManyToManyDto manyToMany) {
@@ -506,29 +522,61 @@ public class Generator {
 		return new ManyToManyRelation(table, ownerFk, referencedFk);
 	}
 	
-	private List<OneToManyRelation> getOneToManyRelations() {
+	private List<OneToXRelation> getOneToOneRelations() {
+		if(oneToOneRelations == null) {
+			initOneToNRelations();
+		}
+		return oneToOneRelations;
+	}
+	
+	private List<OneToXRelation> getOneToManyRelations() {
 		if(oneToManyRelations == null) {
-			oneToManyRelations = cfg.getOneToMany().stream()
-				.map(this::toOneToManyRelation)
-				.collect(Collectors.toCollection(ArrayList::new));
-			
-			Set<String> otmFkNames = oneToManyRelations.stream()
-				.map(otm -> otm.getForeignKey().getName())
-				.collect(Collectors.toSet());
-			Set<String> mtmFkNames = getManyToManyRelations().stream()
-				.flatMap(mtm -> Stream.of(mtm.getOwnerForeignKey(), mtm.getReferencedForeignKey()))
-				.map(ForeignKeyDto::getName)
-				.collect(Collectors.toSet());
-			
-			for(TableDto t : tables.values()) {
-				t.getFk().stream()
-					.filter(fk -> !otmFkNames.contains(fk.getName()))
-					.filter(fk -> !mtmFkNames.contains(fk.getName()))
-					.map(fk -> new OneToManyRelation(t, fk))
-					.forEach(oneToManyRelations::add);
-			}
+			initOneToNRelations();
 		}
 		return oneToManyRelations;
+	}
+	
+	private void initOneToNRelations() {
+		oneToManyRelations = cfg.getOneToMany().stream()
+			.map(this::toOneToManyRelation)
+			.collect(Collectors.toCollection(ArrayList::new));
+
+		oneToOneRelations = new ArrayList();
+		
+		Set<String> otmFkNames = oneToManyRelations.stream()
+			.map(otm -> otm.getForeignKey().getName())
+			.collect(Collectors.toSet());
+		Set<String> mtmFkNames = getManyToManyRelations().stream()
+			.flatMap(mtm -> Stream.of(mtm.getOwnerForeignKey(), mtm.getReferencedForeignKey()))
+			.map(ForeignKeyDto::getName)
+			.collect(Collectors.toSet());
+
+		for(TableDto t : tables.values()) {
+			t.getFk().stream()
+				.filter(fk -> !otmFkNames.contains(fk.getName()))
+				.filter(fk -> !mtmFkNames.contains(fk.getName()))
+				.forEach(fk -> {
+					String[] fkColNames = fk.getFkColumn().stream().map(ForeignKeyColumnDto::getName).toArray(String[]::new);
+					OneToXRelation oneToX = new OneToXRelation(t, fk);
+					if(isUniqueIndexPresent(t, fkColNames)) {
+						oneToOneRelations.add(oneToX);
+					} else {
+						oneToManyRelations.add(oneToX);
+					}
+				});
+		}
+	}
+	
+	private boolean isUniqueIndexPresent(TableDto table, String... columnNameArray) {
+		// check if a uniqe index is present in the given table that has the same set of columns
+		// (column names) as the given columnNameArray
+		Set<String> columnNames = new HashSet<>(Arrays.asList(columnNameArray));
+		return table.getIndex().stream()
+			.filter(idx -> !(!IndexUniqueDto.UNIQUE.equals(idx.getUnique())))
+			.map((idx) -> idx.getColumn().stream()
+				.map(ColumnDto::getName)
+				.collect(Collectors.toSet()))
+			.anyMatch((indexColumnNames) -> (columnNames.equals(indexColumnNames)));
 	}
 	
 	private List<ManyToManyRelation> getManyToManyRelations() {
@@ -548,22 +596,36 @@ public class Generator {
 		return manyToManyRelationsJoinTables.containsKey(tableName);
 	}
 	
-	private OneToManyRelation findOneToManyRelationOwner(TableDto table, ColumnDto column) {
-		if(tableColumnOneToManyRelations == null) {
-			tableColumnOneToManyRelations = new HashMap<>(); 
-			
-			for(OneToManyRelation otm : getOneToManyRelations()) {
-				for(ForeignKeyColumnDto fkColumn : otm.getForeignKey().getFkColumn()) {
-					String key = toTableColumnKey(otm.getTable().getName(), fkColumn.getName());
-					tableColumnOneToManyRelations.put(key, otm);
-				}
+	private Map<String,OneToXRelation> createTableColumnOneToXRelations(List<OneToXRelation> oneToXRelations) {
+		Map<String,OneToXRelation> tableColumnOneToXRelations = new HashMap<>(); 
+
+		for(OneToXRelation otm : oneToXRelations) {
+			for(ForeignKeyColumnDto fkColumn : otm.getForeignKey().getFkColumn()) {
+				String key = toTableColumnKey(otm.getTable().getName(), fkColumn.getName());
+				tableColumnOneToXRelations.put(key, otm);
 			}
+		}
+		return tableColumnOneToXRelations;
+	}
+	
+	private OneToXRelation findOneToManyRelationOwner(TableDto table, ColumnDto column) {
+		if(tableColumnOneToManyRelations == null) {
+			tableColumnOneToManyRelations = createTableColumnOneToXRelations(getOneToManyRelations());
 		}
 		
 		return tableColumnOneToManyRelations.get(toTableColumnKey(table.getName(), column.getName()));
 	}
+	
+	private OneToXRelation findOneToOneRelationOwner(TableDto table, ColumnDto column) {
+		if(tableColumnOneToOneRelations == null) {
+			tableColumnOneToOneRelations = createTableColumnOneToXRelations(getOneToOneRelations());
+		}
+		
+		return tableColumnOneToOneRelations.get(toTableColumnKey(table.getName(), column.getName()));
+	}
+	
 
-	private List<OneToManyRelation> findOneToManyRelationReferences(TableDto table) {
+	private List<OneToXRelation> findOneToManyRelationReferences(TableDto table) {
 		if(oneToManyRelationReferences == null) {
 			oneToManyRelationReferences = getOneToManyRelations().stream()
 				.collect(Collectors.groupingBy((otm -> otm.getForeignKey().getToTable())));
