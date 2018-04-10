@@ -49,6 +49,31 @@
 		<url>https://github.com/gentity/gentity</url>
 	</scm>
 
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.5.3</version>
+				<configuration>
+					<tagNameFormat>v@{project.version}</tagNameFormat>
+					<autoVersionSubmodules>true</autoVersionSubmodules>
+					<releaseProfiles>ossrh-release</releaseProfiles>
+				</configuration>
+                                
+				<dependencies>
+					<!-- Fixes an issue with GIT scm, see
+					https://stackoverflow.com/questions/15166781/mvn-releaseprepare-not-committing-changes-to-pom-xml -->
+					<dependency>
+						<groupId>org.apache.maven.scm</groupId>
+						<artifactId>maven-scm-provider-gitexe</artifactId>
+						<version>1.9.5</version>
+					</dependency>
+				</dependencies>
+			</plugin>                       
+		</plugins>
+	</build>
+	
 	<profiles>
 		<profile>
 			<id>ossrh-release</id>
