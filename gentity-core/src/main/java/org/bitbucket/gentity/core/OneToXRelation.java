@@ -19,14 +19,14 @@ import org.bitbucket.dbsjpagen.dbsmodel.ForeignKeyDto;
 import org.bitbucket.dbsjpagen.dbsmodel.TableDto;
 
 /**
- *
+ * represents a one-to-many or one-to-one relation
  * @author upachler
  */
-public class OneToManyRelation extends Relation{
+public class OneToXRelation extends Relation{
 	
 	private final ForeignKeyDto foreignKey;
 
-	public OneToManyRelation(TableDto table, ForeignKeyDto foreignKey) {
+	public OneToXRelation(TableDto table, ForeignKeyDto foreignKey) {
 		super(table);
 		this.foreignKey = foreignKey;
 	}

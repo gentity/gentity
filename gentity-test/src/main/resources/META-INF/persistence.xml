@@ -34,6 +34,7 @@
 	</persistence-unit>
 	<persistence-unit name="Test1b_one_to_one" transaction-type="RESOURCE_LOCAL">
 		<class>com.github.gentity.test.test1b_one_to_one.Companycar</class>
+		<class>com.github.gentity.test.test1b_one_to_one.Desk</class>
 		<class>com.github.gentity.test.test1b_one_to_one.Employee</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
