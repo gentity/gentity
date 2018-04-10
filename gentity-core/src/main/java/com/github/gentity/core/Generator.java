@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.bitbucket.gentity.core;
+package com.github.gentity.core;
 
 import com.sun.codemodel.JAnnotationArrayMember;
 import com.sun.codemodel.JAnnotationUse;
@@ -57,19 +57,20 @@ import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.SequenceGenerators;
 import javax.persistence.Table;
-import org.bitbucket.dbsjpagen.config.ConfigurationDto;
-import org.bitbucket.dbsjpagen.config.ExclusionDto;
-import org.bitbucket.dbsjpagen.config.ManyToManyDto;
-import org.bitbucket.dbsjpagen.config.MappingConfigDto;
-import org.bitbucket.dbsjpagen.config.OneToManyDto;
-import org.bitbucket.dbsjpagen.config.TableConfigurationDto;
-import org.bitbucket.dbsjpagen.dbsmodel.ColumnDto;
-import org.bitbucket.dbsjpagen.dbsmodel.ForeignKeyColumnDto;
-import org.bitbucket.dbsjpagen.dbsmodel.ForeignKeyDto;
-import org.bitbucket.dbsjpagen.dbsmodel.IndexUniqueDto;
-import org.bitbucket.dbsjpagen.dbsmodel.ProjectDto;
-import org.bitbucket.dbsjpagen.dbsmodel.SequenceDto;
-import org.bitbucket.dbsjpagen.dbsmodel.TableDto;
+import com.github.dbsjpagen.config.ConfigurationDto;
+import com.github.dbsjpagen.config.ExclusionDto;
+import com.github.dbsjpagen.config.ManyToManyDto;
+import com.github.dbsjpagen.config.MappingConfigDto;
+import com.github.dbsjpagen.config.OneToManyDto;
+import com.github.dbsjpagen.config.TableConfigurationDto;
+import com.github.dbsjpagen.dbsmodel.ColumnDto;
+import com.github.dbsjpagen.dbsmodel.ForeignKeyColumnDto;
+import com.github.dbsjpagen.dbsmodel.ForeignKeyDto;
+import com.github.dbsjpagen.dbsmodel.IndexUniqueDto;
+import com.github.dbsjpagen.dbsmodel.ProjectDto;
+import com.github.dbsjpagen.dbsmodel.SequenceDto;
+import com.github.dbsjpagen.dbsmodel.TableDto;
+
 
 /**
  *
