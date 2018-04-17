@@ -26,12 +26,12 @@ limitations under the License.
 	targetPackageName='org.bitbucket.gentity.test.test3'
 >
 		
-	<hierarchy >
+	<hierarchy>
 		<joined>
 			<discriminateBy column='KIND'/>
 			<root table='LIFEFORM' discriminator='LF'/>
-			<joinRelation table='MAMMAL' discriminator='MA' foreignKey=''/>
-			<joinRelation table='INSECT' discriminator='IN' foreignKey=''/>
+			<joinRelation table='MAMMAL' discriminator='MA' foreignKey='FK_MAMMAL_LIFEFORM'/>
+			<joinRelation table='INSECT' discriminator='IN' foreignKey='FK_INSECT_LIFEFORM'/>
 		</joined>
 	</hierarchy>
 

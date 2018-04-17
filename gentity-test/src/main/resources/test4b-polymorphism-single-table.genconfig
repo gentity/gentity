@@ -26,28 +26,6 @@ limitations under the License.
 	targetPackageName='org.bitbucket.gentity.test.test3'
 >
 	
-	<!--
-	if a relation is not listed as oneToMany or manyToMany, it is implicitely
-	assumed to be oneToMany and mapped as such. To Overide the default relation
-	mapping, list the relation explicitely:
-	-->
-	<oneToMany table='USER'>
-		<ownerRelation foreignKey='FK_USER_CUSTOMER'/>
-	</oneToMany>
-
-	<manyToMany table='CUSTOMER_PRODUCT'>
-		<ownerRelation foreignKey='FK_CUSTOMER_PRODUCT_CUSTOMER'/>
-		<referencedRelation foreignKey='FK_CUSTOMER_PRODUCT_PRODUCT'/>
-	</manyToMany> 
-		
-	<hierarchy table='BEE'>
-		<joined>
-			<disciminateBy column='ROLE'/>
-			<joinRelation table='HIVEQUEEN' foreignKey=''/>
-			<joinRelation table='WORKERBEE' foreignKey=''/>
-		</joined>
-	</hierarchy>
-
 	<hierarchy table='LIFEFORM'>
 		<singleTable>
 			<discriminateBy column='KIND'/>
@@ -60,21 +38,9 @@ limitations under the License.
 				</entity>
 				<entity name='Mammal' discriminator='MA'>
 					<field column='FURRY'/>
-					<field column='BIPEDAL'/>
 				</entity>
 			</entity>
 			
 		</singleTable>
-	</hierarchy>
-	<hierarchy table='VEHICLE'>
-		<tablePerClass>
-			<entity table='MOTORIZED_VEHICLE'>
-				<entity table='CAR'/>
-				<entity table='MOTORBIKE'/>
-			</entity>
-			<entity table='UNMOTORIZED_VEHICLE'>
-				<entity table='BICYCLE'/>
-			</entity>
-		</tablePerClass>
 	</hierarchy>
 </mappingConfig>

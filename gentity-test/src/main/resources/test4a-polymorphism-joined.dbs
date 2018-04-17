@@ -1,34 +1,39 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<project name="test" id="Project_3d20146" template="Default" database="HSql" >
-	<schema name="TEST_1" schemaname="TEST_1" >
+<project name="test4a" id="Project_3fedcf0" template="Default" database="HSql" >
+	<schema name="TEST4A" schemaname="TEST4A" >
+		<table name="INSECT" >
+			<column name="LIFEFORM_ID" type="bigint" jt="-5" mandatory="y" />
+			<column name="STINGY" type="boolean" jt="16" mandatory="y" />
+			<index name="PK_INSECT_LIFEFORM_ID" unique="PRIMARY_KEY" >
+				<column name="LIFEFORM_ID" />
+			</index>
+			<fk name="FK_INSECT_LIFEFORM" to_schema="TEST4A" to_table="LIFEFORM" >
+				<fk_column name="LIFEFORM_ID" pk="ID" />
+			</fk>
+		</table>
 		<table name="LIFEFORM" >
-			<column name="ID" type="bigint" jt="-5" mandatory="y" />
-			<column name="NAME" type="varchar" length="100" jt="12" mandatory="y" />
-			<column name="WEIGHT" type="integer" jt='-4' mandatory="y" />
+			<column name="ID" type="bigint" jt="-5" mandatory="y" autoincrement="y" />
+			<column name="KIND" type="char" length="2" jt="1" />
+			<column name="NAME" type="varchar" length="100" jt="12" />
+			<column name="WEIGHT" type="real" jt="7" mandatory="y" />
 			<index name="PK_LIFEFORM_ID" unique="PRIMARY_KEY" >
-				<column name="PRODUCT_ID" />
+				<column name="ID" />
 			</index>
 		</table>
 		<table name="MAMMAL" >
-			<column name="ID" type="bigint" jt="-5" mandatory="y" />
-			<column name="NAME" type="varchar" length="100" jt="12" />
-			<index name="PK_MAMMAL_ID" unique="PRIMARY_KEY" >
-				<column name="ID" />
+			<column name="LIFEFORM_ID" type="bigint" jt="-5" mandatory="y" />
+			<column name="FURRY" type="boolean" jt="16" mandatory="y" />
+			<index name="PK_MAMMAL_LIFEFORM_ID" unique="PRIMARY_KEY" >
+				<column name="LIFEFORM_ID" />
 			</index>
-			<fk name="FK_MAMMAL_LIFEFORM_ID" to_schema="TEST1" to_table="LIFEFORM" delete_action="cascade" update_action="cascade" >
-				<fk_column name="ID" pk="ID" />
-			</fk>
-		</table>
-		<table name="INSECT" >
-			<column name="ID" type="bigint" jt="-5" mandatory="y" />
-			<column name="STINGY" type="bool" />
-			<index name="PK_INSECT_ID" unique="PRIMARY_KEY" >
-				<column name="ID" />
-			</index>
-			<fk name="FK_INSECT_LIFEFORM_ID" to_schema="TEST1" to_table="LIFEFORM" delete_action="cascade" update_action="cascade" >
-				<fk_column name="ID" pk="ID" />
+			<fk name="FK_MAMMAL_LIFEFORM" to_schema="TEST4A" to_table="LIFEFORM" >
+				<fk_column name="LIFEFORM_ID" pk="ID" />
 			</fk>
 		</table>
 	</schema>
-	<layout name="Default Layout" id="Layout_3fa23a3" show_relation="columns" ></layout>
+	<layout name="Default Layout" id="Layout_3761216" show_relation="columns" >
+		<entity schema="TEST4A" name="INSECT" color="c8daf5" x="45" y="195" />
+		<entity schema="TEST4A" name="LIFEFORM" color="c8daf5" x="105" y="45" />
+		<entity schema="TEST4A" name="MAMMAL" color="c8daf5" x="255" y="195" />
+	</layout>
 </project>
