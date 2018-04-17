@@ -276,6 +276,9 @@ public class Generator {
 				field.annotate(ManyToOne.class);
 			} else {
 				field.annotate(OneToOne.class);
+				
+				assert(tablesToEntities.values().contains((JDefinedClass)colType));
+				genOneToOneReferenced((JDefinedClass)colType, cls, table.getName(), field.name());
 			}
 			
 			List<ForeignKeyColumnDto> fkColumns = ownerFk.getFkColumn();
@@ -311,7 +314,7 @@ public class Generator {
 		return LIST_ENTITY_REF_FACTORY;
 	}
 	
-	private JFieldVar genRelationFieldVar(JDefinedClass cls, String targetTableName) {
+	private JFieldVar genRelationCollectionFieldVar(JDefinedClass cls, String targetTableName) {
 		EntityRefFactory factory = findEntityRefFactory(cls);
 		JDefinedClass elementType = tablesToEntities.get(targetTableName);
 		JClass fieldType = factory.getCollectionType(elementType);
@@ -324,12 +327,12 @@ public class Generator {
 	}
 	
 	private void genOneToMany(JDefinedClass cls, OneToXRelation otm) {
-		JFieldVar field = genRelationFieldVar(cls, otm.getTable().getName());
+		JFieldVar field = genRelationCollectionFieldVar(cls, otm.getTable().getName());
 		field.annotate(OneToMany.class);
 	}
 	
 	private String genManyToManyOwner(JDefinedClass cls, ManyToManyRelation mtm) {
-		JFieldVar field = genRelationFieldVar(cls, mtm.getReferencedForeignKey().getToTable());
+		JFieldVar field = genRelationCollectionFieldVar(cls, mtm.getReferencedForeignKey().getToTable());
 		
 		field.annotate(ManyToMany.class);
 		
@@ -347,12 +350,18 @@ public class Generator {
 	}
 	
 	private void genManyToManyReferenced(JDefinedClass cls, ManyToManyRelation mtm, String mappedByFieldName) {
-		JFieldVar field = genRelationFieldVar(cls, mtm.getOwnerForeignKey().getToTable());
+		JFieldVar field = genRelationCollectionFieldVar(cls, mtm.getOwnerForeignKey().getToTable());
 		
 		field.annotate(ManyToMany.class)
 			.param("mappedBy", mappedByFieldName);
 	}
 	
+	private void genOneToOneReferenced(JDefinedClass cls, JDefinedClass targetEntityClass, String sourceTableName, String mappedByFieldName) {
+		JFieldVar field = cls.field(JMod.PRIVATE, targetEntityClass, toFieldName(cls, sourceTableName));
+		JAnnotationUse annotationUse = field.annotate(OneToOne.class);
+		annotationUse.param("mappedBy", mappedByFieldName);
+	}
+
 	private boolean isColumnNullable(ColumnDto column) {
 		return !"y".equals(column.getMandatory());
 	}
