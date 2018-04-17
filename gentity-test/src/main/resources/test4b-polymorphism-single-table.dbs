@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="test" id="Project_3d20146" template="Default" database="HSql" >
+	<schema name="TEST_1" schemaname="TEST_1" >
+		<table name="LIFEFORM" >
+			<column name="ID" type="bigint" jt="-5" mandatory="y" />
+			<column name="NAME" type="varchar" length="100" jt="12" mandatory="y" />
+			<column name="WEIGHT" type="integer" jt='-4' mandatory="y" />
+			<index name="PK_LIFEFORM_ID" unique="PRIMARY_KEY" >
+				<column name="PRODUCT_ID" />
+			</index>
+		</table>
+		<table name="MAMMAL" >
+			<column name="ID" type="bigint" jt="-5" mandatory="y" />
+			<column name="NAME" type="varchar" length="100" jt="12" />
+			<index name="PK_MAMMAL_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+			<fk name="FK_MAMMAL_LIFEFORM_ID" to_schema="TEST1" to_table="LIFEFORM" delete_action="cascade" update_action="cascade" >
+				<fk_column name="ID" pk="ID" />
+			</fk>
+		</table>
+		<table name="INSECT" >
+			<column name="ID" type="bigint" jt="-5" mandatory="y" />
+			<column name="STINGY" type="bool" />
+			<index name="PK_INSECT_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+			<fk name="FK_INSECT_LIFEFORM_ID" to_schema="TEST1" to_table="LIFEFORM" delete_action="cascade" update_action="cascade" >
+				<fk_column name="ID" pk="ID" />
+			</fk>
+		</table>
+	</schema>
+</project>
