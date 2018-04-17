@@ -110,6 +110,18 @@
 							<mappingConfigFile>src/main/resources/test3.genconfig</mappingConfigFile>
 						</configuration>
 					</execution>
+					<execution>
+						<id>entities-test4a</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<targetPackageName>com.github.gentity.test.test4a</targetPackageName>
+							<inputDbsFile>src/main/resources/test4a-polymorphism-joined.dbs</inputDbsFile>
+							<mappingConfigFile>src/main/resources/test4a-polymorphism-joined.genconfig</mappingConfigFile>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 		</plugins>

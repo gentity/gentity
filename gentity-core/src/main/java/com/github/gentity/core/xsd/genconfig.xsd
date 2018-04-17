@@ -30,6 +30,7 @@ limitations under the License.
 			<xs:element name="table" type='tns:TableConfiguration' minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element name="oneToMany" type='tns:OneToMany' minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element name="manyToMany" type='tns:ManyToMany' minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name='hierarchy' type='tns:Hierarchy' minOccurs="0" maxOccurs='unbounded'/>
 			
 		</xs:sequence>
 		
@@ -100,5 +101,29 @@ limitations under the License.
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="Hierarchy">
+		<xs:choice>
+			<xs:element name="joined" type="tns:Joined"/>
+		</xs:choice>
+	</xs:complexType>
+	<xs:complexType  name="Joined">
+		<xs:sequence>
+			<xs:element name="discriminateBy" type="tns:DiscriminatorDecl" minOccurs="1" maxOccurs="1"/>
+			<xs:element name="root"/>
+			<xs:element name="joinRelation" type="tns:JoinRelation" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Root">
+		<xs:attribute name='table' type='xs:string'/>
+		<xs:attribute name='discriminator' type='xs:string'/>
+	</xs:complexType>
+	<xs:complexType name="DiscriminatorDecl">
+		<xs:attribute name="column" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="JoinRelation">
+		<xs:attribute name="table" type="xs:string" use="required"/>
+		<xs:attribute name='discriminator' type='xs:string'/>
+		<xs:attribute name="foreignKey" type="xs:string" use="required"/>
 	</xs:complexType>
 </xs:schema>
