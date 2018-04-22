@@ -110,7 +110,7 @@ limitations under the License.
 	<xs:complexType  name="Joined">
 		<xs:sequence>
 			<xs:element name="discriminateBy" type="tns:DiscriminatorDecl" minOccurs="1" maxOccurs="1"/>
-			<xs:element name="root"/>
+			<xs:element name="root" type='tns:Root'/>
 			<xs:element name="joinRelation" type="tns:JoinRelation" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
