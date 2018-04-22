@@ -27,6 +27,8 @@ import com.sun.codemodel.JMod;
 import com.sun.codemodel.JVar;
 import java.lang.annotation.Annotation;
 import java.util.Optional;
+import java.util.stream.StreamSupport;
+import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
@@ -39,7 +41,7 @@ class AccessorGenerator {
 	private final JCodeModel cm;
 	private static final String BUILDER_INSTANCE_NAME = "instance";
 	private static final String BUILD_METHOD_NAME = "build";
-	private static final String BUILDER_IMPL_CLASS_NAME = "BuilderImpl";
+	private static final String BUILDER_IMPL_CLASS_NAME = "Builder";
 	private static final String BUILDER_FACTORY_METHOD_NAME = "builder";
 
 	public AccessorGenerator(JCodeModel cm) {
@@ -58,18 +60,39 @@ class AccessorGenerator {
 	void generateAccessors(JDefinedClass cls) {
 		
 		JDefinedClass builderClass = genBuilderClass(cls);
-				
+		
 		for(JFieldVar field : cls.fields().values()) {
 			
 			genGetter(cls, field);
 			
-			if(!isGeneratedColumnField(field)) {
+			if(!isGeneratedValueColumnField(field)) {
 				genSetter(cls, field);
 
 				genBuilderMethod(builderClass, field);
 			}
 		}
+		
+		generateBaseClassBuilderMethods(cls, builderClass);
 	}
+	
+	private void generateBaseClassBuilderMethods(JDefinedClass cls, JDefinedClass builderClass) {
+		// find direct base entity class for class, if any
+		cls = Optional.of(cls._extends())
+			.filter(c -> c instanceof JDefinedClass)
+			.map(c -> (JDefinedClass)c)
+			.filter(c -> c.annotations().stream().anyMatch(au -> au.getAnnotationClass().equals(cm.ref(Entity.class))))
+			.orElse(null);
+		if(cls == null) {
+			return;
+		}
+		
+		for(JFieldVar field : cls.fields().values()) {
+			if(!isGeneratedValueColumnField(field)) {
+				genBuilderMethod(builderClass, field);
+			}
+		}
+	}
+		
 	
 	String initialUppercaseOf(String name) {
 		return Character.toUpperCase(name.charAt(0)) + name.substring(1);
@@ -112,6 +135,22 @@ class AccessorGenerator {
 		builderClass.method(JMod.PUBLIC, cls, BUILD_METHOD_NAME)
 			.body()
 			._return(builderInstanceField);
+		Optional<JDefinedClass> entitySuperclass = Optional.ofNullable(cls._extends())
+			.filter(c -> c instanceof JDefinedClass)
+			.map(JDefinedClass.class::cast)
+			.filter(c -> c.annotations().stream().anyMatch(au -> au.getAnnotationClass().equals(cm.ref(Entity.class))))
+			;
+		
+		if(entitySuperclass.isPresent()) {
+			Iterable<JDefinedClass> nestedClassesIt = () -> entitySuperclass.get().classes();
+			Optional<JDefinedClass> builderSuperClass = StreamSupport.stream(nestedClassesIt.spliterator(), false)
+				.filter(nc -> BUILDER_IMPL_CLASS_NAME.equals(nc.name()))
+				.findAny();
+			
+			if(builderSuperClass.isPresent()) {
+				builderClass._extends(builderSuperClass.get());
+			}
+		}
 		cls.method(JMod.PUBLIC|JMod.STATIC, builderClass, BUILDER_FACTORY_METHOD_NAME)
 			.body()
 			._return(JExpr._new(builderClass));
@@ -119,7 +158,7 @@ class AccessorGenerator {
 		return builderClass;
 	}
 
-	private boolean isGeneratedColumnField(JFieldVar field) {
+	private boolean isGeneratedValueColumnField(JFieldVar field) {
 		return annotationUseFor(field, Id.class)
 			.flatMap(au -> annotationUseFor(field, GeneratedValue.class))
 			.isPresent();
