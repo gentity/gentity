@@ -12,7 +12,7 @@
 			</fk>
 		</table>
 		<table name="LIFEFORM" >
-			<column name="ID" type="bigint" jt="-5" mandatory="y" autoincrement="y" />
+			<column name="ID" type="bigint" jt="-5" mandatory="y" />
 			<column name="KIND" type="char" length="2" jt="1" />
 			<column name="NAME" type="varchar" length="100" jt="12" />
 			<column name="WEIGHT" type="real" jt="7" mandatory="y" />
@@ -33,7 +33,7 @@
 	</schema>
 	<layout name="Default Layout" id="Layout_3761216" show_relation="columns" >
 		<entity schema="TEST4A" name="INSECT" color="c8daf5" x="45" y="195" />
-		<entity schema="TEST4A" name="LIFEFORM" color="c8daf5" x="105" y="45" />
 		<entity schema="TEST4A" name="MAMMAL" color="c8daf5" x="255" y="195" />
+		<entity schema="TEST4A" name="LIFEFORM" color="c8daf5" x="105" y="45" />
 	</layout>
 </project>

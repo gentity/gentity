@@ -23,7 +23,7 @@ limitations under the License.
 	    https://github.com/gentity/gentity/ns
 			https://raw.githubusercontent.com/gentity/gentity/master/gentity-core/src/main/resources/xsd/genconfig.xsd
 	"
-	targetPackageName='org.bitbucket.gentity.test.test3'
+	targetPackageName='com.github.gentity.test.test4a_polymorphism_single_table'
 >
 	
 	<hierarchy table='LIFEFORM'>
