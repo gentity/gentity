@@ -87,6 +87,18 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>entities-test1c-many-to-many</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputDbsFile>src/main/resources/test1c-many-to-many.dbs</inputDbsFile>
+							<mappingConfigFile>src/main/resources/test1c-many-to-many.genconfig</mappingConfigFile>
+							<targetPackageName>com.github.gentity.test.test1c_many_to_many</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
 						<id>entities-test2</id>
 						<phase>generate-sources</phase>
 						<goals>
