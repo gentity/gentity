@@ -9,7 +9,7 @@ set GIT_PASSWORD='...'
 
 
 # To release, make sure that:
-# * you're on a release branch easygeoing-M.m.x (e.g easygeoing-0.3.x)
+# * you're on a release branch gentity-M.m.x (e.g gentity-0.3.x)
 # * the version number is set correctly to three components (e.g 0.3.0-SNAPSHOT)
 # * JAVADOC BUILDS!!!!
 # then, do...
