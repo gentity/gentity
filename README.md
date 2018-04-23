@@ -13,10 +13,11 @@ defines:
 
 ## TODO
 
+* Configuration option choosing if any side of a one-to-many relationship should be generated  
 * Single Table and Per Class inheritance
 * Non-Entity collections (@ElementCollection / @Embeddable)
-* Exclude discriminator columns from being mapped in generated entities
 * External (non-generated) superclasses for generated entities
+
 
 Maven Central shield image from [shields.io](https://shields.io/)
 
