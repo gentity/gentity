@@ -25,7 +25,7 @@ limitations under the License.
     <xs:attribute type="xs:string" name="name" use="optional"/>
     <xs:attribute type="xs:string" name="type" use="optional"/>
     <xs:attribute type="xs:short" name="length" use="optional"/>
-    <xs:attribute type="xs:byte" name="jt" use="optional"/>
+    <xs:attribute type="xs:int" name="jt" use="optional"/>
     <xs:attribute type="xs:string" name="mandatory" use="optional"/>
     <xs:attribute type="xs:byte" name="decimal" use="optional"/>
     <xs:attribute type="xs:string" name="autoincrement" use="optional"/>
@@ -100,6 +100,7 @@ limitations under the License.
         <xs:attribute type="xs:short" name="port"/>
         <xs:attribute type="xs:string" name="instance"/>
         <xs:attribute type="xs:string" name="user"/>
+        <xs:attribute type="xs:string" name="passwd"/>
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
@@ -173,7 +174,7 @@ limitations under the License.
   <xs:complexType name="Project">
     <xs:sequence>
       <xs:element type="Schema" name="schema"/>
-      <xs:element type="Connector" name="connector" minOccurs='0'/>
+      <xs:element type="Connector" name="connector" minOccurs='0' maxOccurs='unbounded'/>
       <xs:element type="Layout" name="layout" maxOccurs="unbounded" minOccurs="0"/>
     </xs:sequence>
     <xs:attribute type="xs:string" name="name"/>
