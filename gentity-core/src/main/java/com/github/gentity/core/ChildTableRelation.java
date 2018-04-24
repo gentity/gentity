@@ -15,8 +15,13 @@
  */
 package com.github.gentity.core;
 
+import com.github.dbsjpagen.dbsmodel.ColumnDto;
+import com.github.dbsjpagen.dbsmodel.ForeignKeyColumnDto;
 import com.github.dbsjpagen.dbsmodel.ForeignKeyDto;
+import com.github.dbsjpagen.dbsmodel.IndexUniqueDto;
 import com.github.dbsjpagen.dbsmodel.TableDto;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * represents a one-to-many or one-to-one relation
@@ -25,6 +30,7 @@ import com.github.dbsjpagen.dbsmodel.TableDto;
 public class OneToXRelation extends Relation{
 	
 	private final ForeignKeyDto foreignKey;
+	private Boolean oneToOne;
 
 	public OneToXRelation(TableDto table, ForeignKeyDto foreignKey) {
 		super(table);
@@ -35,5 +41,20 @@ public class OneToXRelation extends Relation{
 		return foreignKey;
 	}
 	
+	boolean isOneToOne() {
+		if(oneToOne == null) {
+			Set<String> fkColNames = foreignKey.getFkColumn().stream()
+				.map(ForeignKeyColumnDto::getName)
+				.collect(Collectors.toSet());
+			oneToOne = table.getIndex().stream()
+				.filter(idx -> IndexUniqueDto.UNIQUE.equals(idx.getUnique()))
+				.map(idx -> idx.getColumn().stream()
+					.map(ColumnDto::getName)
+					.collect(Collectors.toSet())
+				)
+				.anyMatch(fkColNames::equals);
+		}
+		return oneToOne;
+	}
 	
 }
