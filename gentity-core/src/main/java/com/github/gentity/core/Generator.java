@@ -609,6 +609,7 @@ public class Generator {
 			case "bigint":
 				jtype = cm.LONG;
 				break;
+			case "int":
 			case "integer":
 				jtype = cm.INT;
 				break;
@@ -625,6 +626,8 @@ public class Generator {
 				jtype = cm.DOUBLE;
 				break;
 			case "blob":
+			case "binary":
+			case "varbinary":
 			case "bytea":
 				jtype = cm.ref(Blob.class);
 				break;
