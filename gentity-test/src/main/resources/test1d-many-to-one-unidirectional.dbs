@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="test1d_one_to_many_unidirectional" id="Project_6b5f15" template="Default" database="HSql" >
+	<schema name="TEST1D_ONE_TO_MANY_UNIDIRECTIONAL_UP" schemaname="TEST1D_ONE_TO_MANY_UNIDIRECTIONAL_UP" >
+		<table name="CHILD" >
+			<column name="ID" type="integer" jt="4" mandatory="y" />
+			<column name="NAME" type="varchar" length="100" jt="12" mandatory="y" />
+			<column name="PARENT_ID" type="integer" jt="4" mandatory="y" />
+			<index name="PK_CHILD_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+			<index name="IDX_CHILD_PARENT_ID" unique="NORMAL" >
+				<column name="PARENT_ID" />
+			</index>
+			<fk name="FK_CHILD_PARENT" to_schema="TEST1D_ONE_TO_MANY_UNIDIRECTIONAL_UP" to_table="PARENT" >
+				<fk_column name="PARENT_ID" pk="ID" />
+			</fk>
+		</table>
+		<table name="PARENT" >
+			<column name="ID" type="integer" jt="4" mandatory="y" />
+			<column name="NAME" type="varchar" length="100" jt="12" />
+			<index name="PK_PARENT_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+		</table>
+	</schema>
+	<layout name="Default Layout" id="Layout_be3c40" show_relation="columns" >
+		<entity schema="TEST1D_ONE_TO_MANY_UNIDIRECTIONAL_UP" name="PARENT" color="c8daf5" x="285" y="180" />
+		<entity schema="TEST1D_ONE_TO_MANY_UNIDIRECTIONAL_UP" name="CHILD" color="c8daf5" x="510" y="180" />
+		<callout x="45" y="45" pointer="NO" >
+			<comment><![CDATA[This project is in offline mode.
+Design the schema and save the design to project file. Later create or upgrade the schema on any database.
+Right-click the layout to add new tables. Drop this callout from its right-click pop-up menu.]]></comment>
+		</callout>
+	</layout>
+</project>

@@ -99,6 +99,30 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>entities-test1d-one-to-many-unidirectional-child</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputDbsFile>src/main/resources/test1d-one-to-many-unidirectional.dbs</inputDbsFile>
+							<mappingConfigFile>src/main/resources/test1d-one-to-many-unidirectional-child.genconfig</mappingConfigFile>
+							<targetPackageName>com.github.gentity.test.test1d_one_to_many_unidirectional_child</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
+						<id>entities-test1d-one-to-many-unidirectional-parent</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputDbsFile>src/main/resources/test1d-one-to-many-unidirectional.dbs</inputDbsFile>
+							<mappingConfigFile>src/main/resources/test1d-one-to-many-unidirectional-parent.genconfig</mappingConfigFile>
+							<targetPackageName>com.github.gentity.test.test1d_one_to_many_unidirectional_parent</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
 						<id>entities-test2</id>
 						<phase>generate-sources</phase>
 						<goals>
