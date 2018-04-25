@@ -136,7 +136,7 @@ limitations under the License.
 	</xs:complexType>
 	<xs:complexType name="JoinRelation">
 		<xs:attribute name="table" type="xs:string" use="required"/>
-		<xs:attribute name='discriminator' type='xs:string'/>
+		<xs:attribute name='discriminator' type='xs:string' use="required"/>
 		<xs:attribute name="foreignKey" type="xs:string" use="required"/>
 	</xs:complexType>
 </xs:schema>
