@@ -28,6 +28,7 @@ public class Test1 extends AbstractGentityTest{
 	@Test
 	public void test() {
 		em.persist(Customer.builder()
+			.id(1L)
 			.name("Albert Einstein")
 			.build()
 		);

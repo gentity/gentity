@@ -30,21 +30,21 @@ public class Test0a_basic_table extends AbstractGentityTest {
 	public void test() {
 		em.persist(
 			Person.builder()
-			.id(1)
+			.id(1L)
 			.firstname("Albert")
 			.surname("Einstein")
 			.build()
 		);
 		em.persist(
 			Person.builder()
-			.id(2)
+			.id(2L)
 			.firstname("Max")
 			.surname("Planck")
 			.build()
 		);
 		em.persist(
 			Person.builder()
-			.id(3)
+			.id(3L)
 			.firstname("Nils")
 			.surname("Bohr")
 			.build()

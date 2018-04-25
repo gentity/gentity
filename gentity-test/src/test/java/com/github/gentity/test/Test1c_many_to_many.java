@@ -31,26 +31,26 @@ public class Test1c_many_to_many extends AbstractGentityTest{
 	@Test
 	public void test() {
 		Book book1 = Book.builder()
-			.id(1)
+			.id(1L)
 			.title("book1")
 			.build();
 		Book book2 = Book.builder()
-			.id(2)
+			.id(2L)
 			.title("book2")
 			.build();
 		
 		Author author1 = Author.builder()
-			.id(1)
+			.id(1L)
 			.name("Maier")
 			.book(Arrays.asList(book1))
 			.build();
 		Author author2 = Author.builder()
-			.id(2)
+			.id(2L)
 			.name("Müller")
 			.book(Arrays.asList(book1, book2))
 			.build();
 		Author author3 = Author.builder()
-			.id(3)
+			.id(3L)
 			.name("Schulz")
 			.book(Arrays.asList(book2))
 			.build();

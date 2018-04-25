@@ -32,7 +32,7 @@ public class Test4a_polymorphism_joined extends AbstractGentityTest{
 	public void test() {
 		
 		em.persist(Mammal.builder()
-			.id(1)
+			.id(1L)
 			.furry(true)
 			.name("ginea pig")
 			.weight(0.2)
@@ -40,7 +40,7 @@ public class Test4a_polymorphism_joined extends AbstractGentityTest{
 		);
 		
 		em.persist(Mammal.builder()
-			.id(2)
+			.id(2L)
 			.furry(false)
 			.name("elephant")
 			.weight(1000)
@@ -48,7 +48,7 @@ public class Test4a_polymorphism_joined extends AbstractGentityTest{
 		);
 		
 		em.persist(Insect.builder()
-			.id(3)
+			.id(3L)
 			.name("bee")
 			.stingy(true)
 			.weight(0.001)
