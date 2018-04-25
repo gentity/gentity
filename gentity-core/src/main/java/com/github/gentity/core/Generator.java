@@ -15,6 +15,7 @@
  */
 package com.github.gentity.core;
 
+import com.github.dbsjpagen.config.ChildTableRelationshipDto;
 import com.sun.codemodel.JAnnotationArrayMember;
 import com.sun.codemodel.JAnnotationUse;
 import com.sun.codemodel.JClass;
@@ -63,7 +64,6 @@ import com.github.dbsjpagen.config.HierarchyDto;
 import com.github.dbsjpagen.config.JoinRelationDto;
 import com.github.dbsjpagen.config.ManyToManyDto;
 import com.github.dbsjpagen.config.MappingConfigDto;
-import com.github.dbsjpagen.config.OneToManyDto;
 import com.github.dbsjpagen.config.TableConfigurationDto;
 import com.github.dbsjpagen.dbsmodel.ColumnDto;
 import com.github.dbsjpagen.dbsmodel.ForeignKeyColumnDto;
@@ -72,6 +72,10 @@ import com.github.dbsjpagen.dbsmodel.IndexUniqueDto;
 import com.github.dbsjpagen.dbsmodel.ProjectDto;
 import com.github.dbsjpagen.dbsmodel.SequenceDto;
 import com.github.dbsjpagen.dbsmodel.TableDto;
+import static com.github.gentity.core.ChildTableRelation.Kind.ONE_TO_ONE;
+import static com.github.gentity.core.ChildTableRelation.Kind.UNI_ONE_TO_ONE;
+import java.util.EnumSet;
+import java.util.function.Function;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.ForeignKey;
@@ -79,6 +83,8 @@ import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.PrimaryKeyJoinColumns;
+import static com.github.gentity.core.ChildTableRelation.Kind.MANY_TO_ONE;
+import static com.github.gentity.core.ChildTableRelation.Kind.UNI_MANY_TO_ONE;
 
 
 /**
@@ -113,9 +119,9 @@ public class Generator {
 	private ConfigurationDto globalConfiguration;
 	private Map<String, TableDto> tables;
 	private Map<String, SequenceDto> sequences;
-	private List<OneToXRelation> oneToXRelations;
-	private List<ManyToManyRelation> manyToManyRelations;
-	private Map<String, ManyToManyRelation> manyToManyRelationsJoinTables;
+	private List<ChildTableRelation> childTableRelations;
+	private List<JoinTableRelation> manyToManyRelations;
+	private Map<String, JoinTableRelation> manyToManyRelationsJoinTables;
 	
 	public Generator(MappingConfigDto cfg, ProjectDto project) {
 		this.cfg = cfg;
@@ -193,13 +199,13 @@ public class Generator {
 			}
 			
 			// add one-to-many relations
-			for(OneToXRelation otm : getOneToXRelations()) {
+			for(ChildTableRelation otm : getChildTableRelations()) {
 				
 				genOneToX(otm);
 			}
 			
 			// add many-to-many relations
-			for(ManyToManyRelation mtm : getManyToManyRelations()) {
+			for(JoinTableRelation mtm : getManyToManyRelations()) {
 				JDefinedClass ownerClass = tablesToEntities.get(mtm.getOwnerForeignKey().getToTable());
 				JDefinedClass referencedClass = tablesToEntities.get(mtm.getReferencedForeignKey().getToTable());
 				
@@ -384,7 +390,7 @@ public class Generator {
 		return field;
 	}
 	
-	private void genOneToX(OneToXRelation otm) {
+	private void genOneToX(ChildTableRelation otm) {
 		JDefinedClass childTableEntity = tablesToEntities.get(otm.getTable().getName());
 		ForeignKeyDto ownerFk = otm.getForeignKey();
 		JDefinedClass parentTableEntity = tablesToEntities.get(ownerFk.getToTable());
@@ -403,10 +409,10 @@ public class Generator {
 		JFieldVar childField = childTableEntity.field(JMod.PROTECTED, parentTableEntity, fieldName);
 		
 		// @ManyToOne / @OneToOne
-		if(otm.isOneToOne()) {
+		if(EnumSet.of(ONE_TO_ONE, UNI_ONE_TO_ONE).contains(otm.getKind())) {
 			childField.annotate(OneToOne.class);
-
 		} else {
+			assert  EnumSet.of(MANY_TO_ONE, UNI_MANY_TO_ONE).contains(otm.getKind());
 			childField.annotate(ManyToOne.class);
 		}
 
@@ -432,13 +438,13 @@ public class Generator {
 			}
 		}
 
-		// parent table side mapping
-		if(otm.isOneToOne()) {
+		// parent table side mapping, only for the two bidirectional mappings
+		if(otm.getKind() == ONE_TO_ONE) {
 			genOneToOneReferenced(parentTableEntity, childTableEntity, otm.getTable().getName(), otm.getTable().getName());
 			JFieldVar parentField = parentTableEntity.field(JMod.PROTECTED, childTableEntity, toFieldName(parentTableEntity, otm.getTable().getName()));
 			parentField.annotate(OneToOne.class)
 				.param("mappedBy", childField.name());
-		} else {
+		} else if(otm.getKind() == MANY_TO_ONE){
 			JFieldVar field = genRelationCollectionFieldVar(parentTableEntity, otm.getTable().getName());
 			field.annotate(OneToMany.class)
 				.param("mappedBy", childField.name());
@@ -446,7 +452,7 @@ public class Generator {
 		
 	}
 	
-	private String genManyToManyOwner(JDefinedClass cls, ManyToManyRelation mtm) {
+	private String genManyToManyOwner(JDefinedClass cls, JoinTableRelation mtm) {
 		JFieldVar field = genRelationCollectionFieldVar(cls, mtm.getReferencedForeignKey().getToTable());
 		
 		field.annotate(ManyToMany.class);
@@ -464,7 +470,7 @@ public class Generator {
 		return field.name();
 	}
 	
-	private void genManyToManyReferenced(JDefinedClass cls, ManyToManyRelation mtm, String mappedByFieldName) {
+	private void genManyToManyReferenced(JDefinedClass cls, JoinTableRelation mtm, String mappedByFieldName) {
 		JFieldVar field = genRelationCollectionFieldVar(cls, mtm.getOwnerForeignKey().getToTable());
 		
 		field.annotate(ManyToMany.class)
@@ -684,14 +690,14 @@ public class Generator {
 			.orElseThrow(()->new RuntimeException("foreign key '" + foreignKeyName + "' not found for table '" + tableName + "'"));
 	}
 	
-	private OneToXRelation toOneToManyRelation(OneToManyDto oneToMany) {
+	private ChildTableRelation toChildTableRelation(ChildTableRelation.Kind kind, ChildTableRelationshipDto oneToMany) {
 		TableDto table = Optional.of(findTable(oneToMany.getTable()))
 			.orElseThrow(()->new RuntimeException("table not found in oneToMany relation: '" + oneToMany.getTable() + "'"));
 		ForeignKeyDto fk = toTableForeignKey(table.getName(), oneToMany.getOwnerRelation().getForeignKey());
-		return new OneToXRelation(table, fk);
+		return new ChildTableRelation(kind, table, fk);
 	}
 	
-	private ManyToManyRelation toManyToManyRelation(ManyToManyDto manyToMany) {
+	private JoinTableRelation toManyToManyRelation(ManyToManyDto manyToMany) {
 		TableDto table = Optional.ofNullable(findTable(manyToMany.getTable()))
 			.orElseThrow(()->new RuntimeException("table not found in manyToMany relation: '" + manyToMany.getTable() + "'"));
 		// NOTE: We know that there must be exactly two  relations here
@@ -700,25 +706,32 @@ public class Generator {
 		String referencedFkName =  manyToMany.getReferencedRelation().getForeignKey();
 		ForeignKeyDto ownerFk = findTableForeignKey(table.getName(), ownerFkName);
 		ForeignKeyDto referencedFk = findTableForeignKey(table.getName(), referencedFkName);
-		return new ManyToManyRelation(table, ownerFk, referencedFk);
+		return new JoinTableRelation(JoinTableRelation.Kind.MANY_TO_MANY, table, ownerFk, referencedFk);
 	}
 	
 	
-	private List<OneToXRelation> getOneToXRelations() {
-		if(oneToXRelations == null) {
+	private List<ChildTableRelation> getChildTableRelations() {
+		if(childTableRelations == null) {
 			initOneToNRelations();
 		}
-		return oneToXRelations;
+		return childTableRelations;
 	}
 	
 	private void initOneToNRelations() {
-		// collect declared one-to-many relations
-		oneToXRelations = cfg.getOneToMany().stream()
-			.map(this::toOneToManyRelation)
+		// collect declared one-to-many et. al. relations
+		childTableRelations = Stream.of(
+			cfg.getManyToOne().stream()
+				.map(otm -> toChildTableRelation(ChildTableRelation.Kind.MANY_TO_ONE, otm)),
+			cfg.getUniManyToOne().stream()
+				.map(otm -> toChildTableRelation(ChildTableRelation.Kind.UNI_MANY_TO_ONE, otm)),
+			cfg.getUniOneToOne().stream()
+				.map(otm -> toChildTableRelation(ChildTableRelation.Kind.UNI_ONE_TO_ONE, otm))
+			)
+			.flatMap(Function.identity())
 			.collect(Collectors.toCollection(ArrayList::new));
 
 		// get all foreign key names involved in a declared one-to-many
-		Set<String> otmFkNames = oneToXRelations.stream()
+		Set<String> otmFkNames = childTableRelations.stream()
 			.map(otm -> otm.getForeignKey().getName())
 			.collect(Collectors.toSet());
 		// get all foreign key names invoved in a declared many-to-many
@@ -735,11 +748,11 @@ public class Generator {
 				.filter(fk -> !otmFkNames.contains(fk.getName()))
 				.filter(fk -> !mtmFkNames.contains(fk.getName()))
 				.filter(fk -> !isSupertableJoinRelation(t, fk.getName()))
-				.map(fk -> new OneToXRelation(t, fk))
-				.forEach(oneToXRelations::add);
+				.map(fk -> new ChildTableRelation(t, fk))
+				.forEach(childTableRelations::add);
 		}
 	}
-	
+
 	private boolean isUniqueIndexPresent(TableDto table, String... columnNameArray) {
 		// check if a uniqe index is present in the given table that has the same set of columns
 		// (column names) as the given columnNameArray
@@ -752,7 +765,7 @@ public class Generator {
 			.anyMatch((indexColumnNames) -> (columnNames.equals(indexColumnNames)));
 	}
 	
-	private List<ManyToManyRelation> getManyToManyRelations() {
+	private List<JoinTableRelation> getManyToManyRelations() {
 		if(manyToManyRelations == null) {
 			manyToManyRelations = cfg.getManyToMany().stream()
 				.map(this::toManyToManyRelation)
@@ -769,10 +782,10 @@ public class Generator {
 		return manyToManyRelationsJoinTables.containsKey(tableName);
 	}
 	
-	private Map<String,OneToXRelation> createTableColumnOneToXRelations(List<OneToXRelation> oneToXRelations) {
-		Map<String,OneToXRelation> tableColumnOneToXRelations = new HashMap<>(); 
+	private Map<String,ChildTableRelation> createTableColumnOneToXRelations(List<ChildTableRelation> oneToXRelations) {
+		Map<String,ChildTableRelation> tableColumnOneToXRelations = new HashMap<>(); 
 
-		for(OneToXRelation otm : oneToXRelations) {
+		for(ChildTableRelation otm : oneToXRelations) {
 			for(ForeignKeyColumnDto fkColumn : otm.getForeignKey().getFkColumn()) {
 				String key = toTableColumnKey(otm.getTable().getName(), fkColumn.getName());
 				tableColumnOneToXRelations.put(key, otm);

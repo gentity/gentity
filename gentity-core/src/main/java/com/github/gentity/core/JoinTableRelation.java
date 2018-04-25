@@ -22,18 +22,28 @@ import com.github.dbsjpagen.dbsmodel.TableDto;
  *
  * @author upachler
  */
-public class ManyToManyRelation extends Relation {
+public class JoinTableRelation extends Relation {
 	
+	public enum Kind {
+		MANY_TO_MANY,
+		UNI_ONE_TO_MANY,
+		UNI_MANY_TO_MANY
+	}
 	
+	private final Kind kind;
 	private final ForeignKeyDto foreignKey1;
 	private final ForeignKeyDto foreignKey2;
 
-	public ManyToManyRelation(TableDto table, ForeignKeyDto foreignKey1, ForeignKeyDto foreignKey2) {
+	public JoinTableRelation(Kind kind, TableDto table, ForeignKeyDto foreignKey1, ForeignKeyDto foreignKey2) {
 		super(table);
+		this.kind = kind;
 		this.foreignKey1 = foreignKey1;
 		this.foreignKey2 = foreignKey2;
 	}
 
+	public Kind getKind() {
+		return kind;
+	}
 
 	public ForeignKeyDto getOwnerForeignKey() {
 		return foreignKey1;

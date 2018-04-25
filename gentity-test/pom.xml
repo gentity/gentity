@@ -65,14 +65,14 @@
 						</configuration>
 					</execution>
 					<execution>
-						<id>entities-test1a-one-to-many</id>
+						<id>entities-test1a-many-to-one</id>
 						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputDbsFile>src/main/resources/test1a-one-to-many.dbs</inputDbsFile>
-							<targetPackageName>com.github.gentity.test.test1a_one_to_many</targetPackageName>
+							<inputDbsFile>src/main/resources/test1a-many-to-one.dbs</inputDbsFile>
+							<targetPackageName>com.github.gentity.test.test1a_many_to_one</targetPackageName>
 						</configuration>
 					</execution>
 					<execution>
@@ -99,27 +99,15 @@
 						</configuration>
 					</execution>
 					<execution>
-						<id>entities-test1d-one-to-many-unidirectional-child</id>
+						<id>entities-test1d-many-to-one-unidirectional-child</id>
 						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputDbsFile>src/main/resources/test1d-one-to-many-unidirectional.dbs</inputDbsFile>
-							<mappingConfigFile>src/main/resources/test1d-one-to-many-unidirectional-child.genconfig</mappingConfigFile>
-							<targetPackageName>com.github.gentity.test.test1d_one_to_many_unidirectional_child</targetPackageName>
-						</configuration>
-					</execution>
-					<execution>
-						<id>entities-test1d-one-to-many-unidirectional-parent</id>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<inputDbsFile>src/main/resources/test1d-one-to-many-unidirectional.dbs</inputDbsFile>
-							<mappingConfigFile>src/main/resources/test1d-one-to-many-unidirectional-parent.genconfig</mappingConfigFile>
-							<targetPackageName>com.github.gentity.test.test1d_one_to_many_unidirectional_parent</targetPackageName>
+							<inputDbsFile>src/main/resources/test1d-many-to-one-unidirectional.dbs</inputDbsFile>
+							<mappingConfigFile>src/main/resources/test1d-many-to-one-unidirectional.genconfig</mappingConfigFile>
+							<targetPackageName>com.github.gentity.test.test1d_many_to_one_unidirectional</targetPackageName>
 						</configuration>
 					</execution>
 					<execution>

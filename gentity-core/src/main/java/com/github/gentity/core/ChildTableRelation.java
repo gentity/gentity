@@ -27,34 +27,51 @@ import java.util.stream.Collectors;
  * represents a one-to-many or one-to-one relation
  * @author upachler
  */
-public class OneToXRelation extends Relation{
+public class ChildTableRelation extends Relation{
 	
 	private final ForeignKeyDto foreignKey;
 	private Boolean oneToOne;
-
-	public OneToXRelation(TableDto table, ForeignKeyDto foreignKey) {
+	private final Kind kind;
+	
+	public enum Kind {
+		ONE_TO_ONE,
+		MANY_TO_ONE,
+		UNI_ONE_TO_ONE,
+		UNI_MANY_TO_ONE
+	}
+	
+	public ChildTableRelation(TableDto table, ForeignKeyDto foreignKey) {
+		this(deriveKind(table, foreignKey), table, foreignKey);
+	}
+	
+	public ChildTableRelation(Kind kind, TableDto table, ForeignKeyDto foreignKey) {
 		super(table);
+		this.kind = kind;
 		this.foreignKey = foreignKey;
+	}
+
+	public Kind getKind() {
+		return kind;
 	}
 	
 	public ForeignKeyDto getForeignKey() {
 		return foreignKey;
 	}
 	
-	boolean isOneToOne() {
-		if(oneToOne == null) {
-			Set<String> fkColNames = foreignKey.getFkColumn().stream()
-				.map(ForeignKeyColumnDto::getName)
-				.collect(Collectors.toSet());
-			oneToOne = table.getIndex().stream()
-				.filter(idx -> IndexUniqueDto.UNIQUE.equals(idx.getUnique()))
-				.map(idx -> idx.getColumn().stream()
-					.map(ColumnDto::getName)
-					.collect(Collectors.toSet())
-				)
-				.anyMatch(fkColNames::equals);
-		}
-		return oneToOne;
+	public static Kind deriveKind(TableDto table, ForeignKeyDto foreignKey) {
+		Set<String> fkColNames = foreignKey.getFkColumn().stream()
+			.map(ForeignKeyColumnDto::getName)
+			.collect(Collectors.toSet());
+		boolean isOneToOne = table.getIndex().stream()
+			.filter(idx -> IndexUniqueDto.UNIQUE.equals(idx.getUnique()))
+			.map(idx -> idx.getColumn().stream()
+				.map(ColumnDto::getName)
+				.collect(Collectors.toSet())
+			)
+			.anyMatch(fkColNames::equals);
+		
+		return isOneToOne ? Kind.ONE_TO_ONE : Kind.MANY_TO_ONE;
 	}
+	
 	
 }
