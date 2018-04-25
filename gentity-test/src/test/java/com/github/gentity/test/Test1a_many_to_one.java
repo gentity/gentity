@@ -15,8 +15,8 @@
  */
 package com.github.gentity.test;
 
-import com.github.gentity.test.test1a_one_to_many.Company;
-import com.github.gentity.test.test1a_one_to_many.Employee;
+import com.github.gentity.test.test1a_many_to_one.Company;
+import com.github.gentity.test.test1a_many_to_one.Employee;
 import java.util.Arrays;
 import org.junit.Assert;
 import org.junit.Test;
@@ -25,7 +25,7 @@ import org.junit.Test;
  *
  * @author upachler
  */
-public class Test1a_one_to_many extends AbstractGentityTest{
+public class Test1a_many_to_one extends AbstractGentityTest{
 	
 	@Test
 	public void test() {

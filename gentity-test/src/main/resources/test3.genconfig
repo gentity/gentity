@@ -30,9 +30,9 @@ limitations under the License.
 	assumed to be oneToMany and mapped as such. To Overide the default relation
 	mapping, list the relation explicitely:
 	-->
-	<oneToMany table='USER'>
+	<manyToOne table='USER'>
 		<ownerRelation foreignKey='FK_USER_CUSTOMER'/>
-	</oneToMany>
+	</manyToOne>
 
 	<manyToMany table='CUSTOMER_PRODUCT'>
 		<ownerRelation foreignKey='FK_CUSTOMER_PRODUCT_CUSTOMER'/>

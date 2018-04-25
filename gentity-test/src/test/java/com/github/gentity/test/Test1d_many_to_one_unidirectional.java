@@ -15,9 +15,9 @@
  */
 package com.github.gentity.test;
 
-import com.github.gentity.test.test1a_one_to_many.Company;
-import com.github.gentity.test.test1a_one_to_many.Employee;
-import java.util.Arrays;
+import com.github.gentity.test.test1d_many_to_one_unidirectional.Child;
+import com.github.gentity.test.test1d_many_to_one_unidirectional.Parent;
+import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,36 +25,46 @@ import org.junit.Test;
  *
  * @author upachler
  */
-public class Test1a_one_to_many extends AbstractGentityTest{
+public class Test1d_many_to_one_unidirectional extends AbstractGentityTest{
 	
 	@Test
 	public void test() {
+		Parent p1 = Parent.builder()
+			.id(1)
+			.name("parent_1")
+			.build();
+		Parent p2 = Parent.builder()
+			.id(2)
+			.name("parent_2")
+			.build();
 		
-		Employee e11 = Employee.builder()
-			.firstname("John")
-			.surname("Doe")
+		Child c1 = Child.builder()
+			.id(1)
+			.name("child_1")
+			.parent(p1)
 			.build();
-		Employee e12 = Employee.builder()
-			.firstname("Mick")
-			.surname("Miller")
+		Child c2 = Child.builder()
+			.id(2)
+			.name("child_2")
+			.parent(p1)
+			.build();
+		Child c3 = Child.builder()
+			.id(3)
+			.name("child_3")
+			.parent(p1)
 			.build();
 		
-		Company c1 = Company.builder()
-			.name("Acme")
-			.employee(Arrays.asList(e11, e12))
-			.build();
-		e11.setCompany(c1);
-		e12.setCompany(c1);
-		em.persist(e11);
-		em.persist(e12);
+		em.persist(p1);
+		em.persist(p2);
 		em.persist(c1);
+		em.persist(c2);
+		em.persist(c3);
 		
-		Company c = em.createQuery("SELECT DISTINCT c FROM Company c JOIN c.employee e WHERE e.firstname = 'John'", Company.class)
-			.getSingleResult();
+		List<Child> result = em.createQuery("SELECT c FROM Child c JOIN c.parent p WHERE p.name='parent_1'", Child.class)
+			.getResultList();
 		
-		boolean mickWorksHere = c.getEmployee().stream()
-			.anyMatch(e -> e.getFirstname().equals("Mick"));
+		Assert.assertEquals(3, result.size());
+			
 		
-		Assert.assertTrue(mickWorksHere);
 	}
 }

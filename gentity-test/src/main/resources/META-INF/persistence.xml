@@ -27,9 +27,9 @@
 		<class>com.github.gentity.test.test0c_basic_table_autoincrement.Person</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
-	<persistence-unit name="Test1a_one_to_many" transaction-type="RESOURCE_LOCAL">
-		<class>com.github.gentity.test.test1a_one_to_many.Company</class>
-		<class>com.github.gentity.test.test1a_one_to_many.Employee</class>
+	<persistence-unit name="Test1a_many_to_one" transaction-type="RESOURCE_LOCAL">
+		<class>com.github.gentity.test.test1a_many_to_one.Company</class>
+		<class>com.github.gentity.test.test1a_many_to_one.Employee</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 	<persistence-unit name="Test1b_one_to_one" transaction-type="RESOURCE_LOCAL">
@@ -41,6 +41,11 @@
 	<persistence-unit name="Test1c_many_to_many" transaction-type="RESOURCE_LOCAL">
 		<class>com.github.gentity.test.test1c_many_to_many.Book</class>
 		<class>com.github.gentity.test.test1c_many_to_many.Author</class>
+		<exclude-unlisted-classes>true</exclude-unlisted-classes>
+	</persistence-unit>
+	<persistence-unit name="Test1d_many_to_one_unidirectional" transaction-type="RESOURCE_LOCAL">
+		<class>com.github.gentity.test.test1d_many_to_one_unidirectional.Parent</class>
+		<class>com.github.gentity.test.test1d_many_to_one_unidirectional.Child</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 	<persistence-unit name="Test1" transaction-type="RESOURCE_LOCAL">

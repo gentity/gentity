@@ -28,8 +28,21 @@ limitations under the License.
 			<xs:element name='exclude' type='tns:Exclusion' minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element name="configuration" type='tns:Configuration' minOccurs="0" maxOccurs="1"/>
 			<xs:element name="table" type='tns:TableConfiguration' minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element name="oneToMany" type='tns:OneToMany' minOccurs="0" maxOccurs="unbounded"/>
+			
+			<!-- child table relationships --> 
+			<xs:element name="manyToOne" type='tns:ChildTableRelationship' minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="uniOneToOne" type='tns:ChildTableRelationship' minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="uniManyToOne" type='tns:ChildTableRelationship' minOccurs="0" maxOccurs="unbounded"/>
+			<!--
+			<xs:element name="oneToOne" type='tns:OneToOne' minOccurs="0" maxOccurs="unbounded"/>
+			-->
+			<!-- join table relations -->
 			<xs:element name="manyToMany" type='tns:ManyToMany' minOccurs="0" maxOccurs="unbounded"/>
+			<!--
+			<xs:element name="uniOneToMany" type='tns:UniOneToMany' minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="uniManyToMany" type='tns:UniManyToMany' minOccurs="0" maxOccurs="unbounded"/>
+			-->
+
 			<xs:element name='hierarchy' type='tns:Hierarchy' minOccurs="0" maxOccurs='unbounded'/>
 			
 		</xs:sequence>
@@ -75,7 +88,7 @@ limitations under the License.
 		<xs:attribute name='class' type="xs:string"/>
 	</xs:complexType>
 	
-	<xs:complexType name="XToMany">
+	<xs:complexType name="Relationship">
 		<xs:attribute name='table' type='xs:string' />
 	</xs:complexType>
 	
@@ -83,34 +96,18 @@ limitations under the License.
 		<xs:attribute name="foreignKey" type="xs:string"/>
 	</xs:complexType>
 	
-	<xs:simpleType name="MappedOn">
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="child_table"/>
-			<xs:enumeration value="parent_table"/>
-			<xs:enumeration value="both_tables"/>
-		</xs:restriction>
-	</xs:simpleType>
-	
-	<xs:complexType name="OneToManyRelation">
+	<xs:complexType name="ChildTableRelationship">
 		<xs:complexContent>
-			<xs:extension base="tns:Relation">
-				<xs:attribute name="mappedOn" type="tns:MappedOn"/>
-			</xs:extension>
-		</xs:complexContent>
-	</xs:complexType>
-	
-	<xs:complexType name="OneToMany">
-		<xs:complexContent>
-			<xs:extension base="tns:XToMany">
+			<xs:extension base="tns:Relationship">
 				<xs:sequence>
-					<xs:element name='ownerRelation' type='tns:OneToManyRelation' minOccurs='1' maxOccurs='1'/>
+					<xs:element name='ownerRelation' type='tns:Relation' minOccurs='1' maxOccurs='1'/>
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
 	<xs:complexType name="ManyToMany">
 		<xs:complexContent>
-			<xs:extension base="tns:XToMany">
+			<xs:extension base="tns:Relationship">
 				<xs:sequence>
 					<xs:element name='ownerRelation' type='tns:Relation' minOccurs='1' maxOccurs='1'/>
 					<xs:element name='referencedRelation' type='tns:Relation' minOccurs='1' maxOccurs='1'/>
