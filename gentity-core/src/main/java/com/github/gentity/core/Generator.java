@@ -213,15 +213,48 @@ public class Generator {
 				genManyToManyReferenced(referencedClass, mtm, fieldName);
 			}
 			
-			// generate accessor methods
-			tablesToEntities.values()
-				.forEach(accessorGenerator::generateAccessors);
+			// generate accessor methods, ordered by entity class hierarchies, roots first
+			Set<JDefinedClass> processed = tablesToEntities.values()
+				.stream()
+				.filter(this::isClassHierarchyRoot)
+				.collect(Collectors.toSet());
+			processed.forEach(accessorGenerator::generateAccessors);
+			
+			Set<JDefinedClass> remaining = new HashSet<>(tablesToEntities.values());
+			remaining.removeAll(processed);
+			
+			while(!remaining.isEmpty()) {
+				List<JDefinedClass> snapshot = new ArrayList<>(remaining);
+				for(JDefinedClass cls : snapshot) {
+					JClass ext = cls._extends();
+					if(ext instanceof JDefinedClass && processed.contains((JDefinedClass)ext)) {
+						remaining.remove(cls);
+						processed.add(cls);
+						accessorGenerator.generateAccessors(cls);
+					}
+				}
+			}
+				
 			
 		} catch(JClassAlreadyExistsException caex) {
 			throw new RuntimeException(caex);
 		}
 		
 		return cm;
+	}
+	
+	boolean isClassHierarchyRoot(JDefinedClass cls) {
+		// a class is a hierarchy root if its superclass..
+		
+		// it was not defined by this generator (not a JDefinedClass), or ...
+		JClass ext = cls._extends();
+		if(!(ext instanceof JDefinedClass)) {
+			return true;
+		}
+		
+		// ... has no @Entity annotation
+		return !((JDefinedClass)ext).annotations().stream()
+			.anyMatch(au -> au.getAnnotationClass().equals(cm.ref(Entity.class)));
 	}
 	
 	private JDefinedClass genEntityClass(JPackage p, TableDto table) throws JClassAlreadyExistsException {
@@ -655,7 +688,7 @@ public class Generator {
 				throw new RuntimeException("no mapping found for SQL type '" + column.getType() + "'");
 		}
 		
-		if(isColumnNullable(column) || findPrimaryKeyColumnGenerationStrategy(table, column) != null) {
+		if(isColumnNullable(column) || isColumnPrimaryKey(table, column)) {
 			jtype = jtype.boxify();
 		}
 		
