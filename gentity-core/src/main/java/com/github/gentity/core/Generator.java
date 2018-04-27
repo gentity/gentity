@@ -85,6 +85,8 @@ import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.PrimaryKeyJoinColumns;
 import static com.github.gentity.core.ChildTableRelation.Kind.MANY_TO_ONE;
 import static com.github.gentity.core.ChildTableRelation.Kind.UNI_MANY_TO_ONE;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 
 /**
@@ -683,6 +685,12 @@ public class Generator {
 				break;
 			case "timestamp":
 				jtype = cm.ref(Timestamp.class);
+				break;
+			case "date":
+				jtype = cm.ref(LocalDate.class);
+				break;
+			case "datetime":
+				jtype = cm.ref(LocalDateTime.class);
 				break;
 			default:
 				throw new RuntimeException("no mapping found for SQL type '" + column.getType() + "'");
