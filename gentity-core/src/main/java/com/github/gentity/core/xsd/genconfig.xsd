@@ -29,6 +29,11 @@ limitations under the License.
 			<xs:element name="configuration" type='tns:Configuration' minOccurs="0" maxOccurs="1"/>
 			<xs:element name="table" type='tns:TableConfiguration' minOccurs="0" maxOccurs="unbounded"/>
 			
+			<!-- 
+			Relationships known to JPA; see Section 2.9 in the JPA 2.2 spec:
+			http://download.oracle.com/otn-pub/jcp/persistence-2_2-mrel-spec/JavaPersistence.pdf
+			-->
+			
 			<!-- child table relationships --> 
 			<xs:element name="manyToOne" type='tns:ChildTableRelationship' minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element name="uniOneToOne" type='tns:ChildTableRelationship' minOccurs="0" maxOccurs="unbounded"/>
