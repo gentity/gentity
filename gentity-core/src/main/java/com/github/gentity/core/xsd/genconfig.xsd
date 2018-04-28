@@ -37,10 +37,10 @@ limitations under the License.
 			<xs:element name="oneToOne" type='tns:OneToOne' minOccurs="0" maxOccurs="unbounded"/>
 			-->
 			<!-- join table relations -->
-			<xs:element name="manyToMany" type='tns:ManyToMany' minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="manyToMany" type='tns:JoinTableRelationship' minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="uniManyToMany" type='tns:JoinTableRelationship' minOccurs="0" maxOccurs="unbounded"/>
 			<!--
 			<xs:element name="uniOneToMany" type='tns:UniOneToMany' minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element name="uniManyToMany" type='tns:UniManyToMany' minOccurs="0" maxOccurs="unbounded"/>
 			-->
 
 			<xs:element name='hierarchy' type='tns:Hierarchy' minOccurs="0" maxOccurs='unbounded'/>
@@ -105,7 +105,7 @@ limitations under the License.
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
-	<xs:complexType name="ManyToMany">
+	<xs:complexType name="JoinTableRelationship">
 		<xs:complexContent>
 			<xs:extension base="tns:Relationship">
 				<xs:sequence>

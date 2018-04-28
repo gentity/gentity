@@ -123,6 +123,18 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>entities-test1f-many-to-many</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputDbsFile>src/main/resources/test1f-many-to-many-unidirectional.dbs</inputDbsFile>
+							<mappingConfigFile>src/main/resources/test1f-many-to-many-unidirectional.genconfig</mappingConfigFile>
+							<targetPackageName>com.github.gentity.test.test1f_many_to_many_unidirectional</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
 						<id>entities-test2</id>
 						<phase>generate-sources</phase>
 						<goals>

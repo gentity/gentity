@@ -49,7 +49,7 @@ public class JoinTableRelation extends Relation {
 		return foreignKey1;
 	}
 	
-	public ForeignKeyDto getReferencedForeignKey() {
+	public ForeignKeyDto getInverseForeignKey() {
 		return foreignKey2;
 	}
 	

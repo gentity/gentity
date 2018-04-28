@@ -20,6 +20,7 @@ import com.github.gentity.test.test1c_many_to_many.Book;
 import java.util.Arrays;
 import java.util.HashSet;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 /**
@@ -30,6 +31,10 @@ public class Test1c_many_to_many extends AbstractGentityTest{
 	
 	@Test
 	public void test() {
+		// ensure fields for a bidirectional relationship were generated
+		assertTrue(hasClassDeclaredField(Book.class, "author"));
+		assertTrue(hasClassDeclaredField(Author.class, "book"));
+		
 		Book book1 = Book.builder()
 			.id(1L)
 			.title("book1")
