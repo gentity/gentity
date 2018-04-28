@@ -111,6 +111,18 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>entities-test1e-one-to-one-unidirectional-child</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputDbsFile>src/main/resources/test1e-one-to-one-unidirectional.dbs</inputDbsFile>
+							<mappingConfigFile>src/main/resources/test1e-one-to-one-unidirectional.genconfig</mappingConfigFile>
+							<targetPackageName>com.github.gentity.test.test1e_one_to_one_unidirectional</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
 						<id>entities-test2</id>
 						<phase>generate-sources</phase>
 						<goals>
