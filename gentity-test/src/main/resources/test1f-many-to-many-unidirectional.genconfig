@@ -24,8 +24,8 @@ limitations under the License.
 			https://raw.githubusercontent.com/gentity/gentity/master/gentity-core/src/main/resources/xsd/genconfig.xsd
 	"
 >
-	<manyToMany table="BOOK_AUTHOR">
-		<ownerRelation foreignKey="FK_BOOKS_AUTHORS_BOOK"/>
-		<referencedRelation foreignKey="FK_BOOKS_AUTHORS_AUTHOR"/>
-	</manyToMany>
+	<uniManyToMany table="BOOK_GHOSTWRITER">
+		<ownerRelation foreignKey="FK_BOOKS_GHOSTWRITERS_GHOSTWRITER"/>
+		<referencedRelation foreignKey="FK_BOOKS_GHOSTWRITERS_BOOK"/>
+	</uniManyToMany>
 </mappingConfig>

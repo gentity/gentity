@@ -29,23 +29,15 @@ import org.junit.Test;
  */
 public class Test1e_one_to_one_unidirectional extends AbstractGentityTest{
 	
-	protected boolean classHasDeclaredField(Class clazz, String fieldName) {
-		try {
-			clazz.getDeclaredField(fieldName);
-			return true;
-		} catch(NoSuchFieldException nsfx) {
-			return false;
-		}
-	}
 	
 	@Test
 	public void test() {
 		
-		assertTrue(classHasDeclaredField(Employee.class, "companycar"));
-		assertTrue(classHasDeclaredField(Employee.class, "desk"));
+		assertTrue(hasClassDeclaredField(Employee.class, "companycar"));
+		assertTrue(hasClassDeclaredField(Employee.class, "desk"));
 		
-		assertFalse(classHasDeclaredField(Desk.class, "employee"));
-		assertFalse(classHasDeclaredField(Companycar.class, "employee"));
+		assertFalse(hasClassDeclaredField(Desk.class, "employee"));
+		assertFalse(hasClassDeclaredField(Companycar.class, "employee"));
 		
 		Companycar cc = Companycar.builder()
 			.registration("S-1234")

@@ -54,6 +54,11 @@
 		<class>com.github.gentity.test.test1e_one_to_one_unidirectional.Employee</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
+	<persistence-unit name="Test1f_many_to_many_unidirectional" transaction-type="RESOURCE_LOCAL">
+		<class>com.github.gentity.test.test1f_many_to_many_unidirectional.Book</class>
+		<class>com.github.gentity.test.test1f_many_to_many_unidirectional.Ghostwriter</class>
+		<exclude-unlisted-classes>true</exclude-unlisted-classes>
+	</persistence-unit>
 	<persistence-unit name="Test1" transaction-type="RESOURCE_LOCAL">
 		<class>com.github.gentity.test.test1.Customer</class>
 		<class>com.github.gentity.test.test1.User</class>
