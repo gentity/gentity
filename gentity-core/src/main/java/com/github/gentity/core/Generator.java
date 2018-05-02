@@ -62,7 +62,7 @@ import com.github.dbsjpagen.config.ConfigurationDto;
 import com.github.dbsjpagen.config.ExclusionDto;
 import com.github.dbsjpagen.config.HierarchyDto;
 import com.github.dbsjpagen.config.JoinRelationDto;
-import com.github.dbsjpagen.config.ManyToManyDto;
+import com.github.dbsjpagen.config.JoinTableRelationshipDto;
 import com.github.dbsjpagen.config.MappingConfigDto;
 import com.github.dbsjpagen.config.TableConfigurationDto;
 import com.github.dbsjpagen.dbsmodel.ColumnDto;
@@ -85,6 +85,8 @@ import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.PrimaryKeyJoinColumns;
 import static com.github.gentity.core.ChildTableRelation.Kind.MANY_TO_ONE;
 import static com.github.gentity.core.ChildTableRelation.Kind.UNI_MANY_TO_ONE;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 
 /**
@@ -120,7 +122,7 @@ public class Generator {
 	private Map<String, TableDto> tables;
 	private Map<String, SequenceDto> sequences;
 	private List<ChildTableRelation> childTableRelations;
-	private List<JoinTableRelation> manyToManyRelations;
+	private List<JoinTableRelation> joinTableRelations;
 	private Map<String, JoinTableRelation> manyToManyRelationsJoinTables;
 	
 	public Generator(MappingConfigDto cfg, ProjectDto project) {
@@ -199,18 +201,17 @@ public class Generator {
 			}
 			
 			// add one-to-many relations
-			for(ChildTableRelation otm : getChildTableRelations()) {
+			for(ChildTableRelation ctr : getChildTableRelations()) {
 				
-				genOneToX(otm);
+				genChildTableRelation(ctr);
 			}
 			
 			// add many-to-many relations
-			for(JoinTableRelation mtm : getManyToManyRelations()) {
-				JDefinedClass ownerClass = tablesToEntities.get(mtm.getOwnerForeignKey().getToTable());
-				JDefinedClass referencedClass = tablesToEntities.get(mtm.getReferencedForeignKey().getToTable());
+			for(JoinTableRelation jtr : getJoinTableRelations()) {
+				JDefinedClass ownerClass = tablesToEntities.get(jtr.getOwnerForeignKey().getToTable());
+				JDefinedClass inverserClass = tablesToEntities.get(jtr.getInverseForeignKey().getToTable());
 				
-				String fieldName = genManyToManyOwner(ownerClass, mtm);
-				genManyToManyReferenced(referencedClass, mtm, fieldName);
+				genJoinTableRelation(ownerClass, inverserClass, jtr);
 			}
 			
 			// generate accessor methods, ordered by entity class hierarchies, roots first
@@ -423,7 +424,7 @@ public class Generator {
 		return field;
 	}
 	
-	private void genOneToX(ChildTableRelation otm) {
+	private void genChildTableRelation(ChildTableRelation otm) {
 		JDefinedClass childTableEntity = tablesToEntities.get(otm.getTable().getName());
 		ForeignKeyDto ownerFk = otm.getForeignKey();
 		JDefinedClass parentTableEntity = tablesToEntities.get(ownerFk.getToTable());
@@ -473,7 +474,6 @@ public class Generator {
 
 		// parent table side mapping, only for the two bidirectional mappings
 		if(otm.getKind() == ONE_TO_ONE) {
-			genOneToOneReferenced(parentTableEntity, childTableEntity, otm.getTable().getName(), otm.getTable().getName());
 			JFieldVar parentField = parentTableEntity.field(JMod.PROTECTED, childTableEntity, toFieldName(parentTableEntity, otm.getTable().getName()));
 			parentField.annotate(OneToOne.class)
 				.param("mappedBy", childField.name());
@@ -485,34 +485,31 @@ public class Generator {
 		
 	}
 	
-	private String genManyToManyOwner(JDefinedClass cls, JoinTableRelation mtm) {
-		JFieldVar field = genRelationCollectionFieldVar(cls, mtm.getReferencedForeignKey().getToTable());
+	private void genJoinTableRelation(JDefinedClass ownerClass, JDefinedClass inverseClass, JoinTableRelation jtr) {
+		JFieldVar ownerField = genRelationCollectionFieldVar(ownerClass, jtr.getInverseForeignKey().getToTable());
 		
-		field.annotate(ManyToMany.class);
+		ownerField.annotate(ManyToMany.class);
 		
-		JAnnotationUse joinTableAnnotation = field.annotate(JoinTable.class)
-			.param("name", mtm.getTable().getName());
+		JAnnotationUse joinTableAnnotation = ownerField.annotate(JoinTable.class)
+			.param("name", jtr.getTable().getName());
 		
 		JAnnotationArrayMember joinColumnsArray = joinTableAnnotation
 			.paramArray("joinColumns");
-		genJoinColumns(joinColumnsArray, mtm.getOwnerForeignKey().getFkColumn());
+		genJoinColumns(joinColumnsArray, jtr.getOwnerForeignKey().getFkColumn());
 		
-		JAnnotationArrayMember inverseJoinColumnsArray = joinTableAnnotation
-			.paramArray("inverseJoinColumns");
-		genJoinColumns(inverseJoinColumnsArray, mtm.getReferencedForeignKey().getFkColumn());
-		return field.name();
-	}
-	
-	private void genManyToManyReferenced(JDefinedClass cls, JoinTableRelation mtm, String mappedByFieldName) {
-		JFieldVar field = genRelationCollectionFieldVar(cls, mtm.getOwnerForeignKey().getToTable());
-		
-		field.annotate(ManyToMany.class)
-			.param("mappedBy", mappedByFieldName);
-	}
-	
-	private void genOneToOneReferenced(JDefinedClass cls, JDefinedClass targetEntityClass, String sourceTableName, String mappedByFieldName) {
-	}
+		boolean isBidirectional = jtr.getKind() == JoinTableRelation.Kind.MANY_TO_MANY;
+		if(isBidirectional) {
+			JAnnotationArrayMember inverseJoinColumnsArray = joinTableAnnotation
+				.paramArray("inverseJoinColumns");
+			genJoinColumns(inverseJoinColumnsArray, jtr.getInverseForeignKey().getFkColumn());
 
+			JFieldVar inverseField = genRelationCollectionFieldVar(inverseClass, jtr.getOwnerForeignKey().getToTable());
+
+			inverseField.annotate(ManyToMany.class)
+				.param("mappedBy", ownerField.name());
+		}
+	}
+	
 	private boolean isColumnNullable(ColumnDto column) {
 		return !"y".equals(column.getMandatory());
 	}
@@ -684,6 +681,12 @@ public class Generator {
 			case "timestamp":
 				jtype = cm.ref(Timestamp.class);
 				break;
+			case "date":
+				jtype = cm.ref(LocalDate.class);
+				break;
+			case "datetime":
+				jtype = cm.ref(LocalDateTime.class);
+				break;
 			default:
 				throw new RuntimeException("no mapping found for SQL type '" + column.getType() + "'");
 		}
@@ -693,6 +696,11 @@ public class Generator {
 		}
 		
 		return jtype;
+	}
+	
+	private TableDto toTable(String name) {
+		return Optional.ofNullable(findTable(name))
+			.orElseThrow(() -> new RuntimeException("table '" + name + "' not found"));
 	}
 	
 	private TableDto findTable(String name) {
@@ -719,27 +727,27 @@ public class Generator {
 	}
 	
 	private ForeignKeyDto toTableForeignKey(String tableName, String foreignKeyName) {
-		return Optional.of(findTableForeignKey(tableName, foreignKeyName))
+		return Optional.ofNullable(findTableForeignKey(tableName, foreignKeyName))
 			.orElseThrow(()->new RuntimeException("foreign key '" + foreignKeyName + "' not found for table '" + tableName + "'"));
 	}
 	
 	private ChildTableRelation toChildTableRelation(ChildTableRelation.Kind kind, ChildTableRelationshipDto oneToMany) {
-		TableDto table = Optional.of(findTable(oneToMany.getTable()))
-			.orElseThrow(()->new RuntimeException("table not found in oneToMany relation: '" + oneToMany.getTable() + "'"));
+		TableDto table = Optional.ofNullable(findTable(oneToMany.getTable()))
+			.orElseThrow(()->new RuntimeException("table not found in relation: '" + oneToMany.getTable() + "'"));
 		ForeignKeyDto fk = toTableForeignKey(table.getName(), oneToMany.getOwnerRelation().getForeignKey());
 		return new ChildTableRelation(kind, table, fk);
 	}
 	
-	private JoinTableRelation toManyToManyRelation(ManyToManyDto manyToMany) {
+	private JoinTableRelation toJoinTableRelation(JoinTableRelation.Kind kind, JoinTableRelationshipDto manyToMany) {
 		TableDto table = Optional.ofNullable(findTable(manyToMany.getTable()))
-			.orElseThrow(()->new RuntimeException("table not found in manyToMany relation: '" + manyToMany.getTable() + "'"));
+			.orElseThrow(()->new RuntimeException("table not found in relation: '" + manyToMany.getTable() + "'"));
 		// NOTE: We know that there must be exactly two  relations here
 		
 		String ownerFkName =  manyToMany.getOwnerRelation().getForeignKey();
 		String referencedFkName =  manyToMany.getReferencedRelation().getForeignKey();
 		ForeignKeyDto ownerFk = findTableForeignKey(table.getName(), ownerFkName);
 		ForeignKeyDto referencedFk = findTableForeignKey(table.getName(), referencedFkName);
-		return new JoinTableRelation(JoinTableRelation.Kind.MANY_TO_MANY, table, ownerFk, referencedFk);
+		return new JoinTableRelation(kind, table, ownerFk, referencedFk);
 	}
 	
 	
@@ -768,8 +776,8 @@ public class Generator {
 			.map(otm -> otm.getForeignKey().getName())
 			.collect(Collectors.toSet());
 		// get all foreign key names invoved in a declared many-to-many
-		Set<String> mtmFkNames = getManyToManyRelations().stream()
-			.flatMap(mtm -> Stream.of(mtm.getOwnerForeignKey(), mtm.getReferencedForeignKey()))
+		Set<String> mtmFkNames = getJoinTableRelations().stream()
+			.flatMap(mtm -> Stream.of(mtm.getOwnerForeignKey(), mtm.getInverseForeignKey()))
 			.map(ForeignKeyDto::getName)
 			.collect(Collectors.toSet());
 		
@@ -786,50 +794,30 @@ public class Generator {
 		}
 	}
 
-	private boolean isUniqueIndexPresent(TableDto table, String... columnNameArray) {
-		// check if a uniqe index is present in the given table that has the same set of columns
-		// (column names) as the given columnNameArray
-		Set<String> columnNames = new HashSet<>(Arrays.asList(columnNameArray));
-		return table.getIndex().stream()
-			.filter(idx -> !(!IndexUniqueDto.UNIQUE.equals(idx.getUnique())))
-			.map((idx) -> idx.getColumn().stream()
-				.map(ColumnDto::getName)
-				.collect(Collectors.toSet()))
-			.anyMatch((indexColumnNames) -> (columnNames.equals(indexColumnNames)));
-	}
-	
-	private List<JoinTableRelation> getManyToManyRelations() {
-		if(manyToManyRelations == null) {
-			manyToManyRelations = cfg.getManyToMany().stream()
-				.map(this::toManyToManyRelation)
+	private List<JoinTableRelation> getJoinTableRelations() {
+		if(joinTableRelations == null) {
+			joinTableRelations = Stream.of(
+				cfg.getManyToMany().stream()
+					.map(jtr -> toJoinTableRelation(JoinTableRelation.Kind.MANY_TO_MANY, jtr)),
+				cfg.getUniManyToMany().stream()
+					.map(jtr -> toJoinTableRelation(JoinTableRelation.Kind.UNI_MANY_TO_MANY, jtr))
+				)
+				.flatMap(Function.identity())
 				.collect(Collectors.toList());
 		}
-		return manyToManyRelations;
+		return joinTableRelations;
 	}
 	
 	private boolean isJoinTable(String tableName) {
 		if(manyToManyRelationsJoinTables == null) {
-			manyToManyRelationsJoinTables = getManyToManyRelations().stream()
+			manyToManyRelationsJoinTables = getJoinTableRelations().stream()
 				.collect(Collectors.toMap(mtm->mtm.getTable().getName(), mtm->mtm));
 		}
 		return manyToManyRelationsJoinTables.containsKey(tableName);
 	}
 	
-	private Map<String,ChildTableRelation> createTableColumnOneToXRelations(List<ChildTableRelation> oneToXRelations) {
-		Map<String,ChildTableRelation> tableColumnOneToXRelations = new HashMap<>(); 
-
-		for(ChildTableRelation otm : oneToXRelations) {
-			for(ForeignKeyColumnDto fkColumn : otm.getForeignKey().getFkColumn()) {
-				String key = toTableColumnKey(otm.getTable().getName(), fkColumn.getName());
-				tableColumnOneToXRelations.put(key, otm);
-			}
-		}
-		return tableColumnOneToXRelations;
-	}
-	
-	
 	private List<ForeignKeyColumn> findForeignKeyColumns(TableDto table, ForeignKeyDto foreignKey) {
-		TableDto parentTable = findTable(foreignKey.getToTable());
+		TableDto parentTable = toTable(foreignKey.getToTable());
 		Map<String, ColumnDto> childColumns = table.getColumn().stream()
 			.collect(Collectors.toMap(ColumnDto::getName, col -> col));
 		Map<String, ColumnDto> parentColumns = parentTable.getColumn().stream()

@@ -102,4 +102,13 @@ public class AbstractGentityTest {
 	protected EntityManager em() {
 		return em;
 	}
+
+	protected boolean hasClassDeclaredField(Class clazz, String fieldName) {
+		try {
+			clazz.getDeclaredField(fieldName);
+			return true;
+		} catch (NoSuchFieldException nsfx) {
+			return false;
+		}
+	}
 }

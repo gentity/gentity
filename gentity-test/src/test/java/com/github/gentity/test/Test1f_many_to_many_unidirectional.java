@@ -15,25 +15,23 @@
  */
 package com.github.gentity.test;
 
-import com.github.gentity.test.test1c_many_to_many.Author;
-import com.github.gentity.test.test1c_many_to_many.Book;
+import com.github.gentity.test.test1f_many_to_many_unidirectional.Ghostwriter;
+import com.github.gentity.test.test1f_many_to_many_unidirectional.Book;
 import java.util.Arrays;
 import java.util.HashSet;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import org.junit.Test;
 
 /**
  *
  * @author upachler
  */
-public class Test1c_many_to_many extends AbstractGentityTest{
+public class Test1f_many_to_many_unidirectional extends AbstractGentityTest{
 	
 	@Test
 	public void test() {
-		// ensure fields for a bidirectional relationship were generated
-		assertTrue(hasClassDeclaredField(Book.class, "author"));
-		assertTrue(hasClassDeclaredField(Author.class, "book"));
+		assertTrue(hasClassDeclaredField(Ghostwriter.class, "book"));
+		assertFalse(hasClassDeclaredField(Book.class, "ghostwriter"));
 		
 		Book book1 = Book.builder()
 			.id(1L)
@@ -44,24 +42,21 @@ public class Test1c_many_to_many extends AbstractGentityTest{
 			.title("book2")
 			.build();
 		
-		Author author1 = Author.builder()
+		Ghostwriter author1 = Ghostwriter.builder()
 			.id(1L)
 			.name("Maier")
 			.book(Arrays.asList(book1))
 			.build();
-		Author author2 = Author.builder()
+		Ghostwriter author2 = Ghostwriter.builder()
 			.id(2L)
 			.name("Müller")
 			.book(Arrays.asList(book1, book2))
 			.build();
-		Author author3 = Author.builder()
+		Ghostwriter author3 = Ghostwriter.builder()
 			.id(3L)
 			.name("Schulz")
 			.book(Arrays.asList(book2))
 			.build();
-		
-		book1.setAuthor(Arrays.asList(author1, author2));
-		book2.setAuthor(Arrays.asList(author2, author3));
 		
 		em.persist(book1);
 		em.persist(book2);
@@ -72,20 +67,10 @@ public class Test1c_many_to_many extends AbstractGentityTest{
 		
 		assertEquals(
 			new HashSet<>(
-				Arrays.asList("book1", "book2")
-			),
-			new HashSet<>(
-				em.createQuery("SELECT b.title FROM Book b JOIN b.author a WHERE a.name='Müller'", String.class)
-				.getResultList()
-			)
-		);
-		
-		assertEquals(
-			new HashSet<>(
 				Arrays.asList("Müller", "Schulz")
 			),
 			new HashSet<>(
-				em.createQuery("SELECT a.name FROM Author a JOIN a.book b WHERE b.title='book2'", String.class)
+				em.createQuery("SELECT g.name FROM Ghostwriter g JOIN g.book b WHERE b.title='book2'", String.class)
 				.getResultList()
 			)
 		);
