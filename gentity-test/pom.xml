@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.github.gentity</groupId>
 		<artifactId>gentity</artifactId>
-		<version>0.4-SNAPSHOT</version>
+		<version>0.6-SNAPSHOT</version>
 	</parent>
 	<artifactId>gentity-test</artifactId>
 	<packaging>jar</packaging>
@@ -108,6 +108,30 @@
 							<inputDbsFile>src/main/resources/test1d-many-to-one-unidirectional.dbs</inputDbsFile>
 							<mappingConfigFile>src/main/resources/test1d-many-to-one-unidirectional.genconfig</mappingConfigFile>
 							<targetPackageName>com.github.gentity.test.test1d_many_to_one_unidirectional</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
+						<id>entities-test1e-one-to-one-unidirectional-child</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputDbsFile>src/main/resources/test1e-one-to-one-unidirectional.dbs</inputDbsFile>
+							<mappingConfigFile>src/main/resources/test1e-one-to-one-unidirectional.genconfig</mappingConfigFile>
+							<targetPackageName>com.github.gentity.test.test1e_one_to_one_unidirectional</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
+						<id>entities-test1f-many-to-many</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputDbsFile>src/main/resources/test1f-many-to-many-unidirectional.dbs</inputDbsFile>
+							<mappingConfigFile>src/main/resources/test1f-many-to-many-unidirectional.genconfig</mappingConfigFile>
+							<targetPackageName>com.github.gentity.test.test1f_many_to_many_unidirectional</targetPackageName>
 						</configuration>
 					</execution>
 					<execution>

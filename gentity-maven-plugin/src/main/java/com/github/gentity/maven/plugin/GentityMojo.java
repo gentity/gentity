@@ -80,8 +80,7 @@ public class GentityMojo extends AbstractMojo{
 		}
 		
 		if(mappingConfigFile != null && !mappingConfigFile.exists()) {
-			getLog().warn("specified mapping config file '" + mappingConfigFile + "' does not exist, continuing without it");
-			mappingConfigFile = null;
+			throw new MojoExecutionException("specified mapping config file '" + mappingConfigFile + "' does not exist");
 		}
 		
 		FileShell shell = new FileShell();
