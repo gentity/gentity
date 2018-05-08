@@ -38,6 +38,14 @@ class NameProvider {
 		throw new RuntimeException("too many attempts to form a name for table, last unsuccessful candidate was '" + candidate + "'");
 	}
 
+	private static boolean isNum(char c) {
+		return  c >= '0' && c <= '9';
+	}
+	
+	private static boolean isAlphaNum(char c) {
+		return isNum(c) || isAlpha(c);
+	}
+	
 	private static boolean isAlpha(char c) {
 		return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z';
 	}
@@ -64,17 +72,25 @@ class NameProvider {
 		boolean needsUppercasing = startUppercase;
 		StringBuilder sb = new StringBuilder();
 		for (char c : name.toCharArray()) {
-			boolean alpha = isAlpha(c);
-			if (!alpha) {
+			if(isNum(c)) {
+				sb.append(c);
 				needsUppercasing = true;
-				continue;
+			} else if(isAlpha(c)) {
+				if (needsUppercasing && !Character.isUpperCase(c)) {
+					c = Character.toUpperCase(c);
+					needsUppercasing = false;
+				}
+				sb.append(c);
+			} else {
+				needsUppercasing = true;
 			}
-			if (needsUppercasing && !Character.isUpperCase(c)) {
-				c = Character.toUpperCase(c);
-				needsUppercasing = false;
-			}
-			sb.append(c);
 		}
+		
+		// prepend name with underscore '_' for non-alpha start characters
+		if(sb.length()>0 && !isAlpha(sb.charAt(0))) {
+			sb.insert(0 , '_');
+		}
+		
 		return sb.toString();
 	}
 	
