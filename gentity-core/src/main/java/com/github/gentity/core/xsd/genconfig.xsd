@@ -118,6 +118,7 @@ limitations under the License.
 	<xs:complexType name="Hierarchy">
 		<xs:choice>
 			<xs:element name="joined" type="tns:Joined"/>
+			<xs:element name="singleTable" type="tns:SingleTable"/>
 		</xs:choice>
 	</xs:complexType>
 	<xs:complexType  name="Joined">
@@ -138,5 +139,29 @@ limitations under the License.
 		<xs:attribute name="table" type="xs:string" use="required"/>
 		<xs:attribute name='discriminator' type='xs:string' use="required"/>
 		<xs:attribute name="foreignKey" type="xs:string" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="SingleTable">
+		<xs:sequence>
+			<xs:element name="discriminateBy" type="tns:DiscriminatorDecl" minOccurs="1" maxOccurs="1"/>
+			<xs:element name="rootEntity" type="tns:SingleTableRootEntity"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="SingleTableEntity">
+		<xs:sequence>
+			<xs:element name="field" type="tns:SingleTableField" minOccurs='0' maxOccurs='unbounded'/>
+			<xs:element name="entity" type="tns:SingleTableEntity" minOccurs="0" maxOccurs='unbounded'/>
+		</xs:sequence>
+		<xs:attribute name="name" type="xs:string" use='required'/>
+		<xs:attribute name="discriminator" type="xs:string" use='required'/>
+	</xs:complexType>
+	<xs:complexType name="SingleTableRootEntity">
+		<xs:complexContent>
+			<xs:extension base="tns:SingleTableEntity">
+				<xs:attribute name="table" type="xs:string" use="required"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SingleTableField">
+		<xs:attribute name="column" type="xs:string"/>
 	</xs:complexType>
 </xs:schema>

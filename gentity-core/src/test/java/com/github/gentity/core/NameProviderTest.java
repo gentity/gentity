@@ -35,6 +35,10 @@ public class NameProviderTest {
 		assertEquals("Foo", np.javatizeName("foo", true));
 		
 		// test first character uppercasing
+		assertEquals("FooBar", np.javatizeName("Foo_bar", false));
+		assertEquals("FooBar", np.javatizeName("Foo_bar", true));
+		
+		// test first character uppercasing
 		assertEquals("fooBar", np.javatizeName("foo_bar", false));
 		assertEquals("FooBar", np.javatizeName("foo_bar", true));
 		

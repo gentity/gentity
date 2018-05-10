@@ -15,6 +15,7 @@
  */
 package com.github.gentity.core;
 
+import com.github.gentity.core.fields.FieldColumnSource;
 import com.github.dbsjpagen.config.ChildTableRelationshipDto;
 import com.sun.codemodel.JAnnotationArrayMember;
 import com.sun.codemodel.JAnnotationUse;
@@ -32,7 +33,6 @@ import java.io.Serializable;
 import java.sql.Blob;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -64,6 +64,9 @@ import com.github.dbsjpagen.config.HierarchyDto;
 import com.github.dbsjpagen.config.JoinRelationDto;
 import com.github.dbsjpagen.config.JoinTableRelationshipDto;
 import com.github.dbsjpagen.config.MappingConfigDto;
+import com.github.dbsjpagen.config.SingleTableEntityDto;
+import com.github.dbsjpagen.config.SingleTableFieldDto;
+import com.github.dbsjpagen.config.SingleTableRootEntityDto;
 import com.github.dbsjpagen.config.TableConfigurationDto;
 import com.github.dbsjpagen.dbsmodel.ColumnDto;
 import com.github.dbsjpagen.dbsmodel.ForeignKeyColumnDto;
@@ -85,6 +88,8 @@ import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.PrimaryKeyJoinColumns;
 import static com.github.gentity.core.ChildTableRelation.Kind.MANY_TO_ONE;
 import static com.github.gentity.core.ChildTableRelation.Kind.UNI_MANY_TO_ONE;
+import com.github.gentity.core.fields.PlainTableFieldColumnSource;
+import com.github.gentity.core.fields.SingleTableFieldColumnSource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -99,6 +104,7 @@ public class Generator {
 	private final ProjectDto project;
 	JCodeModel cm;
 	Map<String, JDefinedClass> tablesToEntities;
+	Map<JDefinedClass, EntityInfo> entities;
 	
 	private final EntityRefFactory LIST_ENTITY_REF_FACTORY = new EntityRefFactory() {
 		@Override
@@ -142,12 +148,15 @@ public class Generator {
 		
 		try {
 			tablesToEntities = new HashMap<>();
+			entities = new HashMap<>();
 			
 			// generate entities first that are part of a hierarchy
 			for(HierarchyDto h : cfg.getHierarchy()) {
 				
 				if(h.getJoined() != null) {
 					genJoinedHierarchy(h, p);
+				} else if(h.getSingleTable() != null) {
+					genSingleTableHierarchy(h, p);
 				}
 			}
 			
@@ -191,13 +200,13 @@ public class Generator {
 			}
 			
 			// process table columns
-			for(Map.Entry<String, JDefinedClass> e : tablesToEntities.entrySet()) {
-				TableDto table = findTable(e.getKey());
-				JDefinedClass cls = e.getValue();
+			for(Map.Entry<JDefinedClass, EntityInfo> e : entities.entrySet()) {
+				FieldColumnSource src = e.getValue().getFieldColumnSource();
+				JDefinedClass cls = e.getKey();
 				
-				table.getColumn().stream()
-					.filter((column) -> (!isColumnExcluded(table.getName(), column.getName())))
-					.forEachOrdered((c) -> genColumn(cls, table, c));
+				src.getFieldMappings().stream()
+					.filter((m) -> (!isColumnExcluded(m.getTable().getName(), m.getColumn().getName())))
+					.forEachOrdered((m) -> genColumn(cls, m.getTable(), m.getColumn(), m.getFieldName()));
 			}
 			
 			// add one-to-many relations
@@ -215,13 +224,12 @@ public class Generator {
 			}
 			
 			// generate accessor methods, ordered by entity class hierarchies, roots first
-			Set<JDefinedClass> processed = tablesToEntities.values()
-				.stream()
+			Set<JDefinedClass> processed = entities.keySet().stream()
 				.filter(this::isClassHierarchyRoot)
 				.collect(Collectors.toSet());
 			processed.forEach(accessorGenerator::generateAccessors);
 			
-			Set<JDefinedClass> remaining = new HashSet<>(tablesToEntities.values());
+			Set<JDefinedClass> remaining = new HashSet<>(entities.keySet());
 			remaining.removeAll(processed);
 			
 			while(!remaining.isEmpty()) {
@@ -259,21 +267,27 @@ public class Generator {
 	}
 	
 	private JDefinedClass genEntityClass(JPackage p, TableDto table) throws JClassAlreadyExistsException {
-		return genEntityClass(p, table, null);
+		return genEntityClass(p, table.getName(), table, null, null);
 	}
 	
-	private JDefinedClass genEntityClass(JPackage p, TableDto table, JClass superClass) throws JClassAlreadyExistsException {
+	private JDefinedClass genEntityClass(JPackage p, String entityNameCandidate, TableDto table, JClass superClass, FieldColumnSource fcs) throws JClassAlreadyExistsException {
 		JClass serializableClass = cm.ref(Serializable.class);
 			
-		JDefinedClass cls = p._class(JMod.PUBLIC, toClassName(p, table.getName()));
+		JDefinedClass cls = p._class(JMod.PUBLIC, toClassName(p, entityNameCandidate));
 		if(superClass!=null) {
 			cls._extends(superClass);
 		}
 		cls.annotate(Entity.class);
-		cls.annotate(Table.class)
-			.param("name", table.getName());
-		tablesToEntities.put(table.getName(), cls);
-
+		if(table != null) {
+			cls.annotate(Table.class)
+				.param("name", table.getName());
+			tablesToEntities.put(table.getName(), cls);
+		}
+		if(fcs == null) {
+			fcs = new PlainTableFieldColumnSource(table);
+		}
+		entities.put(cls, new EntityInfo(fcs));
+		
 		cls._implements(serializableClass);
 		return cls;
 	}
@@ -287,10 +301,10 @@ public class Generator {
 		}
 	}
 	
-	private void genColumn(JDefinedClass cls, TableDto table, ColumnDto column) {
+	private void genColumn(JDefinedClass cls, TableDto table, ColumnDto column, String fieldNameCanditate) {
 		
 		JType colType = mapColumnType(table, column);
-		String fieldName = toFieldName(cls, column.getName());
+		String fieldName = toFieldName(cls, fieldNameCanditate);
 		JFieldVar field = cls.field(JMod.PROTECTED, colType, fieldName);
 		
 		// @Id
@@ -333,18 +347,8 @@ public class Generator {
 		hierarchyClasses.put(rootTable.getName(), rootClass);
 		rootClass.annotate(cm.ref(Inheritance.class))
 			.param("strategy", InheritanceType.JOINED);
-		String rootDColName = h.getJoined().getDiscriminateBy().getColumn();
-		ColumnDto rootdcol = rootTable.getColumn().stream()
-			.filter(c -> c.getName().equals(rootDColName))
-			.findAny()
-			.orElseThrow(() -> new RuntimeException("discrimiator column '" + rootDColName + "' not found"));
-		JType rootdcolType = mapColumnType(rootTable, rootdcol);
-
-		JAnnotationUse au = rootClass.annotate(cm.ref(DiscriminatorColumn.class))
-			.param("name", rootdcol.getName());
-		if(rootdcolType instanceof JClass && ((JClass)rootdcolType).isAssignableFrom(cm.ref(String.class))) {
-			au.param("length", rootdcol.getLength());
-		}
+		
+		genDiscriminatorColumnAnnotation(rootClass, rootTable, h.getJoined().getDiscriminateBy().getColumn());
 
 		Set<JoinRelationDto> unmappedRelations = new HashSet<>(h.getJoined().getJoinRelation());
 		while(!unmappedRelations.isEmpty()) {
@@ -373,9 +377,9 @@ public class Generator {
 			// subclass entity from there
 			ForeignKeyDto fk = toTableForeignKey(mapableRelation.getTable(), mapableRelation.getForeignKey());
 			JClass superclassEntity = hierarchyClasses.get(fk.getToTable());
-			JDefinedClass subclassEntity = genEntityClass(pakkage, findTable(mapableRelation.getTable()), superclassEntity);
-			subclassEntity.annotate(DiscriminatorValue.class)
-				.param("value", mapableRelation.getDiscriminator());
+			TableDto table = findTable(mapableRelation.getTable());
+			JDefinedClass subclassEntity = genEntityClass(pakkage, table.getName(), table, superclassEntity, null);
+			genDiscriminatorValueAnnotation(subclassEntity, mapableRelation.getDiscriminator());
 
 			if(fk.getFkColumn().size()==1) {
 				fillPrimaryKeyJoinColumn(subclassEntity.annotate(PrimaryKeyJoinColumn.class), fk, fk.getFkColumn().get(0));
@@ -397,7 +401,75 @@ public class Generator {
 			.annotationParam("foreignKey", ForeignKey.class)
 				.param("name", fk.getName());
 	}
+	
+	private void genDiscriminatorColumnAnnotation(JDefinedClass cls, TableDto table, String discriminatorColName) {
+		ColumnDto rootdcol = table.getColumn().stream()
+			.filter(c -> c.getName().equals(discriminatorColName))
+			.findAny()
+			.orElseThrow(() -> new RuntimeException("discrimiator column '" + discriminatorColName + "' not found"));
+		JType rootdcolType = mapColumnType(table, rootdcol);
 
+		JAnnotationUse au = cls.annotate(cm.ref(DiscriminatorColumn.class))
+			.param("name", rootdcol.getName());
+		if(rootdcolType instanceof JClass && ((JClass)rootdcolType).isAssignableFrom(cm.ref(String.class))) {
+			au.param("length", rootdcol.getLength());
+		}
+	}
+	
+	private void genDiscriminatorValueAnnotation(JDefinedClass cls, String value) {
+		cls.annotate(DiscriminatorValue.class)
+			.param("value", value);
+		
+	}
+	
+	private void checkEachFieldOnlyOnce(TableDto table, SingleTableEntityDto entity) {
+		Set<String> colMap = table.getColumn().stream()
+			.map(c -> c.getName())
+			.collect(Collectors.toSet());
+		checkEachFieldOnlyOnceImpl(table, colMap, new HashSet<>(), entity);
+	}
+	
+	private void checkEachFieldOnlyOnceImpl(TableDto table, Set<String> colSet, Set<String> usedColNames, SingleTableEntityDto entity) {
+		for(SingleTableFieldDto f : entity.getField()) {
+			if(!colSet.contains(f.getColumn())) {
+				throw new RuntimeException(String.format("Specified field column %s does not exist in table %s", table.getName(), f.getColumn()));
+			}
+			if(!usedColNames.add(f.getColumn())) {
+				throw new RuntimeException(String.format("duplicate column name %s found in single table hierarchy", f.getColumn()));
+			}
+		}
+		
+		for(SingleTableEntityDto e : entity.getEntity()) {
+			checkEachFieldOnlyOnceImpl(table, colSet, usedColNames, e);
+		}
+	}
+	
+	private void genSingleTableHierarchy(HierarchyDto h, JPackage pakkage) throws JClassAlreadyExistsException {
+		
+		SingleTableRootEntityDto rootEntity = h.getSingleTable().getRootEntity();
+		TableDto rootTable = findTable(rootEntity.getTable());
+		
+		checkEachFieldOnlyOnce(rootTable, rootEntity);
+		JDefinedClass rootClass = genEntityClass(pakkage, rootTable.getName(), rootTable, null, new SingleTableFieldColumnSource(rootTable, rootEntity));
+		rootClass.annotate(Inheritance.class)
+			.param("strategy", InheritanceType.SINGLE_TABLE);
+		genDiscriminatorColumnAnnotation(rootClass, rootTable, h.getSingleTable().getDiscriminateBy().getColumn());
+		
+		genDiscriminatorValueAnnotation(rootClass, rootEntity.getDiscriminator());
+		
+		genSingleTableChildEntities(rootTable, rootClass, rootEntity);
+	}
+	
+	private void genSingleTableChildEntities(TableDto rootTable, JDefinedClass parentclass, SingleTableEntityDto parentEntity) throws JClassAlreadyExistsException {
+		for(SingleTableEntityDto entity : parentEntity.getEntity()) {
+			JDefinedClass cls = genEntityClass(parentclass.getPackage(), entity.getName(), null, parentclass, new SingleTableFieldColumnSource(rootTable, entity));
+			
+			genDiscriminatorValueAnnotation(cls, entity.getDiscriminator());
+			
+			genSingleTableChildEntities(rootTable, cls, entity);
+		}
+	}
+	
 	private void genJoinColumns(JAnnotationArrayMember joinColumnsArray, List<ForeignKeyColumnDto> fkColumns) {
 		for(ForeignKeyColumnDto fkColumn : fkColumns) {
 			joinColumnsArray
@@ -407,6 +479,7 @@ public class Generator {
 				;
 		}
 	}
+	
 	private EntityRefFactory findEntityRefFactory(JDefinedClass cls) {
 		// for now, all we support is List<> with a created ArrayList<> instance
 		return LIST_ENTITY_REF_FACTORY;
@@ -529,8 +602,9 @@ public class Generator {
 	
 	private Optional<HierarchyDto> findSubclassTableJoinedHierarchy(TableDto table) {
 		return cfg.getHierarchy().stream()
+			.filter(h -> h.getJoined() != null)
 			.filter(h -> h.getJoined().getJoinRelation().stream()
-				.anyMatch(j -> j.getTable().equals(table.getName()))
+				.anyMatch(jr -> jr.getTable().equals(table.getName()))
 			)
 			.findAny();
 	}
@@ -605,10 +679,19 @@ public class Generator {
 		// that has the given column name as discriminator
 		
 		return cfg.getHierarchy().stream()
-			.filter(h -> h.getJoined() != null)
-			.filter(h -> h.getJoined().getDiscriminateBy().getColumn().equals(columnName))
+			.map(HierarchyDto::getJoined)
+			.filter(j -> j!=null)
+			.filter(j -> j.getDiscriminateBy().getColumn().equals(columnName))
+			.anyMatch(j -> 
+				j.getRoot().getTable().equals(table.getName())
+			)
+			||
+			cfg.getHierarchy().stream()
+			.filter(h -> h.getSingleTable()!= null)
+			.map(h -> h.getSingleTable())
+			.filter(s -> s.getDiscriminateBy().getColumn().equals(columnName))
 			.anyMatch(h -> 
-				h.getJoined().getRoot().getTable().equals(table.getName())
+				h.getRootEntity().getTable().equals(table.getName())
 			);
 	}
 	

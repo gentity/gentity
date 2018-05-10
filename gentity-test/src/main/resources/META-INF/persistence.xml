@@ -70,4 +70,10 @@
 		<class>com.github.gentity.test.test4a_polymorphism_joined.Insect</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
+	<persistence-unit name="Test4b_polymorphism_single_table" transaction-type="RESOURCE_LOCAL">
+		<class>com.github.gentity.test.test4b_polymorphism_single_table.Lifeform</class>
+		<class>com.github.gentity.test.test4b_polymorphism_single_table.Mammal</class>
+		<class>com.github.gentity.test.test4b_polymorphism_single_table.Insect</class>
+		<exclude-unlisted-classes>true</exclude-unlisted-classes>
+	</persistence-unit>
 </persistence>

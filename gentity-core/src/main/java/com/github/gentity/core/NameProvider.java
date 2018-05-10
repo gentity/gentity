@@ -22,7 +22,7 @@ import java.util.function.Predicate;
  *
  * @author upachler
  */
-class NameProvider {
+public class NameProvider {
 
 	private static final int MAX_CANDIDATES = 100;
 
@@ -52,7 +52,7 @@ class NameProvider {
 		return true;
 	}
 	
-	String javatizeName(String name, boolean startUppercase) {
+	public String javatizeName(String name, boolean startUppercase) {
 		
 		// all-uppercase names like 'BANKACCOUNT' will be lowercased first 
 		// (resulting in 'bankaccount'. Input strings like 'BankAccount' will
@@ -69,7 +69,7 @@ class NameProvider {
 				needsUppercasing = true;
 				continue;
 			}
-			if (needsUppercasing && !Character.isUpperCase(c)) {
+			if (needsUppercasing && isAlpha(c)) {
 				c = Character.toUpperCase(c);
 				needsUppercasing = false;
 			}

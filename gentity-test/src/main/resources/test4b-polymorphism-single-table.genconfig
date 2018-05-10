@@ -19,17 +19,14 @@ limitations under the License.
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="
 	    https://github.com/gentity/gentity/ns
-			../../../../gentity-core/src/main/resources/xsd/genconfig.xsd
-	    https://github.com/gentity/gentity/ns
-			https://raw.githubusercontent.com/gentity/gentity/master/gentity-core/src/main/resources/xsd/genconfig.xsd
+			../../../../gentity-core/src/main/java/com/github/gentity/core/xsd/genconfig.xsd
 	"
-	targetPackageName='com.github.gentity.test.test4a_polymorphism_single_table'
 >
 	
-	<hierarchy table='LIFEFORM'>
+	<hierarchy>
 		<singleTable>
 			<discriminateBy column='KIND'/>
-			<entity name='Lifeform' discriminator='LF'>
+			<rootEntity name='Lifeform' table='LIFEFORM' discriminator='LF'>
 				<field column='ID'/>
 				<field column='NAME'/>
 				<field column='WEIGHT'/>
@@ -39,8 +36,7 @@ limitations under the License.
 				<entity name='Mammal' discriminator='MA'>
 					<field column='FURRY'/>
 				</entity>
-			</entity>
-			
+			</rootEntity>
 		</singleTable>
 	</hierarchy>
 </mappingConfig>
