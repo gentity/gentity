@@ -3,18 +3,25 @@
 	<schema name="TEST4D" schemaname="TEST4D" >
 		<table name="LIFEFORM" >
 			<column name="ID" type="bigint" jt="-5" mandatory="y" />
-			<column name="KIND" type="char" length="10" jt="12" />
+			<column name="KIND" type="char" length="10" jt="1" />
 			<column name="NAME" type="varchar" length="100" jt="12" />
-			<column name="WEIGHT" type="real" jt="7" mandatory="n" />
-			<column name="STINGY" type="boolean" jt="16" mandatory="n" />
-			<column name="LIFEFORM_ID" type="bigint" jt="-5" mandatory="n" />
-			<column name="FURRY" type="boolean" jt="16" mandatory="n" />
+			<column name="WEIGHT" type="real" jt="7" />
+			<column name="STINGY" type="boolean" jt="16" />
+			<column name="OWNS_LIFEFORM_ID" type="bigint" jt="-5" />
+			<column name="FURRY" type="boolean" jt="16" />
 			<index name="PK_LIFEFORM_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+		</table>
+		<table name="PLANET" >
+			<column name="ID" type="char" length="8" jt="1" mandatory="y" />
+			<index name="PK_PLANET_ID" unique="PRIMARY_KEY" >
 				<column name="ID" />
 			</index>
 		</table>
 	</schema>
 	<layout name="Default Layout" id="Layout_3761216" show_relation="columns" >
-		<entity schema="TEST4D" name="LIFEFORM" color="c8daf5" x="105" y="45" />
+		<entity schema="TEST4D" name="LIFEFORM" color="c8daf5" x="45" y="45" />
+		<entity schema="TEST4D" name="PLANET" color="c8daf5" x="360" y="75" />
 	</layout>
 </project>
