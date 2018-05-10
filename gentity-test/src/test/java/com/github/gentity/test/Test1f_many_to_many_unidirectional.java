@@ -67,6 +67,16 @@ public class Test1f_many_to_many_unidirectional extends AbstractGentityTest{
 		
 		assertEquals(
 			new HashSet<>(
+				Arrays.asList("Maier", "Müller")
+			),
+			new HashSet<>(
+				em.createQuery("SELECT g.name FROM Ghostwriter g JOIN g.book b WHERE b.title='book1'", String.class)
+				.getResultList()
+			)
+		);
+		
+		assertEquals(
+			new HashSet<>(
 				Arrays.asList("Müller", "Schulz")
 			),
 			new HashSet<>(
