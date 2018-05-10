@@ -15,7 +15,6 @@
  */
 package com.github.gentity.core;
 
-import com.github.gentity.core.NameProvider;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -45,6 +44,12 @@ public class NameProviderTest {
 		// test lowercasing all-uppercase names
 		assertEquals("foobar", np.javatizeName("FOOBAR", false));
 		assertEquals("fooBar", np.javatizeName("fooBar", false));
+		
+		// test lowercasing all-uppercase names
+		assertEquals("foo1Bar", np.javatizeName("foo1_bar", false));
+		assertEquals("foo1Bar", np.javatizeName("foo1bar", false));
+		
+		assertEquals("_1FooBar", np.javatizeName("1foo_bar", false));
 		
 	}
 	
