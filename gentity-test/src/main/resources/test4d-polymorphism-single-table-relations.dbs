@@ -1,17 +1,50 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <project name="test4d" id="Project_3fedcf1" template="Default" database="HSql" >
 	<schema name="TEST4D" schemaname="TEST4D" >
+		<table name="DOG_ACCESSORIES" >
+			<column name="ID" type="bigint" jt="-5" mandatory="y" autoincrement="y" />
+			<column name="NAME" type="varchar" length="100" jt="12" />
+			<column name="OWNED_BY_DOG_LIFEFORM_ID" type="bigint" jt="-5" mandatory="y" />
+			<index name="PK_DOC_ACCESSORIES_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+			<index name="IDX_DOG_ACCESSORIES_OWNED_BY_DOG_LIFEFORM_ID" unique="NORMAL" >
+				<column name="OWNED_BY_DOG_LIFEFORM_ID" />
+			</index>
+			<fk name="FK_DOG_ACCESSORIES_LIFEFORM" to_schema="TEST4D" to_table="LIFEFORM" >
+				<fk_column name="OWNED_BY_DOG_LIFEFORM_ID" pk="ID" />
+			</fk>
+		</table>
+		<table name="KETTLE" >
+			<column name="ID" type="bigint" jt="-5" mandatory="y" autoincrement="y" />
+			<index name="PK_KETTLE_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+		</table>
 		<table name="LIFEFORM" >
 			<column name="ID" type="bigint" jt="-5" mandatory="y" />
 			<column name="KIND" type="char" length="10" jt="1" />
 			<column name="NAME" type="varchar" length="100" jt="12" />
 			<column name="WEIGHT" type="real" jt="7" />
 			<column name="STINGY" type="boolean" jt="16" />
-			<column name="OWNS_LIFEFORM_ID" type="bigint" jt="-5" />
 			<column name="FURRY" type="boolean" jt="16" />
+			<column name="LIVES_ON_PLANET_ID" type="char" length="8" jt="1" />
+			<column name="LIVES_IN_KETTLE_ID" type="bigint" jt="-5" />
 			<index name="PK_LIFEFORM_ID" unique="PRIMARY_KEY" >
 				<column name="ID" />
 			</index>
+			<index name="IDX_LIFEFORM_LIVES_ON_PLANET_ID" unique="NORMAL" >
+				<column name="LIVES_ON_PLANET_ID" />
+			</index>
+			<index name="IDX_LIFEFORM_LIVES_IN_KETTLE_ID" unique="NORMAL" >
+				<column name="LIVES_IN_KETTLE_ID" />
+			</index>
+			<fk name="FK_LIFEFORM_PLANET" to_schema="TEST4D" to_table="PLANET" >
+				<fk_column name="LIVES_ON_PLANET_ID" pk="ID" />
+			</fk>
+			<fk name="FK_LIFEFORM_KETTLE" to_schema="TEST4D" to_table="KETTLE" >
+				<fk_column name="LIVES_IN_KETTLE_ID" pk="ID" />
+			</fk>
 		</table>
 		<table name="PLANET" >
 			<column name="ID" type="char" length="8" jt="1" mandatory="y" />
@@ -21,7 +54,9 @@
 		</table>
 	</schema>
 	<layout name="Default Layout" id="Layout_3761216" show_relation="columns" >
+		<entity schema="TEST4D" name="PLANET" color="c8daf5" x="405" y="75" />
+		<entity schema="TEST4D" name="KETTLE" color="c1d8ee" x="105" y="345" />
+		<entity schema="TEST4D" name="DOG_ACCESSORIES" color="c1d8ee" x="390" y="240" />
 		<entity schema="TEST4D" name="LIFEFORM" color="c8daf5" x="45" y="45" />
-		<entity schema="TEST4D" name="PLANET" color="c8daf5" x="360" y="75" />
 	</layout>
 </project>

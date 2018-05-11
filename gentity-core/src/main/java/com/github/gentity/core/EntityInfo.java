@@ -15,6 +15,7 @@
  */
 package com.github.gentity.core;
 
+import com.github.dbsjpagen.dbsmodel.TableDto;
 import com.github.gentity.core.fields.FieldColumnSource;
 
 /**
@@ -23,15 +24,36 @@ import com.github.gentity.core.fields.FieldColumnSource;
  */
 public class EntityInfo {
 	
+	private final TableDto baseTable;
 	private final FieldColumnSource fieldColumnSource;
+	private final TableDto table;
 
-	public EntityInfo(FieldColumnSource fieldColumnSource) {
+	public EntityInfo(TableDto table, FieldColumnSource fieldColumnSource) {
+		this(table, table, fieldColumnSource);
+	}
+	
+	public EntityInfo(TableDto table, TableDto baseTable, FieldColumnSource fieldColumnSource) {
+		this.table = table != null ? table : baseTable;
+		this.baseTable = baseTable;
 		this.fieldColumnSource = fieldColumnSource;
 	}
 
 	
 	public FieldColumnSource getFieldColumnSource() {
 		return fieldColumnSource;
+	}
+
+	public TableDto getTable() {
+		return table;
+	}
+
+	/**
+	 * If the entity is part of a hierarchy, this returns the base table of that
+	 * hierarchy. Otherwise, returns the same a table.
+	 * @return 
+	 */
+	TableDto getBaseTable() {
+		return baseTable;
 	}
 	
 	

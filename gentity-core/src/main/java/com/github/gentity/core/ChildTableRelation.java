@@ -32,7 +32,9 @@ public class ChildTableRelation extends Relation{
 	private final ForeignKeyDto foreignKey;
 	private Boolean oneToOne;
 	private final Kind kind;
-	
+	private final String owningEntityName;
+	private final String inverseEntityName;
+
 	public enum Kind {
 		ONE_TO_ONE,
 		MANY_TO_ONE,
@@ -41,13 +43,15 @@ public class ChildTableRelation extends Relation{
 	}
 	
 	public ChildTableRelation(TableDto table, ForeignKeyDto foreignKey) {
-		this(deriveKind(table, foreignKey), table, foreignKey);
+		this(deriveKind(table, foreignKey), table, foreignKey, null, null);
 	}
 	
-	public ChildTableRelation(Kind kind, TableDto table, ForeignKeyDto foreignKey) {
+	public ChildTableRelation(Kind kind, TableDto table, ForeignKeyDto foreignKey, String owningEntityName, String inverseEntityName) {
 		super(table);
 		this.kind = kind;
 		this.foreignKey = foreignKey;
+		this.owningEntityName = owningEntityName;
+		this.inverseEntityName = inverseEntityName;
 	}
 
 	public Kind getKind() {
@@ -56,6 +60,14 @@ public class ChildTableRelation extends Relation{
 	
 	public ForeignKeyDto getForeignKey() {
 		return foreignKey;
+	}
+
+	public String getOwningEntityName() {
+		return owningEntityName;
+	}
+
+	public String getInverseEntityName() {
+		return inverseEntityName;
 	}
 	
 	public static Kind deriveKind(TableDto table, ForeignKeyDto foreignKey) {

@@ -33,12 +33,16 @@ public class JoinTableRelation extends Relation {
 	private final Kind kind;
 	private final ForeignKeyDto foreignKey1;
 	private final ForeignKeyDto foreignKey2;
-
-	public JoinTableRelation(Kind kind, TableDto table, ForeignKeyDto foreignKey1, ForeignKeyDto foreignKey2) {
+	private final String ownerEntityName;
+	private final String inverseEntityName;
+	
+	public JoinTableRelation(Kind kind, TableDto table, ForeignKeyDto foreignKey1, String ownerEntityName, ForeignKeyDto foreignKey2, String inverseEntityName) {
 		super(table);
 		this.kind = kind;
 		this.foreignKey1 = foreignKey1;
 		this.foreignKey2 = foreignKey2;
+		this.ownerEntityName = ownerEntityName;
+		this.inverseEntityName = inverseEntityName;
 	}
 
 	public Kind getKind() {
@@ -52,5 +56,14 @@ public class JoinTableRelation extends Relation {
 	public ForeignKeyDto getInverseForeignKey() {
 		return foreignKey2;
 	}
+
+	public String getOwnerEntityName() {
+		return ownerEntityName;
+	}
+
+	public String getInverseEntityName() {
+		return inverseEntityName;
+	}
+	
 	
 }
