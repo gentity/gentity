@@ -99,6 +99,8 @@ limitations under the License.
 	
 	<xs:complexType name="Relation">
 		<xs:attribute name="foreignKey" type="xs:string"/>
+		<xs:attribute name="owningEntity" type="xs:string"/>
+		<xs:attribute name="inverseEntity" type="xs:string"/>
 	</xs:complexType>
 	
 	<xs:complexType name="ChildTableRelationship">

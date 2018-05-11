@@ -64,6 +64,7 @@ import com.github.dbsjpagen.config.HierarchyDto;
 import com.github.dbsjpagen.config.JoinRelationDto;
 import com.github.dbsjpagen.config.JoinTableRelationshipDto;
 import com.github.dbsjpagen.config.MappingConfigDto;
+import com.github.dbsjpagen.config.RelationDto;
 import com.github.dbsjpagen.config.SingleTableEntityDto;
 import com.github.dbsjpagen.config.SingleTableFieldDto;
 import com.github.dbsjpagen.config.SingleTableRootEntityDto;
@@ -168,7 +169,8 @@ public class Generator {
 				if(isTableExcluded(table.getName()) || isJoinTable(table.getName())) {
 					continue;
 				}
-				genEntityClass(p, table);
+				EntityInfo einfo = new EntityInfo(table, new PlainTableFieldColumnSource(table));
+				genEntityClass(p, table.getName(), null, einfo);
 			}
 			
 			// for all entity-mapped tables, find entities where we need to
@@ -217,10 +219,10 @@ public class Generator {
 			
 			// add many-to-many relations
 			for(JoinTableRelation jtr : getJoinTableRelations()) {
-				JDefinedClass ownerClass = tablesToEntities.get(jtr.getOwnerForeignKey().getToTable());
-				JDefinedClass inverserClass = tablesToEntities.get(jtr.getInverseForeignKey().getToTable());
+				JDefinedClass ownerClass = findEntity(jtr.getOwnerForeignKey().getToTable(), jtr.getOwnerEntityName());
+				JDefinedClass inverseClass = findEntity(jtr.getInverseForeignKey().getToTable(), jtr.getInverseEntityName());
 				
-				genJoinTableRelation(ownerClass, inverserClass, jtr);
+				genJoinTableRelation(ownerClass, inverseClass, jtr);
 			}
 			
 			// generate accessor methods, ordered by entity class hierarchies, roots first
@@ -266,11 +268,7 @@ public class Generator {
 			.anyMatch(au -> au.getAnnotationClass().equals(cm.ref(Entity.class)));
 	}
 	
-	private JDefinedClass genEntityClass(JPackage p, TableDto table) throws JClassAlreadyExistsException {
-		return genEntityClass(p, table.getName(), table, null, null);
-	}
-	
-	private JDefinedClass genEntityClass(JPackage p, String entityNameCandidate, TableDto table, JClass superClass, FieldColumnSource fcs) throws JClassAlreadyExistsException {
+	private JDefinedClass genEntityClass(JPackage p, String entityNameCandidate, JClass superClass, EntityInfo einfo) throws JClassAlreadyExistsException {
 		JClass serializableClass = cm.ref(Serializable.class);
 			
 		JDefinedClass cls = p._class(JMod.PUBLIC, toClassName(p, entityNameCandidate));
@@ -278,15 +276,13 @@ public class Generator {
 			cls._extends(superClass);
 		}
 		cls.annotate(Entity.class);
+		TableDto table = einfo.getTable();
 		if(table != null) {
 			cls.annotate(Table.class)
 				.param("name", table.getName());
 			tablesToEntities.put(table.getName(), cls);
 		}
-		if(fcs == null) {
-			fcs = new PlainTableFieldColumnSource(table);
-		}
-		entities.put(cls, new EntityInfo(fcs));
+		entities.put(cls, einfo);
 		
 		cls._implements(serializableClass);
 		return cls;
@@ -343,7 +339,8 @@ public class Generator {
 			.filter(t -> t.getName().equals(h.getJoined().getRoot().getTable()))
 			.findAny()
 			.orElseThrow(() -> new RuntimeException("root table '"+h.getJoined().getRoot().getTable() + "' not found"));
-		JDefinedClass rootClass = genEntityClass(pakkage, rootTable);
+		EntityInfo rootEInfo = new EntityInfo(rootTable, new PlainTableFieldColumnSource(rootTable));
+		JDefinedClass rootClass = genEntityClass(pakkage, rootTable.getName(), null, rootEInfo);
 		hierarchyClasses.put(rootTable.getName(), rootClass);
 		rootClass.annotate(cm.ref(Inheritance.class))
 			.param("strategy", InheritanceType.JOINED);
@@ -378,7 +375,8 @@ public class Generator {
 			ForeignKeyDto fk = toTableForeignKey(mapableRelation.getTable(), mapableRelation.getForeignKey());
 			JClass superclassEntity = hierarchyClasses.get(fk.getToTable());
 			TableDto table = findTable(mapableRelation.getTable());
-			JDefinedClass subclassEntity = genEntityClass(pakkage, table.getName(), table, superclassEntity, null);
+			EntityInfo einfo = new EntityInfo(table, rootTable, new PlainTableFieldColumnSource(table));
+			JDefinedClass subclassEntity = genEntityClass(pakkage, table.getName(), superclassEntity, einfo);
 			genDiscriminatorValueAnnotation(subclassEntity, mapableRelation.getDiscriminator());
 
 			if(fk.getFkColumn().size()==1) {
@@ -450,7 +448,9 @@ public class Generator {
 		TableDto rootTable = findTable(rootEntity.getTable());
 		
 		checkEachFieldOnlyOnce(rootTable, rootEntity);
-		JDefinedClass rootClass = genEntityClass(pakkage, rootTable.getName(), rootTable, null, new SingleTableFieldColumnSource(rootTable, rootEntity));
+		EntityInfo einfo = new EntityInfo(rootTable, new PlainTableFieldColumnSource(rootTable));
+
+		JDefinedClass rootClass = genEntityClass(pakkage, rootTable.getName(), null, einfo);
 		rootClass.annotate(Inheritance.class)
 			.param("strategy", InheritanceType.SINGLE_TABLE);
 		genDiscriminatorColumnAnnotation(rootClass, rootTable, h.getSingleTable().getDiscriminateBy().getColumn());
@@ -462,7 +462,8 @@ public class Generator {
 	
 	private void genSingleTableChildEntities(TableDto rootTable, JDefinedClass parentclass, SingleTableEntityDto parentEntity) throws JClassAlreadyExistsException {
 		for(SingleTableEntityDto entity : parentEntity.getEntity()) {
-			JDefinedClass cls = genEntityClass(parentclass.getPackage(), entity.getName(), null, parentclass, new SingleTableFieldColumnSource(rootTable, entity));
+			EntityInfo einfo = new EntityInfo(null, rootTable, new SingleTableFieldColumnSource(rootTable, entity));
+			JDefinedClass cls = genEntityClass(parentclass.getPackage(), entity.getName(), parentclass, einfo);
 			
 			genDiscriminatorValueAnnotation(cls, entity.getDiscriminator());
 			
@@ -497,10 +498,23 @@ public class Generator {
 		return field;
 	}
 	
+	private JDefinedClass findEntity(String tableName, String entityName) {
+		if(entityName == null) {
+			return tablesToEntities.get(tableName);
+		} else {
+			JDefinedClass cls = entities.entrySet().stream()
+				.filter(e -> entityName.equals(e.getKey().name()))
+				.filter(e -> tableName.equals(e.getValue().getBaseTable().getName()))
+				.map(e -> e.getKey())
+				.findAny()
+				.orElseThrow(() -> new RuntimeException(String.format("specified entity %s in table scope %s not found", entityName, tableName)));
+			return cls;
+		}
+	}
 	private void genChildTableRelation(ChildTableRelation otm) {
-		JDefinedClass childTableEntity = tablesToEntities.get(otm.getTable().getName());
+		JDefinedClass childTableEntity = findEntity(otm.getTable().getName(), otm.getOwningEntityName());
 		ForeignKeyDto ownerFk = otm.getForeignKey();
-		JDefinedClass parentTableEntity = tablesToEntities.get(ownerFk.getToTable());
+		JDefinedClass parentTableEntity = findEntity(ownerFk.getToTable(), otm.getInverseEntityName());
 		
 		// child table side mapping
 		String fieldName;
@@ -817,8 +831,9 @@ public class Generator {
 	private ChildTableRelation toChildTableRelation(ChildTableRelation.Kind kind, ChildTableRelationshipDto oneToMany) {
 		TableDto table = Optional.ofNullable(findTable(oneToMany.getTable()))
 			.orElseThrow(()->new RuntimeException("table not found in relation: '" + oneToMany.getTable() + "'"));
-		ForeignKeyDto fk = toTableForeignKey(table.getName(), oneToMany.getOwnerRelation().getForeignKey());
-		return new ChildTableRelation(kind, table, fk);
+		RelationDto orel = oneToMany.getOwnerRelation();
+		ForeignKeyDto fk = toTableForeignKey(table.getName(), orel.getForeignKey());
+		return new ChildTableRelation(kind, table, fk, orel.getOwningEntity(), orel.getInverseEntity());
 	}
 	
 	private JoinTableRelation toJoinTableRelation(JoinTableRelation.Kind kind, JoinTableRelationshipDto manyToMany) {
@@ -827,10 +842,12 @@ public class Generator {
 		// NOTE: We know that there must be exactly two  relations here
 		
 		String ownerFkName =  manyToMany.getOwnerRelation().getForeignKey();
-		String referencedFkName =  manyToMany.getReferencedRelation().getForeignKey();
+		String ownerEntityName = manyToMany.getOwnerRelation().getOwningEntity();
+		String inverseFkName =  manyToMany.getReferencedRelation().getForeignKey();
+		String inverseEntityName =  manyToMany.getReferencedRelation().getInverseEntity();
 		ForeignKeyDto ownerFk = findTableForeignKey(table.getName(), ownerFkName);
-		ForeignKeyDto referencedFk = findTableForeignKey(table.getName(), referencedFkName);
-		return new JoinTableRelation(kind, table, ownerFk, referencedFk);
+		ForeignKeyDto inverseFk = findTableForeignKey(table.getName(), inverseFkName);
+		return new JoinTableRelation(kind, table, ownerFk, ownerEntityName, inverseFk, inverseEntityName);
 	}
 	
 	

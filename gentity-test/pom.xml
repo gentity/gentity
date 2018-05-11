@@ -182,6 +182,18 @@
 							<mappingConfigFile>src/main/resources/test4b-polymorphism-single-table.genconfig</mappingConfigFile>
 						</configuration>
 					</execution>
+					<execution>
+						<id>entities-test4d</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<targetPackageName>com.github.gentity.test.test4d_polymorphism_single_table_relations</targetPackageName>
+							<inputDbsFile>src/main/resources/test4d-polymorphism-single-table-relations.dbs</inputDbsFile>
+							<mappingConfigFile>src/main/resources/test4d-polymorphism-single-table-relations.genconfig</mappingConfigFile>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 		</plugins>
