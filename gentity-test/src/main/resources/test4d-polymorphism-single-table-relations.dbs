@@ -4,7 +4,7 @@
 		<table name="DOG_ACCESSORIES" >
 			<column name="ID" type="bigint" jt="-5" mandatory="y" autoincrement="y" />
 			<column name="NAME" type="varchar" length="100" jt="12" />
-			<column name="OWNED_BY_DOG_LIFEFORM_ID" type="bigint" jt="-5" mandatory="y" />
+			<column name="OWNED_BY_DOG_LIFEFORM_ID" type="bigint" jt="-5" />
 			<column name="KIND" type="char" length="8" jt="1" mandatory="y" />
 			<index name="PK_DOC_ACCESSORIES_ID" unique="PRIMARY_KEY" >
 				<column name="ID" />
@@ -17,39 +17,26 @@
 			</fk>
 		</table>
 		<table name="LIFEFORM" >
-			<column name="ID" type="bigint" jt="-5" mandatory="y" />
+			<column name="ID" type="bigint" jt="-5" mandatory="y" autoincrement="y" />
 			<column name="KIND" type="char" length="10" jt="1" />
 			<column name="NAME" type="varchar" length="100" jt="12" />
 			<column name="WEIGHT" type="real" jt="7" />
 			<column name="STINGY" type="boolean" jt="16" />
 			<column name="FURRY" type="boolean" jt="16" />
-			<column name="LIVES_ON_PLANET_ID" type="char" length="8" jt="1" />
-			<column name="LIVES_IN_KETTLE_ID" type="bigint" jt="-5" />
+			<column name="LIVES_IN_KENNEL_ID" type="bigint" jt="-5" />
 			<index name="PK_LIFEFORM_ID" unique="PRIMARY_KEY" >
 				<column name="ID" />
 			</index>
-			<index name="IDX_LIFEFORM_LIVES_ON_PLANET_ID" unique="NORMAL" >
-				<column name="LIVES_ON_PLANET_ID" />
-			</index>
 			<index name="IDX_LIFEFORM_LIVES_IN_KETTLE_ID" unique="NORMAL" >
-				<column name="LIVES_IN_KETTLE_ID" />
+				<column name="LIVES_IN_KENNEL_ID" />
 			</index>
-			<fk name="FK_LIFEFORM_PLANET" to_schema="TEST4D" to_table="PLANET" >
-				<fk_column name="LIVES_ON_PLANET_ID" pk="ID" />
-			</fk>
 			<fk name="FK_LIFEFORM_DOG_ACCESSORIES" to_schema="TEST4D" to_table="DOG_ACCESSORIES" >
-				<fk_column name="LIVES_IN_KETTLE_ID" pk="ID" />
+				<fk_column name="LIVES_IN_KENNEL_ID" pk="ID" />
 			</fk>
-		</table>
-		<table name="PLANET" >
-			<column name="ID" type="char" length="8" jt="1" mandatory="y" />
-			<index name="PK_PLANET_ID" unique="PRIMARY_KEY" >
-				<column name="ID" />
-			</index>
 		</table>
 	</schema>
 	<layout name="Default Layout" id="Layout_3761216" show_relation="columns" >
-		<entity schema="TEST4D" name="DOG_ACCESSORIES" color="c1d8ee" x="435" y="180" />
 		<entity schema="TEST4D" name="LIFEFORM" color="c8daf5" x="45" y="45" />
+		<entity schema="TEST4D" name="DOG_ACCESSORIES" color="c1d8ee" x="435" y="180" />
 	</layout>
 </project>

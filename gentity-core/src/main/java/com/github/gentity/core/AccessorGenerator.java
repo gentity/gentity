@@ -91,6 +91,8 @@ class AccessorGenerator {
 				genBuilderMethod(builderClass, field);
 			}
 		}
+		
+		generateBaseClassBuilderMethods(cls, builderClass);
 	}
 		
 	
