@@ -117,7 +117,7 @@ limitations under the License.
 			<xs:extension base="tns:Relationship">
 				<xs:sequence>
 					<xs:element name='ownerRelation' type='tns:Relation' minOccurs='1' maxOccurs='1'/>
-					<xs:element name='referencedRelation' type='tns:Relation' minOccurs='1' maxOccurs='1'/>
+					<xs:element name='referencedRelation' type='tns:Relation' minOccurs='0' maxOccurs='1'/>
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>
@@ -131,7 +131,7 @@ limitations under the License.
 	<xs:complexType  name="Joined">
 		<xs:sequence>
 			<xs:element name="discriminateBy" type="tns:DiscriminatorDecl" minOccurs="1" maxOccurs="1"/>
-			<xs:element name="root" type='tns:Root'/>
+			<xs:element name="root" type='tns:Root' minOccurs='1'/>
 			<xs:element name="joinRelation" type="tns:JoinRelation" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
