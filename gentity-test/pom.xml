@@ -135,6 +135,18 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>entities-test1g-many-to-many-defaulted</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputDbsFile>src/main/resources/test1g-many-to-many-defaulted.dbs</inputDbsFile>
+							<mappingConfigFile>src/main/resources/test1g-many-to-many-defaulted.genconfig</mappingConfigFile>
+							<targetPackageName>com.github.gentity.test.test1g_many_to_many_defaulted</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
 						<id>entities-test2</id>
 						<phase>generate-sources</phase>
 						<goals>
@@ -196,18 +208,6 @@
 					</execution>
 					
 					
-					<execution>
-						<id>entities-test1g-many-to-many-defaulted</id>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<inputDbsFile>src/main/resources/test1g-many-to-many-defaulted.dbs</inputDbsFile>
-							<mappingConfigFile>src/main/resources/test1g-many-to-many-defaulted.genconfig</mappingConfigFile>
-							<targetPackageName>com.github.gentity.test.test1g_many_to_many_defaulted</targetPackageName>
-						</configuration>
-					</execution>
 					<execution>
 						<id>entities-demo-gallery</id>
 						<phase>generate-sources</phase>
