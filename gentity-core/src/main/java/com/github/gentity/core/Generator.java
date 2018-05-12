@@ -851,8 +851,8 @@ public class Generator {
 		String ownerEntityName = manyToMany.getOwnerRelation().getOwningEntity();
 		String inverseFkName =  manyToMany.getReferencedRelation().getForeignKey();
 		String inverseEntityName =  manyToMany.getReferencedRelation().getInverseEntity();
-		ForeignKeyDto ownerFk = findTableForeignKey(table.getName(), ownerFkName);
-		ForeignKeyDto inverseFk = findTableForeignKey(table.getName(), inverseFkName);
+		ForeignKeyDto ownerFk = toTableForeignKey(table.getName(), ownerFkName);
+		ForeignKeyDto inverseFk = toTableForeignKey(table.getName(), inverseFkName);
 		return new JoinTableRelation(kind, table, ownerFk, ownerEntityName, inverseFk, inverseEntityName);
 	}
 	
