@@ -51,6 +51,7 @@ limitations under the License.
       <xs:element type="Column" name="column" maxOccurs="unbounded" minOccurs="0"/>
       <xs:element type="Index" name="index" maxOccurs="unbounded" minOccurs="0"/>
       <xs:element type="ForeignKey" name="fk" maxOccurs="unbounded" minOccurs="0"/>
+	  <xs:element type="xs:string" name="storage" minOccurs='0' maxOccurs="1"/>
     </xs:sequence>
     <xs:attribute type="xs:string" name="name" use="optional"/>
   </xs:complexType>
