@@ -9,7 +9,7 @@ JPA Entity class generator from DBSchema (*.dbs) database models (see https://ww
 * Direct automatic entity generation by using a mapping definition file, which
 defines:
   - Join tables to create @ManyToMany relationships
-  - Inheritance hierarchies
+  - Inheritance hierarchies (supported strategies are JOINED and SINGLE_TABLE)
 * Bidirectional and unidirectional relationships are supported
 
 ## TODO
@@ -17,7 +17,7 @@ defines:
 * Support for unidirectional OneToMany (this has issues attached, as standard
   JPA defaulting requires a join table - however, JPA 2.2 also supports them
   without one, but that has implications)
-* Single Table and Per Class inheritance
+* Per Class inheritance
 * Non-Entity collections (@ElementCollection / @Embeddable)
 * External (non-generated) superclasses for generated entities
 * Provide better error output, especially for the mapping config file explaining
