@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="demo-app" id="Project_5c44786" template="Default" database="HSql" >
+	<schema name="DEMO-APP" schemaname="DEMO-APP" >
+		<table name="GALLERY" >
+			<column name="ID" type="integer" jt="4" mandatory="y" autoincrement="y" />
+			<column name="OWNER_USER_ID" type="char" length="36" jt="1" mandatory="y" />
+			<column name="NAME" type="varchar" length="100" jt="12" mandatory="y" />
+			<index name="PK_GALLERY_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+			<index name="IDX_GALLERY_OWNER_USER_ID" unique="NORMAL" >
+				<column name="OWNER_USER_ID" />
+			</index>
+			<fk name="FK_GALLERY_USER" to_schema="DEMO-APP" to_table="USER" delete_action="cascade" update_action="cascade" >
+				<fk_column name="OWNER_USER_ID" pk="ID" />
+			</fk>
+		</table>
+		<table name="GROUP" >
+			<column name="ID" type="integer" jt="4" mandatory="y" autoincrement="y" />
+			<column name="NAME" type="varchar" length="100" jt="12" mandatory="y" />
+			<index name="PK_GROUP_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+		</table>
+		<table name="PICTURE" >
+			<column name="ID" type="integer" jt="4" mandatory="y" autoincrement="y" />
+			<column name="GALLERY_ID" type="integer" jt="4" mandatory="y" />
+			<column name="TITLE" type="varchar" length="100" jt="12" />
+			<index name="PK_PICTURE_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+			<index name="IDX_PICTURE_GALLERY_ID" unique="NORMAL" >
+				<column name="GALLERY_ID" />
+			</index>
+			<fk name="FK_PICTURE_GALLERY" to_schema="DEMO-APP" to_table="GALLERY" delete_action="cascade" update_action="cascade" >
+				<fk_column name="GALLERY_ID" pk="ID" />
+			</fk>
+		</table>
+		<table name="PICTURE_DATA" >
+			<column name="PICTURE_ID" type="integer" jt="4" mandatory="y" />
+			<column name="DATA" type="binary" jt="-2" mandatory="y" />
+			<index name="IDX_PICTURE_DATA_PICTURE_ID" unique="UNIQUE" >
+				<column name="PICTURE_ID" />
+			</index>
+			<fk name="FK_PICTURE_DATA_PICTURE" to_schema="DEMO-APP" to_table="PICTURE" delete_action="cascade" update_action="cascade" >
+				<fk_column name="PICTURE_ID" pk="ID" />
+			</fk>
+		</table>
+		<table name="PICTURE_KEYWORD" >
+			<column name="PICTURE_ID" type="integer" jt="4" mandatory="y" />
+			<column name="KEYWORD" type="varchar" length="100" jt="12" mandatory="y" />
+			<index name="IDX_PICTURE_KEYWORD_PICTURE_ID" unique="NORMAL" >
+				<column name="PICTURE_ID" />
+			</index>
+			<fk name="FK_PICTURE_KEYWORD_PICTURE" to_schema="DEMO-APP" to_table="PICTURE" delete_action="cascade" update_action="cascade" >
+				<fk_column name="PICTURE_ID" pk="ID" />
+			</fk>
+		</table>
+		<table name="ROLE" >
+			<column name="ID" type="integer" jt="4" mandatory="y" autoincrement="y" />
+			<column name="NAME" type="varchar" length="100" jt="12" />
+			<column name="DTYPE" type="char" length="8" jt="1" />
+			<index name="PK_ROLE_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+		</table>
+		<table name="ROLE_GALLERY_ACCESS" >
+			<column name="ROLE_ID" type="integer" jt="4" mandatory="y" />
+			<column name="GALLERY_ID" type="integer" jt="4" mandatory="y" />
+			<column name="WRITE_ACCESS" type="boolean" jt="16" mandatory="y" />
+			<index name="IDX_ROLE_GALLERY_ACCESS_ROLE_ID" unique="NORMAL" >
+				<column name="ROLE_ID" />
+			</index>
+			<index name="IDX_ROLE_GALLERY_ACCESS_GALLERY_ID" unique="NORMAL" >
+				<column name="GALLERY_ID" />
+			</index>
+			<fk name="FK_ROLE_GALLERY_ACCESS_ROLE" to_schema="DEMO-APP" to_table="ROLE" delete_action="cascade" update_action="cascade" >
+				<fk_column name="ROLE_ID" pk="ID" />
+			</fk>
+			<fk name="FK_ROLE_GALLERY_ACCESS_GALLERY" to_schema="DEMO-APP" to_table="GALLERY" delete_action="cascade" update_action="cascade" >
+				<fk_column name="GALLERY_ID" pk="ID" />
+			</fk>
+		</table>
+		<table name="ROLE_USER_ADMIN" >
+			<comment><![CDATA[Allows user management. 
+May be restricted to a single group]]></comment>
+			<column name="ROLE_ID" type="integer" jt="4" mandatory="y" />
+			<column name="GROUP_ID" type="integer" jt="4" />
+			<index name="IDX_ROLE_GROUP_ADMIN_ROLE_ID" unique="NORMAL" >
+				<column name="ROLE_ID" />
+			</index>
+			<index name="IDX_ROLE_USER_ADMIN_GROUP_ID" unique="NORMAL" >
+				<column name="GROUP_ID" />
+			</index>
+			<fk name="FK_ROLE_GROUP_ADMIN_ROLE" to_schema="DEMO-APP" to_table="ROLE" delete_action="cascade" update_action="cascade" >
+				<fk_column name="ROLE_ID" pk="ID" />
+			</fk>
+			<fk name="FK_ROLE_USER_ADMIN_GROUP" to_schema="DEMO-APP" to_table="GROUP" >
+				<fk_column name="GROUP_ID" pk="ID" />
+			</fk>
+		</table>
+		<table name="USER" >
+			<column name="ID" type="char" length="36" jt="1" mandatory="y" >
+				<comment><![CDATA[UUID]]></comment>
+			</column>
+			<column name="USERNAME" type="varchar" length="40" jt="12" mandatory="y" />
+			<column name="FIRST_NAME" type="varchar" length="100" jt="12" />
+			<column name="LAST_NAME" type="varchar" length="100" jt="12" />
+			<index name="PK_USER_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+		</table>
+		<table name="USER_GROUP" >
+			<column name="USER_ID" type="char" length="36" jt="1" mandatory="y" />
+			<column name="GROUP_ID" type="integer" jt="4" mandatory="y" />
+			<index name="IDX_USER_GROUP_USER_ID" unique="NORMAL" >
+				<column name="USER_ID" />
+			</index>
+			<index name="IDX_USER_GROUP_GROUP_ID" unique="NORMAL" >
+				<column name="GROUP_ID" />
+			</index>
+			<fk name="FK_USER_GROUP_USER" to_schema="DEMO-APP" to_table="USER" >
+				<fk_column name="USER_ID" pk="ID" />
+			</fk>
+			<fk name="FK_USER_GROUP_GROUP" to_schema="DEMO-APP" to_table="GROUP" >
+				<fk_column name="GROUP_ID" pk="ID" />
+			</fk>
+		</table>
+		<table name="USER_ROLE" >
+			<column name="USER_ID" type="char" length="36" jt="1" mandatory="y" />
+			<column name="ROLE_ID" type="integer" jt="4" mandatory="y" />
+			<index name="IDX_USER_ROLE_USER_ID" unique="NORMAL" >
+				<column name="USER_ID" />
+			</index>
+			<index name="IDX_USER_ROLE_ROLE_ID" unique="NORMAL" >
+				<column name="ROLE_ID" />
+			</index>
+			<fk name="FK_USER_ROLE_USER" to_schema="DEMO-APP" to_table="USER" delete_action="cascade" update_action="cascade" >
+				<fk_column name="USER_ID" pk="ID" />
+			</fk>
+			<fk name="FK_USER_ROLE_ROLE" to_schema="DEMO-APP" to_table="ROLE" delete_action="cascade" update_action="cascade" >
+				<fk_column name="ROLE_ID" pk="ID" />
+			</fk>
+		</table>
+	</schema>
+	<layout name="Default Layout" id="Layout_533a472" show_relation="columns" >
+		<entity schema="DEMO-APP" name="PICTURE" color="c1d8ee" x="615" y="735" />
+		<entity schema="DEMO-APP" name="PICTURE_KEYWORD" color="c1d8ee" x="840" y="780" />
+		<entity schema="DEMO-APP" name="USER_GROUP" color="c1d8ee" x="75" y="705" />
+		<entity schema="DEMO-APP" name="ROLE_USER_ADMIN" color="c1d8ee" x="330" y="405" >
+			<callout x="210" y="345" pointer="SE" />
+		</entity>
+		<entity schema="DEMO-APP" name="ROLE" color="c1d8ee" x="480" y="270" />
+		<entity schema="DEMO-APP" name="USER" color="c1d8ee" x="60" y="405" />
+		<entity schema="DEMO-APP" name="GROUP" color="c1d8ee" x="240" y="705" />
+		<entity schema="DEMO-APP" name="USER_ROLE" color="c1d8ee" x="45" y="270" />
+		<entity schema="DEMO-APP" name="ROLE_GALLERY_ACCESS" color="c1d8ee" x="600" y="390" />
+		<entity schema="DEMO-APP" name="PICTURE_DATA" color="c1d8ee" x="855" y="660" />
+		<entity schema="DEMO-APP" name="GALLERY" color="c1d8ee" x="570" y="570" />
+		<callout x="90" y="45" pointer="Round" >
+			<comment><![CDATA[This demo model represents a picture gallery. 
+
+As a user, I can upload pictures to any gallery I created.
+
+A user with an admin role can manage users, either globally or restricted to a single group of users.
+
+Users can share their gallery with a group of users or with other users directly. 
+Groups can only ever access a gallery read-only. 
+Individual users may have read-only or read/write access to a gallery. 
+
+Pictures in a gallery have title and a keyword list, so that they can be searched.
+
+]]></comment>
+		</callout>
+	</layout>
+</project>
