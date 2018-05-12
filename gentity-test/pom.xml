@@ -194,6 +194,20 @@
 							<mappingConfigFile>src/main/resources/test4d-polymorphism-single-table-relations.genconfig</mappingConfigFile>
 						</configuration>
 					</execution>
+					
+					
+					<execution>
+						<id>entities-demo-gallery</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<targetPackageName>com.github.gentity.demogallery</targetPackageName>
+							<inputDbsFile>src/main/resources/demo-gallery.dbs</inputDbsFile>
+							<mappingConfigFile>src/main/resources/demo-gallery.genconfig</mappingConfigFile>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 		</plugins>
