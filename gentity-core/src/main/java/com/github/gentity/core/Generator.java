@@ -65,9 +65,9 @@ import com.github.dbsjpagen.config.JoinRelationDto;
 import com.github.dbsjpagen.config.JoinTableRelationshipDto;
 import com.github.dbsjpagen.config.MappingConfigDto;
 import com.github.dbsjpagen.config.RelationDto;
-import com.github.dbsjpagen.config.SingleTableEntityDto;
 import com.github.dbsjpagen.config.SingleTableFieldDto;
 import com.github.dbsjpagen.config.SingleTableRootEntityDto;
+import com.github.dbsjpagen.config.SingleTableSubEntityDto;
 import com.github.dbsjpagen.config.TableConfigurationDto;
 import com.github.dbsjpagen.dbsmodel.ColumnDto;
 import com.github.dbsjpagen.dbsmodel.ForeignKeyColumnDto;
@@ -91,6 +91,7 @@ import static com.github.gentity.core.ChildTableRelation.Kind.MANY_TO_ONE;
 import static com.github.gentity.core.ChildTableRelation.Kind.UNI_MANY_TO_ONE;
 import com.github.gentity.core.fields.PlainTableFieldColumnSource;
 import com.github.gentity.core.fields.SingleTableFieldColumnSource;
+import com.github.gentity.core.fields.SingleTableRootFieldColumnSource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -420,35 +421,37 @@ public class Generator {
 		
 	}
 	
-	private void checkEachFieldOnlyOnce(TableDto table, SingleTableEntityDto entity) {
-		Set<String> colMap = table.getColumn().stream()
-			.map(c -> c.getName())
-			.collect(Collectors.toSet());
-		checkEachFieldOnlyOnceImpl(table, colMap, new HashSet<>(), entity);
+	private void checkEachFieldOnlyOnce(TableDto table, List<SingleTableSubEntityDto> entities) {
+		for (SingleTableSubEntityDto entity : entities) {
+			Set<String> colMap = table.getColumn().stream()
+				.map(c -> c.getName())
+				.collect(Collectors.toSet());
+			checkEachFieldOnlyOnceImpl(table, colMap, new HashSet<>(), entity);
+		}
 	}
 	
-	private void checkEachFieldOnlyOnceImpl(TableDto table, Set<String> colSet, Set<String> usedColNames, SingleTableEntityDto entity) {
+	private void checkEachFieldOnlyOnceImpl(TableDto table, Set<String> colSet, Set<String> usedColNames, SingleTableSubEntityDto entity) {
 		for(SingleTableFieldDto f : entity.getField()) {
 			if(!colSet.contains(f.getColumn())) {
-				throw new RuntimeException(String.format("Specified field column %s does not exist in table %s", table.getName(), f.getColumn()));
+				throw new RuntimeException(String.format("Specified field column %s does not exist in table %s", f.getColumn(), table.getName()));
 			}
 			if(!usedColNames.add(f.getColumn())) {
-				throw new RuntimeException(String.format("duplicate column name %s found in single table hierarchy", f.getColumn()));
+				throw new RuntimeException(String.format("duplicate column name %s found in single table hierarchy of root table %s", f.getColumn(), table.getName()));
 			}
 		}
 		
-		for(SingleTableEntityDto e : entity.getEntity()) {
+		for(SingleTableSubEntityDto e : entity.getEntity()) {
 			checkEachFieldOnlyOnceImpl(table, colSet, usedColNames, e);
 		}
 	}
 	
 	private void genSingleTableHierarchy(HierarchyDto h, JPackage pakkage) throws JClassAlreadyExistsException {
 		
-		SingleTableRootEntityDto rootEntity = h.getSingleTable().getRootEntity();
+		SingleTableRootEntityDto rootEntity = h.getSingleTable().getEntity();
 		TableDto rootTable = findTable(rootEntity.getTable());
 		
-		checkEachFieldOnlyOnce(rootTable, rootEntity);
-		EntityInfo einfo = new EntityInfo(rootTable, new PlainTableFieldColumnSource(rootTable));
+		checkEachFieldOnlyOnce(rootTable, rootEntity.getEntity());
+		EntityInfo einfo = new EntityInfo(rootTable, new SingleTableRootFieldColumnSource(rootTable, rootEntity));
 
 		JDefinedClass rootClass = genEntityClass(pakkage, rootTable.getName(), null, einfo);
 		rootClass.annotate(Inheritance.class)
@@ -457,17 +460,17 @@ public class Generator {
 		
 		genDiscriminatorValueAnnotation(rootClass, rootEntity.getDiscriminator());
 		
-		genSingleTableChildEntities(rootTable, rootClass, rootEntity);
+		genSingleTableChildEntities(rootTable, rootClass, rootEntity.getEntity());
 	}
 	
-	private void genSingleTableChildEntities(TableDto rootTable, JDefinedClass parentclass, SingleTableEntityDto parentEntity) throws JClassAlreadyExistsException {
-		for(SingleTableEntityDto entity : parentEntity.getEntity()) {
+	private void genSingleTableChildEntities(TableDto rootTable, JDefinedClass parentclass, List<SingleTableSubEntityDto> entities) throws JClassAlreadyExistsException {
+		for(SingleTableSubEntityDto entity : entities) {
 			EntityInfo einfo = new EntityInfo(null, rootTable, new SingleTableFieldColumnSource(rootTable, entity));
 			JDefinedClass cls = genEntityClass(parentclass.getPackage(), entity.getName(), parentclass, einfo);
 			
 			genDiscriminatorValueAnnotation(cls, entity.getDiscriminator());
 			
-			genSingleTableChildEntities(rootTable, cls, entity);
+			genSingleTableChildEntities(rootTable, cls, entity.getEntity());
 		}
 	}
 	
@@ -705,7 +708,7 @@ public class Generator {
 			.map(h -> h.getSingleTable())
 			.filter(s -> s.getDiscriminateBy().getColumn().equals(columnName))
 			.anyMatch(h -> 
-				h.getRootEntity().getTable().equals(table.getName())
+				h.getEntity().getTable().equals(table.getName())
 			);
 	}
 	
