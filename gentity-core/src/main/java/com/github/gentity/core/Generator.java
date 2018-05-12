@@ -489,13 +489,12 @@ public class Generator {
 		return LIST_ENTITY_REF_FACTORY;
 	}
 	
-	private JFieldVar genRelationCollectionFieldVar(JDefinedClass cls, String targetTableName) {
+	private JFieldVar genRelationCollectionFieldVar(JDefinedClass cls, JDefinedClass elementType, String targetTableName) {
 		EntityRefFactory factory = findEntityRefFactory(cls);
-		JDefinedClass elementType = tablesToEntities.get(targetTableName);
 		JClass fieldType = factory.getCollectionType(elementType);
 		
 		JFieldVar field = cls
-			.field(JMod.PROTECTED, fieldType, toFieldName(cls, targetTableName));
+			.field(JMod.PROTECTED, fieldType, toFieldName(cls, elementType.name()));
 
 		field.init(factory.createInitExpression());
 		return field;
@@ -568,7 +567,7 @@ public class Generator {
 			parentField.annotate(OneToOne.class)
 				.param("mappedBy", childField.name());
 		} else if(otm.getKind() == MANY_TO_ONE){
-			JFieldVar field = genRelationCollectionFieldVar(parentTableEntity, otm.getTable().getName());
+			JFieldVar field = genRelationCollectionFieldVar(parentTableEntity, childTableEntity, otm.getTable().getName());
 			field.annotate(OneToMany.class)
 				.param("mappedBy", childField.name());
 		}
@@ -576,7 +575,7 @@ public class Generator {
 	}
 	
 	private void genJoinTableRelation(JDefinedClass ownerClass, JDefinedClass inverseClass, JoinTableRelation jtr) {
-		JFieldVar ownerField = genRelationCollectionFieldVar(ownerClass, jtr.getInverseForeignKey().getToTable());
+		JFieldVar ownerField = genRelationCollectionFieldVar(ownerClass, inverseClass, jtr.getInverseForeignKey().getToTable());
 		
 		ownerField.annotate(ManyToMany.class);
 		
@@ -593,7 +592,7 @@ public class Generator {
 				.paramArray("inverseJoinColumns");
 			genJoinColumns(inverseJoinColumnsArray, jtr.getInverseForeignKey().getFkColumn());
 
-			JFieldVar inverseField = genRelationCollectionFieldVar(inverseClass, jtr.getOwnerForeignKey().getToTable());
+			JFieldVar inverseField = genRelationCollectionFieldVar(inverseClass, ownerClass, jtr.getOwnerForeignKey().getToTable());
 
 			inverseField.annotate(ManyToMany.class)
 				.param("mappedBy", ownerField.name());
@@ -642,10 +641,14 @@ public class Generator {
 	}
 
 	private String toFieldName(JDefinedClass cls, String name) {
-		String baseName = nameProvider.javatizeName(name, false);
-		
 		ConfigurationDto cfg = findClassOptions(name);
-		return nameProvider.findNonexistingName(cfg.getFieldNamePrefix() + baseName, cfg.getFieldNameSuffix(), cls.fields()::containsKey);
+		
+		String baseName = nameProvider.javatizeName(name, false);
+		String prefixedName = cfg.getFieldNamePrefix() + baseName;
+		if(Character.isUpperCase(prefixedName.charAt(0))) {
+			prefixedName = ""+Character.toLowerCase(prefixedName.charAt(0))+prefixedName.substring(1);
+		}
+		return nameProvider.findNonexistingName(prefixedName, cfg.getFieldNameSuffix(), cls.fields()::containsKey);
 	}
 	
 	private ConfigurationDto findClassOptions(String name) {

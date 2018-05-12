@@ -24,12 +24,12 @@ limitations under the License.
 >
 	
 	<manyToOne table='LIFEFORM'>
-		<ownerRelation foreignKey="FK_LIFEFORM_DOG_ACCESSORIES" owningEntity='Dog' inverseEntity="Kettle"/>
+		<ownerRelation foreignKey="FK_LIFEFORM_DOG_ACCESSORIES" owningEntity='Dog' inverseEntity="Kennel"/>
 	</manyToOne>
 	
-	<uniManyToOne table="DOG_ACCESSORIES">
+	<manyToOne table="DOG_ACCESSORIES">
 		<ownerRelation foreignKey="FK_DOG_ACCESSORIES_LIFEFORM" inverseEntity='Dog'/>
-	</uniManyToOne>
+	</manyToOne>
 	
 	<hierarchy>
 		<singleTable>
@@ -40,7 +40,7 @@ limitations under the License.
 				</entity>
 				<entity name='Mammal' discriminator='MA'>
 					<entity name="Dog" discriminator="DG">
-						<field column="LIVES_IN_KETTLE_ID"/>
+						<field column="LIVES_IN_KENNEL_ID"/>
 					</entity>
 					<field column='FURRY'/>
 				</entity>
@@ -52,7 +52,7 @@ limitations under the License.
 		<singleTable>
 			<discriminateBy column="KIND"/>
 			<entity name="DogAccessory" discriminator="AC" table="DOG_ACCESSORIES">
-				<entity name="Kettle" discriminator="KT"/>
+				<entity name="Kennel" discriminator="KT"/>
 				<entity name="BiteBone" discriminator="BB"/>
 			</entity>
 		</singleTable>

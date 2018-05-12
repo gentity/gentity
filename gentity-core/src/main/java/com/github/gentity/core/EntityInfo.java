@@ -33,7 +33,7 @@ public class EntityInfo {
 	}
 	
 	public EntityInfo(TableDto table, TableDto baseTable, FieldColumnSource fieldColumnSource) {
-		this.table = table != null ? table : baseTable;
+		this.table = table;
 		this.baseTable = baseTable;
 		this.fieldColumnSource = fieldColumnSource;
 	}
@@ -43,6 +43,11 @@ public class EntityInfo {
 		return fieldColumnSource;
 	}
 
+	/**
+	 * The table this entity is based upon. Can be null if Entity was generated
+	 * as a subentity in a single table hierarchy.
+	 * @return 
+	 */
 	public TableDto getTable() {
 		return table;
 	}
