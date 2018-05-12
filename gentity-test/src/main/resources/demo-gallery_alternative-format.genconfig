@@ -24,35 +24,42 @@ limitations under the License.
 			https://github.com/gentity/gentity/blob/master/gentity-core/src/main/java/com/github/gentity/core/xsd/genconfig.xsd
 	"
 >
-	<uniManyToOne table="ROLE_USER_ADMIN">
-		<ownerRelation foreignKey="FK_ROLE_USER_ADMIN_GROUP"/>
-	</uniManyToOne>
-	
-	<uniManyToMany table="USER_ROLE">
+	<!-- 
+	join tables become @ManyToMany mappings, and won't appear as entities
+	-->
+	<joinTable table="USER_ROLE" unidirectional="true">
 		<ownerRelation foreignKey="FK_USER_ROLE_USER"/>
-	</uniManyToMany>
-	<uniManyToMany table='USER_GROUP'>
+	</joinTable>
+	<joinTable table="USER_GROUP" unidirectional='true'>
 		<ownerRelation foreignKey="FK_USER_GROUP_USER"/>
-	</uniManyToMany>
-	
-	<hierarchy>
-		<joined>
+	</joinTable>
+
+	<!-- mapped as class with @Entity -->
+	<entityTable table='ROLE'>
+		<joinedHierarcy>
 			<discriminateBy column="DTYPE"/>
-			<root table="ROLE" discriminator="ROLE"/>
-			<joinRelation table="ROLE_USER_ADMIN" discriminator="ADMIN" foreignKey="FK_ROLE_GROUP_ADMIN_ROLE"/>
-			<joinRelation table="ROLE_GALLERY_ACCESS" discriminator="GALLERY" foreignKey="FK_ROLE_GALLERY_ACCESS_ROLE"/>
-		</joined>
-	</hierarchy>
+			<root discriminator="ROLE"/>
+			<entityTable table="ROLE_USER_ADMIN" entity='UserAdminRole' discriminator="ADMIN" foreignKey="FK_ROLE_GROUP_ADMIN_ROLE">
+				<uniManyToOne foreignKey="FK_USER_GROUP_USER"/>
+			</entityTable>
+			
+			<entityTable table="ROLE_GALLERY_ACCESS" discriminator="GALLERY" foreignKey="FK_ROLE_GALLERY_ACCESS_ROLE"/>
+		</joinedHierarcy>
+	</entityTable>
 	
-	<hierarchy>
-		<singleTable>
+
+	<entityTable table='PICTURE' entity='Picture'>
+		
+		<!-- mapped as @Embeddable class, associated with Picture entity -->
+		<embeddedTable table='PICTURE_KEYWORD' foreignKey='FK_PICTURE_KEYWORD_PICTURE'/>
+		
+		<singleTableHierarchy>
 			<discriminateBy column="DTYPE"/>
-			<entity name="Picture" discriminator="PCIT" table="PICTURE">
-				<entity name="UserIcon" discriminator="UICN">
-					<field column="ICON_PUBLIC"/>
-					<field column="ICON_USER_ID"/>
-				</entity>
+			<root discriminator="PICT"/>
+			<entity entity='UserIcon' discriminator='UICN'>
+				<field column="ICON_PUBLIC"/>
+				
 			</entity>
-		</singleTable>
-	</hierarchy>
+		</singleTableHierarchy>
+	</entityTable>
 </mappingConfig>
