@@ -26,17 +26,14 @@ limitations under the License.
 	<hierarchy>
 		<singleTable>
 			<discriminateBy column='KIND'/>
-			<rootEntity name='Lifeform' table='LIFEFORM' discriminator='LF'>
-				<field column='ID'/>
-				<field column='NAME'/>
-				<field column='WEIGHT'/>
+			<entity name='Lifeform' table='LIFEFORM' discriminator='LF'>
 				<entity name='Insect' discriminator='IN'>
 					<field column='STINGY'/>
 				</entity>
 				<entity name='Mammal' discriminator='MA'>
 					<field column='FURRY'/>
 				</entity>
-			</rootEntity>
+			</entity>
 		</singleTable>
 	</hierarchy>
 </mappingConfig>
