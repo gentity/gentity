@@ -845,13 +845,35 @@ public class Generator {
 	private JoinTableRelation toJoinTableRelation(JoinTableRelation.Kind kind, JoinTableRelationshipDto manyToMany) {
 		TableDto table = Optional.ofNullable(findTable(manyToMany.getTable()))
 			.orElseThrow(()->new RuntimeException("table not found in relation: '" + manyToMany.getTable() + "'"));
-		// NOTE: We know that there must be exactly two  relations here
 		
 		String ownerFkName =  manyToMany.getOwnerRelation().getForeignKey();
 		String ownerEntityName = manyToMany.getOwnerRelation().getOwningEntity();
-		String inverseFkName =  manyToMany.getReferencedRelation().getForeignKey();
-		String inverseEntityName =  manyToMany.getReferencedRelation().getInverseEntity();
+		
+		String inverseFkName = null;
+		String inverseEntityName = null;
+		if(manyToMany.getReferencedRelation() != null) {
+			inverseFkName =  manyToMany.getReferencedRelation().getForeignKey();
+			inverseEntityName =  manyToMany.getReferencedRelation().getInverseEntity();
+		}
+		
 		ForeignKeyDto ownerFk = toTableForeignKey(table.getName(), ownerFkName);
+		
+		// NOTE: We know that there must be exactly two relations in such a table
+		// that are relevant to us. For the common case, that there are exactly
+		// two foreign keys in such a table, we users can omit specifying the
+		// inverse side, because we can pick that ourselves.
+		if(inverseFkName == null) {
+			if(table.getFk().size() != 2) {
+				throw new RuntimeException(String.format("cannot determine inverse side foreign key for table %s: either specify explicitely or make sure that there are exactly two foreign keys specified in this talbe", table.getName()));
+			}
+			// find the other foreign key name
+			inverseFkName = table.getFk().stream()
+				.filter(fk -> !fk.getName().equals(ownerFk.getName()))
+				.map(fk -> fk.getName())
+				.findAny()
+				.get();
+		}
+		
 		ForeignKeyDto inverseFk = toTableForeignKey(table.getName(), inverseFkName);
 		return new JoinTableRelation(kind, table, ownerFk, ownerEntityName, inverseFk, inverseEntityName);
 	}

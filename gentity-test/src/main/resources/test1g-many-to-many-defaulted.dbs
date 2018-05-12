@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="test1c" id="Project_4924807" template="Default" database="HSql" >
+	<schema name="TEST1C" schemaname="TEST1C" >
+		<table name="AUTHOR" >
+			<column name="ID" type="bigint" jt="-5" mandatory="y" />
+			<column name="NAME" type="varchar" length="100" jt="12" />
+			<index name="PK_AUTHORS_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+		</table>
+		<table name="BOOK" >
+			<column name="ID" type="bigint" jt="-5" mandatory="y" />
+			<column name="TITLE" type="varchar" length="100" jt="12" mandatory="y" />
+			<index name="PK_BOOKS_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+		</table>
+		<table name="BOOK_AUTHOR" >
+			<column name="BOOK_ID" type="bigint" jt="-5" mandatory="y" />
+			<column name="AUTHOR_ID" type="bigint" jt="-5" mandatory="y" />
+			<index name="IDX_BOOKS_AUTHORS_BOOK_ID" unique="NORMAL" >
+				<column name="BOOK_ID" />
+			</index>
+			<index name="IDX_BOOKS_AUTHORS_AUTHOR_ID" unique="NORMAL" >
+				<column name="AUTHOR_ID" />
+			</index>
+			<fk name="FK_BOOKS_AUTHORS_BOOK" to_schema="TEST1C" to_table="BOOK" >
+				<fk_column name="BOOK_ID" pk="ID" />
+			</fk>
+			<fk name="FK_BOOKS_AUTHORS_AUTHOR" to_schema="TEST1C" to_table="AUTHOR" >
+				<fk_column name="AUTHOR_ID" pk="ID" />
+			</fk>
+		</table>
+	</schema>
+	<layout name="Default Layout" id="Layout_1694b15" show_relation="columns" >
+		<entity schema="TEST1C" name="AUTHOR" color="c8daf5" x="435" y="45" />
+		<entity schema="TEST1C" name="BOOK" color="c8daf5" x="45" y="45" />
+		<entity schema="TEST1C" name="BOOK_AUTHOR" color="c8daf5" x="210" y="45" />
+	</layout>
+</project>
