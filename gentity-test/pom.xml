@@ -208,6 +208,18 @@
 							<targetPackageName>com.github.gentity.test.test1g_many_to_many_defaulted</targetPackageName>
 						</configuration>
 					</execution>
+					<execution>
+						<id>entities-demo-gallery</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<targetPackageName>com.github.gentity.demogallery</targetPackageName>
+							<inputDbsFile>src/main/resources/demo-gallery.dbs</inputDbsFile>
+							<mappingConfigFile>src/main/resources/demo-gallery.genconfig</mappingConfigFile>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 		</plugins>
