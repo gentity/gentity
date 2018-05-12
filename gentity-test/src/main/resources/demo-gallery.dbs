@@ -24,16 +24,25 @@
 		</table>
 		<table name="PICTURE" >
 			<column name="ID" type="integer" jt="4" mandatory="y" autoincrement="y" />
+			<column name="DTYPE" type="char" length="8" jt="1" />
 			<column name="GALLERY_ID" type="integer" jt="4" mandatory="y" />
 			<column name="TITLE" type="varchar" length="100" jt="12" />
+			<column name="ICON_PUBLIC" type="boolean" jt="16" />
+			<column name="ICON_USER_ID" type="char" length="36" jt="1" />
 			<index name="PK_PICTURE_ID" unique="PRIMARY_KEY" >
 				<column name="ID" />
 			</index>
 			<index name="IDX_PICTURE_GALLERY_ID" unique="NORMAL" >
 				<column name="GALLERY_ID" />
 			</index>
+			<index name="IDX_PICTURE_ICON_USER_ID" unique="NORMAL" >
+				<column name="ICON_USER_ID" />
+			</index>
 			<fk name="FK_PICTURE_GALLERY" to_schema="DEMO-APP" to_table="GALLERY" delete_action="cascade" update_action="cascade" >
 				<fk_column name="GALLERY_ID" pk="ID" />
+			</fk>
+			<fk name="FK_PICTURE_USER" to_schema="DEMO-APP" to_table="USER" >
+				<fk_column name="ICON_USER_ID" pk="ID" />
 			</fk>
 		</table>
 		<table name="PICTURE_DATA" >
@@ -144,7 +153,6 @@ May be restricted to a single group]]></comment>
 		</table>
 	</schema>
 	<layout name="Default Layout" id="Layout_533a472" show_relation="columns" >
-		<entity schema="DEMO-APP" name="PICTURE" color="c1d8ee" x="615" y="735" />
 		<entity schema="DEMO-APP" name="PICTURE_KEYWORD" color="c1d8ee" x="840" y="780" />
 		<entity schema="DEMO-APP" name="USER_GROUP" color="c1d8ee" x="75" y="705" />
 		<entity schema="DEMO-APP" name="ROLE_USER_ADMIN" color="c1d8ee" x="330" y="405" >
@@ -157,6 +165,7 @@ May be restricted to a single group]]></comment>
 		<entity schema="DEMO-APP" name="ROLE_GALLERY_ACCESS" color="c1d8ee" x="600" y="390" />
 		<entity schema="DEMO-APP" name="PICTURE_DATA" color="c1d8ee" x="855" y="660" />
 		<entity schema="DEMO-APP" name="GALLERY" color="c1d8ee" x="570" y="570" />
+		<entity schema="DEMO-APP" name="PICTURE" color="c1d8ee" x="615" y="735" />
 		<callout x="90" y="45" pointer="Round" >
 			<comment><![CDATA[This demo model represents a picture gallery. 
 
