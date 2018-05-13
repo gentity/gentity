@@ -23,13 +23,13 @@ limitations under the License.
 	"
 >
 	
-	<manyToOne table='LIFEFORM'>
-		<ownerRelation foreignKey="FK_LIFEFORM_DOG_ACCESSORIES" owningEntity='Dog' inverseEntity="Kennel"/>
-	</manyToOne>
-	
-	<manyToOne table="DOG_ACCESSORIES">
-		<ownerRelation foreignKey="FK_DOG_ACCESSORIES_LIFEFORM" inverseEntity='Dog'/>
-	</manyToOne>
+	<entityTable table='LIFEFORM'>
+		<manyToOne bidirectional="true" foreignKey="FK_LIFEFORM_DOG_ACCESSORIES" owningEntity='Dog' inverseEntity="Kennel"/>
+	</entityTable>
+
+	<entityTable table="DOG_ACCESSORIES">
+		<manyToOne foreignKey="FK_DOG_ACCESSORIES_LIFEFORM" inverseEntity='Dog'/>
+	</entityTable>
 	
 	<hierarchy>
 		<singleTable>

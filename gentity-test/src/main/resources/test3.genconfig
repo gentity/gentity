@@ -19,7 +19,7 @@ limitations under the License.
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="
 	    https://github.com/gentity/gentity/ns
-			../../../../gentity-core/src/main/resources/xsd/genconfig.xsd
+			../../../../gentity-core/src/main/java/com/github/gentity/core/xsd/genconfig.xsd
 	    https://github.com/gentity/gentity/ns
 			https://raw.githubusercontent.com/gentity/gentity/master/gentity-core/src/main/resources/xsd/genconfig.xsd
 	"
@@ -32,11 +32,11 @@ limitations under the License.
 		
 	<!--
 	if a relation is not listed as oneToMany or manyToMany, it is implicitely
-	assumed to be oneToMany and mapped as such. To Overide the default relation
+	assumed to be manyToOne and mapped as such. To Overide the default relation
 	mapping, list the relation explicitely:
 	-->
-	<manyToOne table='USER'>
-		<ownerRelation foreignKey='FK_USER_CUSTOMER'/>
-	</manyToOne>
+	<entityTable table='USER'>
+		<manyToOne bidirectional="true" foreignKey='FK_USER_CUSTOMER'/>
+	</entityTable>
 
 </mappingConfig>
