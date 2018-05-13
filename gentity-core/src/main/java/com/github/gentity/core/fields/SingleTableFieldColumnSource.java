@@ -15,7 +15,7 @@
  */
 package com.github.gentity.core.fields;
 
-import com.github.dbsjpagen.config.SingleTableSubEntityDto;
+import com.github.dbsjpagen.config.SingleTableEntityDto;
 import com.github.dbsjpagen.dbsmodel.TableDto;
 import java.util.List;
 import java.util.Set;
@@ -27,10 +27,10 @@ import java.util.stream.Collectors;
  */
 public class SingleTableFieldColumnSource extends AbstractFieldColumnSource{
 
-	private final SingleTableSubEntityDto entity;
+	private final SingleTableEntityDto entity;
 	private final TableDto table;
 
-	public SingleTableFieldColumnSource(TableDto table, SingleTableSubEntityDto entity) {
+	public SingleTableFieldColumnSource(TableDto table, SingleTableEntityDto entity) {
 		this.table = table;
 		this.entity = entity;
 	}

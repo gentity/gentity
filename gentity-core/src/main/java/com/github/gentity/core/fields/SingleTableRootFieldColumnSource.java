@@ -15,8 +15,8 @@
  */
 package com.github.gentity.core.fields;
 
-import com.github.dbsjpagen.config.SingleTableRootEntityDto;
-import com.github.dbsjpagen.config.SingleTableSubEntityDto;
+import com.github.dbsjpagen.config.RootEntityTableDto;
+import com.github.dbsjpagen.config.SingleTableEntityDto;
 import com.github.dbsjpagen.dbsmodel.TableDto;
 import com.github.gentity.core.NameProvider;
 import java.util.HashSet;
@@ -35,13 +35,13 @@ public class SingleTableRootFieldColumnSource implements FieldColumnSource{
 	
 	private final List<FieldMapping> mappings;
 
-	public SingleTableRootFieldColumnSource(TableDto table, SingleTableRootEntityDto root) {
+	public SingleTableRootFieldColumnSource(TableDto table, RootEntityTableDto root) {
 		mappings = calculateMappings(table, root);
 	}
 	
-	private List<FieldMapping> calculateMappings(TableDto table, SingleTableRootEntityDto root) {
+	private List<FieldMapping> calculateMappings(TableDto table, RootEntityTableDto root) {
 		Set<String> subColNames = new HashSet<>();
-		collectColumnNames(subColNames, root.getEntity());
+		collectColumnNames(subColNames, root.getSingleTableHierarchy().getEntity());
 		
 		Set<String> rootCols = new HashSet<>(
 			table.getColumn().stream()
@@ -56,8 +56,8 @@ public class SingleTableRootFieldColumnSource implements FieldColumnSource{
 			.collect(toList());
 	}
 	
-	private void collectColumnNames(Set<String> names, List<SingleTableSubEntityDto> entities) {
-		for(SingleTableSubEntityDto entity : entities) {
+	private void collectColumnNames(Set<String> names, List<SingleTableEntityDto> entities) {
+		for(SingleTableEntityDto entity : entities) {
 			names.addAll(entity.getField().stream()
 				.map(e -> e.getColumn())
 				.collect(Collectors.toSet())

@@ -28,26 +28,7 @@ limitations under the License.
 			<xs:element name='exclude' type='tns:Exclusion' minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element name="configuration" type='tns:Configuration' minOccurs="0" maxOccurs="1"/>
 			<xs:element name="joinTable" type='tns:JoinTable' minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element name="entityTable" type='tns:EntityTable' minOccurs="0" maxOccurs="unbounded"/>
-			
-			<!-- 
-			Relationships known to JPA; see Section 2.9 in the JPA 2.2 spec:
-			http://download.oracle.com/otn-pub/jcp/persistence-2_2-mrel-spec/JavaPersistence.pdf
-			-->
-			
-			<!-- child table relationships -->
-			<!--
-			<xs:element name="manyToOne" type='tns:ChildTableRelationship' minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element name="uniOneToOne" type='tns:ChildTableRelationship' minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element name="uniManyToOne" type='tns:ChildTableRelationship' minOccurs="0" maxOccurs="unbounded"/>
-			
-			<xs:element name="oneToOne" type='tns:OneToOne' minOccurs="0" maxOccurs="unbounded"/>
-			-->
-			<!--
-			<xs:element name="uniOneToMany" type='tns:UniOneToMany' minOccurs="0" maxOccurs="unbounded"/>
-			-->
-
-			<xs:element name='hierarchy' type='tns:Hierarchy' minOccurs="0" maxOccurs='unbounded'/>
+			<xs:element name="entityTable" type='tns:RootEntityTable' minOccurs="0" maxOccurs="unbounded"/>
 			
 		</xs:sequence>
 		
@@ -100,16 +81,41 @@ limitations under the License.
 		<xs:complexContent>
 			<xs:extension base="tns:TableConfiguration">
 				<xs:sequence>
+					<!-- 
+					OneToMany/ManyToOne and OneToOne Relationships in JPA; see Section 2.9 in the JPA 2.2 spec:
+					http://download.oracle.com/otn-pub/jcp/persistence-2_2-mrel-spec/JavaPersistence.pdf
+					-->
 					<xs:element name="oneToOne" type="tns:XToOneRelation" minOccurs='0' maxOccurs='unbounded'/>
 					<xs:element name="manyToOne" type="tns:XToOneRelation" minOccurs='0' maxOccurs='unbounded'/>
-						<!--
-					<xs:choice>
-						<xs:element name='joinedHierarcy' type='tns:Relation' minOccurs='1' maxOccurs='1'/>
-						<xs:element name='singleTableHierarchy' type='tns:Relation' minOccurs='0' maxOccurs='1'/>
-					</xs:choice>
-						-->
 				</xs:sequence>
-				<xs:attribute name='unidirectional' type="xs:boolean" default="false"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="RootEntityTable">
+		<xs:complexContent>
+			<xs:extension base="tns:EntityTable">
+				<xs:sequence>
+					<xs:choice>
+						<xs:element name='joinedHierarchy' type='tns:JoinedHierarchy' minOccurs='1' maxOccurs='1'/>
+						<xs:element name='singleTableHierarchy' type='tns:SingleTableHierarchy' minOccurs='0' maxOccurs='1'/>
+					</xs:choice>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	
+	<!-- 
+	ManyToMany Relationships in JPA; see Section 2.9 in the JPA 2.2 spec:
+	http://download.oracle.com/otn-pub/jcp/persistence-2_2-mrel-spec/JavaPersistence.pdf
+	-->
+	<xs:complexType name="JoinedEntityTable">
+		<xs:complexContent>
+			<xs:extension base="tns:EntityTable">
+				<xs:sequence>
+					<xs:element name="entityTable" type="tns:JoinedEntityTable" minOccurs='0' maxOccurs='unbounded'/>
+				</xs:sequence>
+				<xs:attribute name="foreignKey" use="required" type="xs:string"/>
+				<xs:attribute name='discriminator' type='xs:string' use="required"/>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
@@ -139,70 +145,43 @@ limitations under the License.
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
-	<!--
-	<xs:complexType name="ChildTableRelationship">
-		<xs:complexContent>
-			<xs:extension base="tns:Relationship">
-				<xs:sequence>
-					<xs:element name='ownerRelation' type='tns:Relation' minOccurs='1' maxOccurs='1'/>
-				</xs:sequence>
-			</xs:extension>
-		</xs:complexContent>
-	</xs:complexType>
-	-->
 	<xs:complexType name="Hierarchy">
-		<xs:choice>
-			<xs:element name="joined" type="tns:Joined"/>
-			<xs:element name="singleTable" type="tns:SingleTable"/>
-		</xs:choice>
-	</xs:complexType>
-	<xs:complexType  name="Joined">
 		<xs:sequence>
 			<xs:element name="discriminateBy" type="tns:DiscriminatorDecl" minOccurs="1" maxOccurs="1"/>
 			<xs:element name="root" type='tns:Root' minOccurs='1'/>
-			<xs:element name="joinRelation" type="tns:JoinRelation" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="Root">
-		<xs:attribute name='table' type='xs:string'/>
 		<xs:attribute name='discriminator' type='xs:string'/>
 	</xs:complexType>
 	<xs:complexType name="DiscriminatorDecl">
 		<xs:attribute name="column" type="xs:string"/>
 	</xs:complexType>
-	<xs:complexType name="JoinRelation">
-		<xs:attribute name="table" type="xs:string" use="required"/>
-		<xs:attribute name='discriminator' type='xs:string' use="required"/>
-		<xs:attribute name="foreignKey" type="xs:string" use="required"/>
-	</xs:complexType>
-	<xs:complexType name="SingleTable">
-		<xs:sequence>
-			<xs:element name="discriminateBy" type="tns:DiscriminatorDecl" minOccurs="1" maxOccurs="1"/>
-			<xs:element name="entity" type="tns:SingleTableRootEntity"/>
-		</xs:sequence>
-	</xs:complexType>
-	<xs:complexType name="SingleTableEntity">
-		<xs:sequence>
-			<xs:element name="entity" type="tns:SingleTableSubEntity" minOccurs="0" maxOccurs='unbounded'/>
-		</xs:sequence>
-		<xs:attribute name="name" type="xs:string" use='required'/>
-		<xs:attribute name="discriminator" type="xs:string" use='required'/>
-	</xs:complexType>
-	<xs:complexType name="SingleTableRootEntity">
+	<xs:complexType  name="JoinedHierarchy">
 		<xs:complexContent>
-			<xs:extension base="tns:SingleTableEntity">
-				<xs:attribute name="table" type="xs:string" use="required"/>
-			</xs:extension>
-		</xs:complexContent>
-	</xs:complexType>
-	<xs:complexType name="SingleTableSubEntity">
-		<xs:complexContent>
-			<xs:extension base="tns:SingleTableEntity">
+			<xs:extension base="tns:Hierarchy">
 				<xs:sequence>
-					<xs:element name="field" type="tns:SingleTableField" minOccurs='0' maxOccurs='unbounded'/>
+					<xs:element name="entityTable" type="tns:JoinedEntityTable" minOccurs="0" maxOccurs="unbounded"/>
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SingleTableHierarchy">
+		<xs:complexContent>
+			<xs:extension base="tns:Hierarchy">
+				<xs:sequence>
+					<xs:element name="entity" type="tns:SingleTableEntity" minOccurs='0' maxOccurs='unbounded'/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SingleTableEntity">
+		<xs:sequence>
+			<xs:element name="field" type="tns:SingleTableField" minOccurs='0' maxOccurs='unbounded'/>
+			<xs:element name="entity" type="tns:SingleTableEntity" minOccurs="0" maxOccurs='unbounded'/>
+		</xs:sequence>
+		<xs:attribute name="name" type="xs:string" use='required'/>
+		<xs:attribute name="discriminator" type="xs:string" use='required'/>
 	</xs:complexType>
 	<xs:complexType name="SingleTableField">
 		<xs:attribute name="column" type="xs:string"/>

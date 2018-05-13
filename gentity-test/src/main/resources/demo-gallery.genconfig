@@ -28,28 +28,31 @@ limitations under the License.
 	<joinTable table="USER_GROUP" unidirectional='true'>
 		<ownerRelation foreignKey="FK_USER_GROUP_USER"/>
 	</joinTable>
-	<entityTable table="ROLE_USER_ADMIN">
-		<manyToOne foreignKey="FK_ROLE_USER_ADMIN_GROUP" bidirectional="false"/>
+	
+	<entityTable table='ROLE'>
+		<joinedHierarchy>
+			<discriminateBy column="DTYPE"/>
+			<root discriminator="ROLE"/>
+			<entityTable table="ROLE_USER_ADMIN" discriminator="ADMIN"  foreignKey="FK_ROLE_GROUP_ADMIN_ROLE">
+				<manyToOne foreignKey="FK_ROLE_USER_ADMIN_GROUP" bidirectional="false"/>
+			</entityTable>
+			
+			<entityTable table="ROLE_GALLERY_ACCESS" discriminator="GALLERY" foreignKey="FK_ROLE_GALLERY_ACCESS_ROLE"/>
+		</joinedHierarchy>
 	</entityTable>
 	
-	<hierarchy>
-		<joined>
+	<entityTable table='PICTURE'>
+		
+		<!-- mapped as @Embeddable class, associated with Picture entity
+		<embeddedTable table='PICTURE_KEYWORD' foreignKey='FK_PICTURE_KEYWORD_PICTURE'/>
+		 -->
+		<singleTableHierarchy>
 			<discriminateBy column="DTYPE"/>
-			<root table="ROLE" discriminator="ROLE"/>
-			<joinRelation table="ROLE_USER_ADMIN" discriminator="ADMIN" foreignKey="FK_ROLE_GROUP_ADMIN_ROLE"/>
-			<joinRelation table="ROLE_GALLERY_ACCESS" discriminator="GALLERY" foreignKey="FK_ROLE_GALLERY_ACCESS_ROLE"/>
-		</joined>
-	</hierarchy>
-	
-	<hierarchy>
-		<singleTable>
-			<discriminateBy column="DTYPE"/>
-			<entity name="Picture" discriminator="PCIT" table="PICTURE">
-				<entity name="UserIcon" discriminator="UICN">
-					<field column="ICON_PUBLIC"/>
-					<field column="ICON_USER_ID"/>
-				</entity>
+			<root discriminator="PICT"/>
+			<entity name='UserIcon' discriminator='UICN'>
+				<field column="ICON_PUBLIC"/>
+				
 			</entity>
-		</singleTable>
-	</hierarchy>
+		</singleTableHierarchy>
+	</entityTable>
 </mappingConfig>

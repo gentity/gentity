@@ -23,10 +23,11 @@ limitations under the License.
 	"
 >
 	
-	<hierarchy>
-		<singleTable>
+	<entityTable table='LIFEFORM'>
+		<singleTableHierarchy>
 			<discriminateBy column='KIND'/>
-			<entity name='Lifeform' table='LIFEFORM' discriminator='LF'>
+			<root discriminator='LF'/>
+			<entity name='Lifeform' discriminator='LF'>
 				<entity name='Insect' discriminator='IN'>
 					<field column='STINGY'/>
 				</entity>
@@ -34,6 +35,7 @@ limitations under the License.
 					<field column='FURRY'/>
 				</entity>
 			</entity>
-		</singleTable>
-	</hierarchy>
+		</singleTableHierarchy>
+	</entityTable>
+	
 </mappingConfig>
