@@ -20,20 +20,17 @@ limitations under the License.
 	xsi:schemaLocation="
 	    https://github.com/gentity/gentity/ns
 			../../../../gentity-core/src/main/java/com/github/gentity/core/xsd/genconfig.xsd
-	    https://github.com/gentity/gentity/ns
-			https://github.com/gentity/gentity/blob/master/gentity-core/src/main/java/com/github/gentity/core/xsd/genconfig.xsd
 	"
 >
+	<joinTable table="USER_ROLE" unidirectional="true">
+		<ownerRelation foreignKey="FK_USER_ROLE_USER"/>
+	</joinTable>
+	<joinTable table="USER_GROUP" unidirectional='true'>
+		<ownerRelation foreignKey="FK_USER_GROUP_USER"/>
+	</joinTable>
 	<uniManyToOne table="ROLE_USER_ADMIN">
 		<ownerRelation foreignKey="FK_ROLE_USER_ADMIN_GROUP"/>
 	</uniManyToOne>
-	
-	<uniManyToMany table="USER_ROLE">
-		<ownerRelation foreignKey="FK_USER_ROLE_USER"/>
-	</uniManyToMany>
-	<uniManyToMany table='USER_GROUP'>
-		<ownerRelation foreignKey="FK_USER_GROUP_USER"/>
-	</uniManyToMany>
 	
 	<hierarchy>
 		<joined>

@@ -62,7 +62,7 @@ import com.github.dbsjpagen.config.ConfigurationDto;
 import com.github.dbsjpagen.config.ExclusionDto;
 import com.github.dbsjpagen.config.HierarchyDto;
 import com.github.dbsjpagen.config.JoinRelationDto;
-import com.github.dbsjpagen.config.JoinTableRelationshipDto;
+import com.github.dbsjpagen.config.JoinTableDto;
 import com.github.dbsjpagen.config.MappingConfigDto;
 import com.github.dbsjpagen.config.RelationDto;
 import com.github.dbsjpagen.config.SingleTableFieldDto;
@@ -653,9 +653,11 @@ public class Generator {
 	
 	private ConfigurationDto findClassOptions(String name) {
 		if(tableConfigurations == null) {
-			tableConfigurations = 
-				cfg.getTable().stream()
-				.collect(Collectors.toMap(TableConfigurationDto::getTable, cfg -> cfg));
+			tableConfigurations = Stream.of(
+				cfg.getJoinTable().stream()
+			)
+			.flatMap(t -> t)
+			.collect(Collectors.toMap(TableConfigurationDto::getTable, cfg -> cfg));
 		}
 		
 		if(globalConfiguration == null) {
@@ -842,7 +844,7 @@ public class Generator {
 		return new ChildTableRelation(kind, table, fk, orel.getOwningEntity(), orel.getInverseEntity());
 	}
 	
-	private JoinTableRelation toJoinTableRelation(JoinTableRelation.Kind kind, JoinTableRelationshipDto manyToMany) {
+	private JoinTableRelation toJoinTableRelation(JoinTableRelation.Kind kind, JoinTableDto manyToMany) {
 		TableDto table = Optional.ofNullable(findTable(manyToMany.getTable()))
 			.orElseThrow(()->new RuntimeException("table not found in relation: '" + manyToMany.getTable() + "'"));
 		
@@ -864,7 +866,7 @@ public class Generator {
 		// inverse side, because we can pick that ourselves.
 		if(inverseFkName == null) {
 			if(table.getFk().size() != 2) {
-				throw new RuntimeException(String.format("cannot determine inverse side foreign key for table %s: either specify explicitely or make sure that there are exactly two foreign keys specified in this talbe", table.getName()));
+				throw new RuntimeException(String.format("cannot determine inverse side foreign key for table %s: either specify explicitely or make sure that there are exactly two foreign keys specified in this table", table.getName()));
 			}
 			// find the other foreign key name
 			inverseFkName = table.getFk().stream()
@@ -924,14 +926,13 @@ public class Generator {
 
 	private List<JoinTableRelation> getJoinTableRelations() {
 		if(joinTableRelations == null) {
-			joinTableRelations = Stream.of(
-				cfg.getManyToMany().stream()
-					.map(jtr -> toJoinTableRelation(JoinTableRelation.Kind.MANY_TO_MANY, jtr)),
-				cfg.getUniManyToMany().stream()
-					.map(jtr -> toJoinTableRelation(JoinTableRelation.Kind.UNI_MANY_TO_MANY, jtr))
-				)
-				.flatMap(Function.identity())
+			joinTableRelations = cfg.getJoinTable().stream()
+				.map(jt -> {
+					JoinTableRelation.Kind kind = jt.isUnidirectional() ? JoinTableRelation.Kind.UNI_MANY_TO_MANY : JoinTableRelation.Kind.MANY_TO_MANY;
+					return toJoinTableRelation(kind, jt);
+				})
 				.collect(Collectors.toList());
+				;
 		}
 		return joinTableRelations;
 	}

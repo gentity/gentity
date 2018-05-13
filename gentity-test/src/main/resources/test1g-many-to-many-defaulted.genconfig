@@ -24,10 +24,10 @@ limitations under the License.
 			https://raw.githubusercontent.com/gentity/gentity/master/gentity-core/src/main/resources/xsd/genconfig.xsd
 	"
 >
-	<manyToMany table="BOOK_AUTHOR">
+	<joinTable table="BOOK_AUTHOR">
 		<ownerRelation foreignKey="FK_BOOKS_AUTHORS_BOOK"/>
 		<!-- note that the inverse relation is defaulted here: 
 		As the source table only has two foreign keys, it is easy to pick the other
 		one as the FK for the inverse side -->
-	</manyToMany>
+	</joinTable>
 </mappingConfig>
