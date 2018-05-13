@@ -27,7 +27,7 @@ limitations under the License.
 		<xs:sequence>
 			<xs:element name='exclude' type='tns:Exclusion' minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element name="configuration" type='tns:Configuration' minOccurs="0" maxOccurs="1"/>
-			<xs:element name="table" type='tns:TableConfiguration' minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="joinTable" type='tns:JoinTable' minOccurs="0" maxOccurs="unbounded"/>
 			
 			<!-- 
 			Relationships known to JPA; see Section 2.9 in the JPA 2.2 spec:
@@ -41,9 +41,6 @@ limitations under the License.
 			<!--
 			<xs:element name="oneToOne" type='tns:OneToOne' minOccurs="0" maxOccurs="unbounded"/>
 			-->
-			<!-- join table relations -->
-			<xs:element name="manyToMany" type='tns:JoinTableRelationship' minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element name="uniManyToMany" type='tns:JoinTableRelationship' minOccurs="0" maxOccurs="unbounded"/>
 			<!--
 			<xs:element name="uniOneToMany" type='tns:UniOneToMany' minOccurs="0" maxOccurs="unbounded"/>
 			-->
@@ -85,6 +82,18 @@ limitations under the License.
 		</xs:complexContent>
 	</xs:complexType>
 	
+	<xs:complexType name="JoinTable">
+		<xs:complexContent>
+			<xs:extension base="tns:TableConfiguration">
+				<xs:sequence>
+					<xs:element name='ownerRelation' type='tns:Relation' minOccurs='1' maxOccurs='1'/>
+					<xs:element name='referencedRelation' type='tns:Relation' minOccurs='0' maxOccurs='1'/>
+				</xs:sequence>
+				<xs:attribute name='unidirectional' type="xs:boolean" default="false"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	
 	<xs:complexType name="Extends">
 		<xs:attribute name='class' type="xs:string"/>
 	</xs:complexType>
@@ -108,16 +117,6 @@ limitations under the License.
 			<xs:extension base="tns:Relationship">
 				<xs:sequence>
 					<xs:element name='ownerRelation' type='tns:Relation' minOccurs='1' maxOccurs='1'/>
-				</xs:sequence>
-			</xs:extension>
-		</xs:complexContent>
-	</xs:complexType>
-	<xs:complexType name="JoinTableRelationship">
-		<xs:complexContent>
-			<xs:extension base="tns:Relationship">
-				<xs:sequence>
-					<xs:element name='ownerRelation' type='tns:Relation' minOccurs='1' maxOccurs='1'/>
-					<xs:element name='referencedRelation' type='tns:Relation' minOccurs='0' maxOccurs='1'/>
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>

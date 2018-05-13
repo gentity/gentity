@@ -25,6 +25,11 @@ limitations under the License.
 	"
 >
 	
+	<joinTable table='CUSTOMER_PRODUCT'>
+		<ownerRelation foreignKey='FK_CUSTOMER_PRODUCT_CUSTOMER'/>
+		<referencedRelation foreignKey='FK_CUSTOMER_PRODUCT_PRODUCT'/>
+	</joinTable> 
+		
 	<!--
 	if a relation is not listed as oneToMany or manyToMany, it is implicitely
 	assumed to be oneToMany and mapped as such. To Overide the default relation
@@ -34,9 +39,4 @@ limitations under the License.
 		<ownerRelation foreignKey='FK_USER_CUSTOMER'/>
 	</manyToOne>
 
-	<manyToMany table='CUSTOMER_PRODUCT'>
-		<ownerRelation foreignKey='FK_CUSTOMER_PRODUCT_CUSTOMER'/>
-		<referencedRelation foreignKey='FK_CUSTOMER_PRODUCT_PRODUCT'/>
-	</manyToMany> 
-		
 </mappingConfig>
