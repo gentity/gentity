@@ -19,20 +19,18 @@ limitations under the License.
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="
 	    https://github.com/gentity/gentity/ns
-			../../../../gentity-core/src/main/resources/xsd/genconfig.xsd
-	    https://github.com/gentity/gentity/ns
-			https://raw.githubusercontent.com/gentity/gentity/master/gentity-core/src/main/resources/xsd/genconfig.xsd
+			../../../../gentity-core/src/main/java/com/github/gentity/core/xsd/genconfig.xsd
 	"
 >
-		
-	<hierarchy>
-		<joined>
+	
+	<entityTable table="LIFEFORM">
+		<joinedHierarchy>
 			<discriminateBy column='KIND'/>
-			<root table='LIFEFORM' discriminator='LF'/>
-			<joinRelation table='MAMMAL' discriminator='MA' foreignKey='FK_MAMMAL_LIFEFORM'/>
-			<joinRelation table='INSECT' discriminator='IN' foreignKey='FK_INSECT_LIFEFORM'/>
-		</joined>
-	</hierarchy>
+			<root discriminator='LF'/>
+			<entityTable table="MAMMAL" discriminator="MA" foreignKey="FK_MAMMAL_LIFEFORM"/>
+			<entityTable table="INSECT" discriminator="IN" foreignKey="FK_INSECT_LIFEFORM"/>
+		</joinedHierarchy>
+	</entityTable>
 
 
 </mappingConfig>
