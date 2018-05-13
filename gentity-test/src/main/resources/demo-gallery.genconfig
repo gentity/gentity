@@ -28,9 +28,9 @@ limitations under the License.
 	<joinTable table="USER_GROUP" unidirectional='true'>
 		<ownerRelation foreignKey="FK_USER_GROUP_USER"/>
 	</joinTable>
-	<uniManyToOne table="ROLE_USER_ADMIN">
-		<ownerRelation foreignKey="FK_ROLE_USER_ADMIN_GROUP"/>
-	</uniManyToOne>
+	<entityTable table="ROLE_USER_ADMIN">
+		<manyToOne foreignKey="FK_ROLE_USER_ADMIN_GROUP" bidirectional="false"/>
+	</entityTable>
 	
 	<hierarchy>
 		<joined>

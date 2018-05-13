@@ -28,17 +28,19 @@ limitations under the License.
 			<xs:element name='exclude' type='tns:Exclusion' minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element name="configuration" type='tns:Configuration' minOccurs="0" maxOccurs="1"/>
 			<xs:element name="joinTable" type='tns:JoinTable' minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="entityTable" type='tns:EntityTable' minOccurs="0" maxOccurs="unbounded"/>
 			
 			<!-- 
 			Relationships known to JPA; see Section 2.9 in the JPA 2.2 spec:
 			http://download.oracle.com/otn-pub/jcp/persistence-2_2-mrel-spec/JavaPersistence.pdf
 			-->
 			
-			<!-- child table relationships --> 
+			<!-- child table relationships -->
+			<!--
 			<xs:element name="manyToOne" type='tns:ChildTableRelationship' minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element name="uniOneToOne" type='tns:ChildTableRelationship' minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element name="uniManyToOne" type='tns:ChildTableRelationship' minOccurs="0" maxOccurs="unbounded"/>
-			<!--
+			
 			<xs:element name="oneToOne" type='tns:OneToOne' minOccurs="0" maxOccurs="unbounded"/>
 			-->
 			<!--
@@ -94,6 +96,23 @@ limitations under the License.
 		</xs:complexContent>
 	</xs:complexType>
 	
+	<xs:complexType name="EntityTable">
+		<xs:complexContent>
+			<xs:extension base="tns:TableConfiguration">
+				<xs:sequence>
+					<xs:element name="oneToOne" type="tns:XToOneRelation" minOccurs='0' maxOccurs='unbounded'/>
+					<xs:element name="manyToOne" type="tns:XToOneRelation" minOccurs='0' maxOccurs='unbounded'/>
+						<!--
+					<xs:choice>
+						<xs:element name='joinedHierarcy' type='tns:Relation' minOccurs='1' maxOccurs='1'/>
+						<xs:element name='singleTableHierarchy' type='tns:Relation' minOccurs='0' maxOccurs='1'/>
+					</xs:choice>
+						-->
+				</xs:sequence>
+				<xs:attribute name='unidirectional' type="xs:boolean" default="false"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
 	<xs:complexType name="Extends">
 		<xs:attribute name='class' type="xs:string"/>
 	</xs:complexType>
@@ -112,6 +131,15 @@ limitations under the License.
 		<xs:attribute name="inverseEntity" type="xs:string"/>
 	</xs:complexType>
 	
+	<xs:complexType name="XToOneRelation">
+		<xs:complexContent>
+			<xs:extension base="tns:Relation">
+				<!-- FIXME: We'll need to turn the default to false -->
+				<xs:attribute name="bidirectional" type="xs:boolean" default="true"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<!--
 	<xs:complexType name="ChildTableRelationship">
 		<xs:complexContent>
 			<xs:extension base="tns:Relationship">
@@ -121,6 +149,7 @@ limitations under the License.
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
+	-->
 	<xs:complexType name="Hierarchy">
 		<xs:choice>
 			<xs:element name="joined" type="tns:Joined"/>

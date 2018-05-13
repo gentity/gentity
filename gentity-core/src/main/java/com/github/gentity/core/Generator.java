@@ -16,7 +16,6 @@
 package com.github.gentity.core;
 
 import com.github.gentity.core.fields.FieldColumnSource;
-import com.github.dbsjpagen.config.ChildTableRelationshipDto;
 import com.sun.codemodel.JAnnotationArrayMember;
 import com.sun.codemodel.JAnnotationUse;
 import com.sun.codemodel.JClass;
@@ -59,6 +58,7 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.SequenceGenerators;
 import javax.persistence.Table;
 import com.github.dbsjpagen.config.ConfigurationDto;
+import com.github.dbsjpagen.config.EntityTableDto;
 import com.github.dbsjpagen.config.ExclusionDto;
 import com.github.dbsjpagen.config.HierarchyDto;
 import com.github.dbsjpagen.config.JoinRelationDto;
@@ -69,6 +69,7 @@ import com.github.dbsjpagen.config.SingleTableFieldDto;
 import com.github.dbsjpagen.config.SingleTableRootEntityDto;
 import com.github.dbsjpagen.config.SingleTableSubEntityDto;
 import com.github.dbsjpagen.config.TableConfigurationDto;
+import com.github.dbsjpagen.config.XToOneRelationDto;
 import com.github.dbsjpagen.dbsmodel.ColumnDto;
 import com.github.dbsjpagen.dbsmodel.ForeignKeyColumnDto;
 import com.github.dbsjpagen.dbsmodel.ForeignKeyDto;
@@ -94,6 +95,7 @@ import com.github.gentity.core.fields.SingleTableFieldColumnSource;
 import com.github.gentity.core.fields.SingleTableRootFieldColumnSource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.function.Consumer;
 
 
 /**
@@ -653,11 +655,17 @@ public class Generator {
 	
 	private ConfigurationDto findClassOptions(String name) {
 		if(tableConfigurations == null) {
-			tableConfigurations = Stream.of(
-				cfg.getJoinTable().stream()
+			tableConfigurations = new HashMap<>(Stream.of(
+				cfg.getJoinTable().stream(),
+				cfg.getEntityTable().stream()
 			)
 			.flatMap(t -> t)
-			.collect(Collectors.toMap(TableConfigurationDto::getTable, cfg -> cfg));
+			.collect(Collectors.toMap(TableConfigurationDto::getTable, cfg -> cfg)));
+			
+			Consumer<EntityTableDto> addOp = et -> {
+				tableConfigurations.put(et.getTable(), et);
+				// FIXME: add recursive .foreach() here to add subtables
+			};
 		}
 		
 		if(globalConfiguration == null) {
@@ -836,12 +844,11 @@ public class Generator {
 			.orElseThrow(()->new RuntimeException("foreign key '" + foreignKeyName + "' not found for table '" + tableName + "'"));
 	}
 	
-	private ChildTableRelation toChildTableRelation(ChildTableRelation.Kind kind, ChildTableRelationshipDto oneToMany) {
-		TableDto table = Optional.ofNullable(findTable(oneToMany.getTable()))
-			.orElseThrow(()->new RuntimeException("table not found in relation: '" + oneToMany.getTable() + "'"));
-		RelationDto orel = oneToMany.getOwnerRelation();
-		ForeignKeyDto fk = toTableForeignKey(table.getName(), orel.getForeignKey());
-		return new ChildTableRelation(kind, table, fk, orel.getOwningEntity(), orel.getInverseEntity());
+	private ChildTableRelation toChildTableRelation(ChildTableRelation.Kind kind, String tableName, XToOneRelationDto xToMany) {
+		TableDto table = Optional.ofNullable(findTable(tableName))
+			.orElseThrow(()->new RuntimeException("table not found in relation: '" + tableName + "'"));
+		ForeignKeyDto fk = toTableForeignKey(table.getName(), xToMany.getForeignKey());
+		return new ChildTableRelation(kind, table, fk, xToMany.getOwningEntity(), xToMany.getInverseEntity());
 	}
 	
 	private JoinTableRelation toJoinTableRelation(JoinTableRelation.Kind kind, JoinTableDto manyToMany) {
@@ -890,17 +897,36 @@ public class Generator {
 	
 	private void initOneToNRelations() {
 		// collect declared one-to-many et. al. relations
-		childTableRelations = Stream.of(
-			cfg.getManyToOne().stream()
-				.map(otm -> toChildTableRelation(ChildTableRelation.Kind.MANY_TO_ONE, otm)),
-			cfg.getUniManyToOne().stream()
-				.map(otm -> toChildTableRelation(ChildTableRelation.Kind.UNI_MANY_TO_ONE, otm)),
-			cfg.getUniOneToOne().stream()
-				.map(otm -> toChildTableRelation(ChildTableRelation.Kind.UNI_ONE_TO_ONE, otm))
+		
+		// define
+		Function<EntityTableDto, List<ChildTableRelation>> relationExtractor = et -> {
+			return Stream.of(
+				et.getManyToOne().stream()
+				.map(mto -> {
+					ChildTableRelation.Kind kind = mto.isBidirectional() ? ChildTableRelation.Kind.MANY_TO_ONE : ChildTableRelation.Kind.UNI_MANY_TO_ONE;
+					return toChildTableRelation(kind, et.getTable(), mto);
+				}),
+				et.getOneToOne().stream()
+				.map(oto -> {
+					ChildTableRelation.Kind kind = oto.isBidirectional() ? ChildTableRelation.Kind.ONE_TO_ONE : ChildTableRelation.Kind.UNI_ONE_TO_ONE;
+					return toChildTableRelation(kind, et.getTable(), oto);
+				})
 			)
-			.flatMap(Function.identity())
-			.collect(Collectors.toCollection(ArrayList::new));
-
+			.flatMap(s -> s)
+			.collect(Collectors.toList());
+		};
+		
+		childTableRelations = new ArrayList();
+		
+		Consumer<EntityTableDto> converter = et -> {
+			childTableRelations.addAll(relationExtractor.apply(et));
+			// FIXME: need to apply this recursively here to subtables in 
+			// defined hierarchies
+		};
+		cfg.getEntityTable().stream()
+			.forEach(converter);
+		
+		
 		// get all foreign key names involved in a declared one-to-many
 		Set<String> otmFkNames = childTableRelations.stream()
 			.map(otm -> otm.getForeignKey().getName())
