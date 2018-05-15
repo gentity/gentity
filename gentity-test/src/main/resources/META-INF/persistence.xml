@@ -91,4 +91,9 @@
     <class>com.github.gentity.test.test4d_polymorphism_single_table_relations.Kennel</class>
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
   </persistence-unit>
+  <persistence-unit name="Test5a_element_collection_embeddable" transaction-type="RESOURCE_LOCAL">
+    <class>com.github.gentity.test.test5a_element_collection_embeddable.Person</class>
+    <class>com.github.gentity.test.test5a_element_collection_embeddable.PhoneNumber</class>
+    <exclude-unlisted-classes>true</exclude-unlisted-classes>
+  </persistence-unit>
 </persistence>
