@@ -77,6 +77,11 @@ limitations under the License.
 		</xs:complexContent>
 	</xs:complexType>
 	
+	<xs:complexType name="CollectionTable">
+		<xs:attribute name='table' type='xs:string'/>
+		<xs:attribute name='foreignKey' type='xs:string'/>
+	</xs:complexType>
+	
 	<xs:complexType name="EntityTable">
 		<xs:complexContent>
 			<xs:extension base="tns:TableConfiguration">
@@ -87,6 +92,7 @@ limitations under the License.
 					-->
 					<xs:element name="oneToOne" type="tns:XToOneRelation" minOccurs='0' maxOccurs='unbounded'/>
 					<xs:element name="manyToOne" type="tns:XToOneRelation" minOccurs='0' maxOccurs='unbounded'/>
+					<xs:element name="collectionTable" type="tns:CollectionTable" minOccurs='0' maxOccurs='unbounded'/>
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>
@@ -177,6 +183,7 @@ limitations under the License.
 	</xs:complexType>
 	<xs:complexType name="SingleTableEntity">
 		<xs:sequence>
+			<xs:element name="collectionTable" type="tns:CollectionTable"  minOccurs='0' maxOccurs='unbounded'/>
 			<xs:element name="field" type="tns:SingleTableField" minOccurs='0' maxOccurs='unbounded'/>
 			<xs:element name="entity" type="tns:SingleTableEntity" minOccurs="0" maxOccurs='unbounded'/>
 		</xs:sequence>
