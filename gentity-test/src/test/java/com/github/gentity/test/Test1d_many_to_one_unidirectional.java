@@ -64,7 +64,7 @@ public class Test1d_many_to_one_unidirectional extends AbstractGentityTest{
 			.getResultList();
 		
 		Assert.assertEquals(3, result.size());
-			
+		Assert.assertFalse(hasClassDeclaredField(Parent.class, "child"));
 		
 	}
 }

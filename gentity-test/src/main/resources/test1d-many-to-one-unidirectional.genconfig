@@ -24,8 +24,8 @@ limitations under the License.
 			https://raw.githubusercontent.com/gentity/gentity/master/gentity-core/src/main/resources/xsd/genconfig.xsd
 	"
 >
-
-	<uniManyToOne table="CHILD">
-		<ownerRelation foreignKey="FK_CHILD_PARENT"/>
-	</uniManyToOne>
+	<entityTable table="CHILD">
+		<manyToOne bidirectional="false" foreignKey="FK_CHILD_PARENT"/>
+	</entityTable>
+	
 </mappingConfig>

@@ -23,38 +23,30 @@ limitations under the License.
 	"
 >
 	
-	<manyToOne table='LIFEFORM'>
-		<ownerRelation foreignKey="FK_LIFEFORM_DOG_ACCESSORIES" owningEntity='Dog' inverseEntity="Kennel"/>
-	</manyToOne>
-	
-	<manyToOne table="DOG_ACCESSORIES">
-		<ownerRelation foreignKey="FK_DOG_ACCESSORIES_LIFEFORM" inverseEntity='Dog'/>
-	</manyToOne>
-	
-	<hierarchy>
-		<singleTable>
+	<entityTable table='LIFEFORM'>
+		<manyToOne bidirectional="true" foreignKey="FK_LIFEFORM_DOG_ACCESSORIES" owningEntity='Dog' inverseEntity="Kennel"/>
+		<singleTableHierarchy>
 			<discriminateBy column='KIND'/>
-			<entity name='Lifeform' table='LIFEFORM' discriminator='LF'>
-				<entity name='Insect' discriminator='IN'>
-					<field column='STINGY'/>
-				</entity>
-				<entity name='Mammal' discriminator='MA'>
-					<entity name="Dog" discriminator="DG">
-						<field column="LIVES_IN_KENNEL_ID"/>
-					</entity>
-					<field column='FURRY'/>
+			<root discriminator='LF'/>
+			<entity name='Insect' discriminator='IN'>
+				<field column='STINGY'/>
+			</entity>
+			<entity name='Mammal' discriminator='MA'>
+				<field column='FURRY'/>
+				<entity name="Dog" discriminator="DG">
+					<field column="LIVES_IN_KENNEL_ID"/>
 				</entity>
 			</entity>
-		</singleTable>
-	</hierarchy>
+		</singleTableHierarchy>
+	</entityTable>
 	
-	<hierarchy>
-		<singleTable>
+	<entityTable table="DOG_ACCESSORIES">
+		<manyToOne foreignKey="FK_DOG_ACCESSORIES_LIFEFORM" inverseEntity='Dog'/>
+		<singleTableHierarchy>
 			<discriminateBy column="KIND"/>
-			<entity name="DogAccessory" discriminator="AC" table="DOG_ACCESSORIES">
-				<entity name="Kennel" discriminator="KT"/>
-				<entity name="BiteBone" discriminator="BB"/>
-			</entity>
-		</singleTable>
-	</hierarchy>
+			<root discriminator="AC"/>
+			<entity name="Kennel" discriminator="KT"/>
+			<entity name="BiteBone" discriminator="BB"/>
+		</singleTableHierarchy>
+	</entityTable>
 </mappingConfig>

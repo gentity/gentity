@@ -15,8 +15,8 @@
  */
 package com.github.gentity.core;
 
+import com.github.dbsjpagen.config.CollectionTableDto;
 import com.github.gentity.core.fields.FieldColumnSource;
-import com.github.dbsjpagen.config.ChildTableRelationshipDto;
 import com.sun.codemodel.JAnnotationArrayMember;
 import com.sun.codemodel.JAnnotationUse;
 import com.sun.codemodel.JClass;
@@ -58,16 +58,17 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.SequenceGenerators;
 import javax.persistence.Table;
 import com.github.dbsjpagen.config.ConfigurationDto;
+import com.github.dbsjpagen.config.EntityTableDto;
 import com.github.dbsjpagen.config.ExclusionDto;
-import com.github.dbsjpagen.config.HierarchyDto;
-import com.github.dbsjpagen.config.JoinRelationDto;
-import com.github.dbsjpagen.config.JoinTableRelationshipDto;
+import com.github.dbsjpagen.config.JoinTableDto;
+import com.github.dbsjpagen.config.JoinedEntityTableDto;
 import com.github.dbsjpagen.config.MappingConfigDto;
-import com.github.dbsjpagen.config.RelationDto;
+import com.github.dbsjpagen.config.RootEntityTableDto;
+import com.github.dbsjpagen.config.SingleTableEntityDto;
 import com.github.dbsjpagen.config.SingleTableFieldDto;
-import com.github.dbsjpagen.config.SingleTableRootEntityDto;
-import com.github.dbsjpagen.config.SingleTableSubEntityDto;
+import com.github.dbsjpagen.config.SingleTableHierarchyDto;
 import com.github.dbsjpagen.config.TableConfigurationDto;
+import com.github.dbsjpagen.config.XToOneRelationDto;
 import com.github.dbsjpagen.dbsmodel.ColumnDto;
 import com.github.dbsjpagen.dbsmodel.ForeignKeyColumnDto;
 import com.github.dbsjpagen.dbsmodel.ForeignKeyDto;
@@ -91,9 +92,16 @@ import static com.github.gentity.core.ChildTableRelation.Kind.UNI_MANY_TO_ONE;
 import com.github.gentity.core.fields.PlainTableFieldColumnSource;
 import com.github.gentity.core.fields.SingleTableFieldColumnSource;
 import com.github.gentity.core.fields.SingleTableRootFieldColumnSource;
+import com.github.gentity.core.util.Tuple;
+import java.lang.annotation.Annotation;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import javax.persistence.Lob;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+import javax.persistence.CollectionTable;
+import javax.persistence.ElementCollection;
+import javax.persistence.Embeddable;
 
 
 /**
@@ -107,6 +115,7 @@ public class Generator {
 	JCodeModel cm;
 	Map<String, JDefinedClass> tablesToEntities;
 	Map<JDefinedClass, EntityInfo> entities;
+	Map<String, JDefinedClass> tablesToEmbeddables;
 	
 	private final EntityRefFactory LIST_ENTITY_REF_FACTORY = new EntityRefFactory() {
 		@Override
@@ -132,6 +141,7 @@ public class Generator {
 	private List<ChildTableRelation> childTableRelations;
 	private List<JoinTableRelation> joinTableRelations;
 	private Map<String, JoinTableRelation> manyToManyRelationsJoinTables;
+	private Set<String> collectionTableNames;
 	
 	public Generator(MappingConfigDto cfg, ProjectDto project) {
 		this.cfg = cfg;
@@ -151,14 +161,15 @@ public class Generator {
 		try {
 			tablesToEntities = new HashMap<>();
 			entities = new HashMap<>();
+			tablesToEmbeddables = new HashMap<>();
 			
 			// generate entities first that are part of a hierarchy
-			for(HierarchyDto h : cfg.getHierarchy()) {
+			for(RootEntityTableDto et : cfg.getEntityTable()) {
 				
-				if(h.getJoined() != null) {
-					genJoinedHierarchy(h, p);
-				} else if(h.getSingleTable() != null) {
-					genSingleTableHierarchy(h, p);
+				if(et.getJoinedHierarchy()!= null) {
+					genJoinedHierarchy(et, p);
+				} else if(et.getSingleTableHierarchy() != null) {
+					genSingleTableHierarchy(et, p);
 				}
 			}
 			
@@ -167,11 +178,16 @@ public class Generator {
 				if(tablesToEntities.containsKey(table.getName())){
 					continue;	// skip table if we already generated an entity for it
 				}
-				if(isTableExcluded(table.getName()) || isJoinTable(table.getName())) {
+				if(isTableExcluded(table.getName()) || isJoinTable(table.getName()) || isCollectionTable(table.getName())) {
 					continue;
 				}
 				EntityInfo einfo = new EntityInfo(table, new PlainTableFieldColumnSource(table));
 				genEntityClass(p, table.getName(), null, einfo);
+			}
+			
+			// generate element collection embeddables
+			for(RootEntityTableDto et : cfg.getEntityTable()) {
+				genElementCollectionEmbeddables(et);
 			}
 			
 			// for all entity-mapped tables, find entities where we need to
@@ -203,14 +219,25 @@ public class Generator {
 			}
 			
 			// process table columns
-			for(Map.Entry<JDefinedClass, EntityInfo> e : entities.entrySet()) {
-				FieldColumnSource src = e.getValue().getFieldColumnSource();
-				JDefinedClass cls = e.getKey();
-				
-				src.getFieldMappings().stream()
-					.filter((m) -> (!isColumnExcluded(m.getTable().getName(), m.getColumn().getName())))
-					.forEachOrdered((m) -> genColumn(cls, m.getTable(), m.getColumn(), m.getFieldName()));
-			}
+			Stream.of(
+				entities.entrySet().stream()
+					.map(Tuple::of)
+					.map(t -> t.mapY(EntityInfo::getFieldColumnSource))
+				,
+				tablesToEmbeddables.entrySet().stream()
+					.map(e -> Tuple.of(e.getValue(), e.getKey()))
+					.map(t -> t.mapY(this::toTable))
+					.map(t -> t.mapY(x -> new PlainTableFieldColumnSource(x)))
+			)
+				.flatMap(t -> t)
+				.forEach(t -> {
+					FieldColumnSource src = t.y();
+					JDefinedClass cls = t.x();
+
+					src.getFieldMappings().stream()
+						.filter((m) -> (!isColumnExcluded(m.getTable().getName(), m.getColumn().getName())))
+						.forEachOrdered((m) -> genColumn(cls, m.getTable(), m.getColumn(), m.getFieldName()));
+				});
 			
 			// add one-to-many relations
 			for(ChildTableRelation ctr : getChildTableRelations()) {
@@ -225,6 +252,10 @@ public class Generator {
 				
 				genJoinTableRelation(ownerClass, inverseClass, jtr);
 			}
+			
+			// generate accessors for embeddables
+			tablesToEmbeddables.values().stream()
+				.forEach(accessorGenerator::generateAccessors);
 			
 			// generate accessor methods, ordered by entity class hierarchies, roots first
 			Set<JDefinedClass> processed = entities.keySet().stream()
@@ -269,10 +300,10 @@ public class Generator {
 			.anyMatch(au -> au.getAnnotationClass().equals(cm.ref(Entity.class)));
 	}
 	
-	private JDefinedClass genEntityClass(JPackage p, String entityNameCandidate, JClass superClass, EntityInfo einfo) throws JClassAlreadyExistsException {
+	private JDefinedClass genEntityClass(JPackage p, String nameCandidate, JClass superClass, EntityInfo einfo) throws JClassAlreadyExistsException {
 		JClass serializableClass = cm.ref(Serializable.class);
 			
-		JDefinedClass cls = p._class(JMod.PUBLIC, toClassName(p, entityNameCandidate));
+		JDefinedClass cls = p._class(JMod.PUBLIC, toClassName(p, nameCandidate));
 		if(superClass!=null) {
 			cls._extends(superClass);
 		}
@@ -288,6 +319,27 @@ public class Generator {
 		cls._implements(serializableClass);
 		return cls;
 	}
+	
+	private JDefinedClass genEmbeddableClass(String nameCandidate, TableDto table, String foreignKeyName, JDefinedClass enclosingEntityClass) throws JClassAlreadyExistsException {
+		JPackage p = cm._package(cfg.getTargetPackageName());
+		JClass serializableClass = cm.ref(Serializable.class);
+			
+		JDefinedClass cls = p._class(JMod.PUBLIC, toClassName(p, nameCandidate));
+		cls.annotate(Embeddable.class);
+		tablesToEmbeddables.put(table.getName(), cls);
+		
+		cls._implements(serializableClass);
+		
+		JFieldVar field = genCollectionFieldVar(enclosingEntityClass, cls);
+		field.annotate(cm.ref(ElementCollection.class));
+		JAnnotationUse ct = field.annotate(cm.ref(CollectionTable.class));
+		ct.param("name", table.getName());
+		
+		List<ForeignKeyColumn> fkCols = findForeignKeyColumns(table, foreignKeyName);
+		annotateJoinColumns(() -> ct.paramArray("joinColumns"), fkCols);
+		return cls;
+	}
+	
 	
 	private void genSequence(JAnnotationUse au, SequenceDto sequence) {
 		au.param("name", sequence.getName());
@@ -335,53 +387,40 @@ public class Generator {
 		}
 	}
 	
-	private void genJoinedHierarchy(HierarchyDto h, JPackage pakkage) throws JClassAlreadyExistsException {
+	private void genJoinedHierarchy(RootEntityTableDto rt, JPackage pakkage) throws JClassAlreadyExistsException {
 		
 		Map<String,JClass> hierarchyClasses = new HashMap<>();
 
 		TableDto rootTable = project.getSchema().getTable().stream()
-			.filter(t -> t.getName().equals(h.getJoined().getRoot().getTable()))
+			.filter(t -> t.getName().equals(rt.getTable()))
 			.findAny()
-			.orElseThrow(() -> new RuntimeException("root table '"+h.getJoined().getRoot().getTable() + "' not found"));
+			.orElseThrow(() -> new RuntimeException("root table '"+rt.getTable() + "' not found"));
 		EntityInfo rootEInfo = new EntityInfo(rootTable, new PlainTableFieldColumnSource(rootTable));
 		JDefinedClass rootClass = genEntityClass(pakkage, rootTable.getName(), null, rootEInfo);
 		hierarchyClasses.put(rootTable.getName(), rootClass);
 		rootClass.annotate(cm.ref(Inheritance.class))
 			.param("strategy", InheritanceType.JOINED);
 		
-		genDiscriminatorColumnAnnotation(rootClass, rootTable, h.getJoined().getDiscriminateBy().getColumn());
-
-		Set<JoinRelationDto> unmappedRelations = new HashSet<>(h.getJoined().getJoinRelation());
-		while(!unmappedRelations.isEmpty()) {
-			// find a mappable join relation: We need a relation that
-			// points to a direct supertable (table that is mapped
-			// to an entity that will be a direct superclass of the
-			// entity that will be generated from a candidate join
-			// relation).
-			JoinRelationDto mapableRelation = unmappedRelations.stream()
-				.filter(jr -> {
-					String superTableName = toTableForeignKey(jr.getTable(), jr.getForeignKey()).getToTable();
-					return hierarchyClasses.containsKey(superTableName);
-				})
-				.findAny()
-				.orElseThrow(() -> {
-					String rels = unmappedRelations.stream()
-						.map(r -> "("+r.getTable()+"|"+r.getForeignKey()+")")
-						.collect(Collectors.joining(","));
-					return new RuntimeException("no direct superclass table found for relation(s): " + rels);
-				});
-
-			unmappedRelations.remove(mapableRelation);
-
+		genDiscriminatorColumnAnnotation(rootClass, rootTable, rt.getJoinedHierarchy().getDiscriminateBy().getColumn());
+		
+		genJoinedHierarchySubentities(rootTable, pakkage, rt, rootClass, rt.getJoinedHierarchy().getEntityTable());
+	}
+	
+	private void genJoinedHierarchySubentities(TableDto rootTable, JPackage pakkage, EntityTableDto parent, JClass superclassEntity, List<JoinedEntityTableDto> subTables) throws JClassAlreadyExistsException {
+		for(JoinedEntityTableDto subTable : subTables) {
+			
 			// use the foreign key to get to the supertable and its
 			// corresponding superclass entity, and generate the
 			// subclass entity from there
-			ForeignKeyDto fk = toTableForeignKey(mapableRelation.getTable(), mapableRelation.getForeignKey());
-			JClass superclassEntity = hierarchyClasses.get(fk.getToTable());
-			TableDto table = findTable(mapableRelation.getTable());
+			ForeignKeyDto fk = toTableForeignKey(subTable.getTable(), subTable.getForeignKey());
+			
+			if(!fk.getToTable().equals(parent.getTable())) {
+				throw new RuntimeException(String.format("specified foreign key %s of table %s refers to table %s, but the supertable is %s", fk.getName(), subTable.getTable(), fk.getToTable(), parent.getTable()));
+			}
+			TableDto table = findTable(subTable.getTable());
 			EntityInfo einfo = new EntityInfo(table, rootTable, new PlainTableFieldColumnSource(table));
 			JDefinedClass subclassEntity = genEntityClass(pakkage, table.getName(), superclassEntity, einfo);
-			genDiscriminatorValueAnnotation(subclassEntity, mapableRelation.getDiscriminator());
+			genDiscriminatorValueAnnotation(subclassEntity, subTable.getDiscriminator());
 
 			if(fk.getFkColumn().size()==1) {
 				fillPrimaryKeyJoinColumn(subclassEntity.annotate(PrimaryKeyJoinColumn.class), fk, fk.getFkColumn().get(0));
@@ -393,6 +432,8 @@ public class Generator {
 					fkCol -> fillPrimaryKeyJoinColumn(arr.annotate(PrimaryKeyJoinColumn.class), fk, fkCol)
 				); 
 			}
+			
+			genJoinedHierarchySubentities(rootTable, pakkage, subTable, subclassEntity, subTable.getEntityTable());
 		}
 	}
 	
@@ -424,50 +465,49 @@ public class Generator {
 		
 	}
 	
-	private void checkEachFieldOnlyOnce(TableDto table, List<SingleTableSubEntityDto> entities) {
-		for (SingleTableSubEntityDto entity : entities) {
+	private void checkEachFieldOnlyOnce(TableDto table, List<SingleTableEntityDto> entities) {
+		for (SingleTableEntityDto entity : entities) {
 			Set<String> colMap = table.getColumn().stream()
 				.map(c -> c.getName())
 				.collect(Collectors.toSet());
-			checkEachFieldOnlyOnceImpl(table, colMap, new HashSet<>(), entity);
+			checkEachFieldOnlyOnceImpl(table, colMap, new HashSet<>(), entity.getEntity());
 		}
 	}
 	
-	private void checkEachFieldOnlyOnceImpl(TableDto table, Set<String> colSet, Set<String> usedColNames, SingleTableSubEntityDto entity) {
-		for(SingleTableFieldDto f : entity.getField()) {
-			if(!colSet.contains(f.getColumn())) {
-				throw new RuntimeException(String.format("Specified field column %s does not exist in table %s", f.getColumn(), table.getName()));
+	private void checkEachFieldOnlyOnceImpl(TableDto table, Set<String> colSet, Set<String> usedColNames, List<SingleTableEntityDto> entities) {
+		for(SingleTableEntityDto entity : entities) {
+			for(SingleTableFieldDto f : entity.getField()) {
+				if(!colSet.contains(f.getColumn())) {
+					throw new RuntimeException(String.format("Specified field column %s does not exist in table %s", f.getColumn(), table.getName()));
+				}
+				if(!usedColNames.add(f.getColumn())) {
+					throw new RuntimeException(String.format("duplicate column name %s found in single table hierarchy of root table %s", f.getColumn(), table.getName()));
+				}
 			}
-			if(!usedColNames.add(f.getColumn())) {
-				throw new RuntimeException(String.format("duplicate column name %s found in single table hierarchy of root table %s", f.getColumn(), table.getName()));
-			}
-		}
 		
-		for(SingleTableSubEntityDto e : entity.getEntity()) {
-			checkEachFieldOnlyOnceImpl(table, colSet, usedColNames, e);
+			checkEachFieldOnlyOnceImpl(table, colSet, usedColNames, entity.getEntity());
 		}
 	}
 	
-	private void genSingleTableHierarchy(HierarchyDto h, JPackage pakkage) throws JClassAlreadyExistsException {
-		
-		SingleTableRootEntityDto rootEntity = h.getSingleTable().getEntity();
+	private void genSingleTableHierarchy(RootEntityTableDto rootEntity, JPackage pakkage) throws JClassAlreadyExistsException {
+		SingleTableHierarchyDto h = rootEntity.getSingleTableHierarchy();
 		TableDto rootTable = findTable(rootEntity.getTable());
 		
-		checkEachFieldOnlyOnce(rootTable, rootEntity.getEntity());
+		checkEachFieldOnlyOnce(rootTable, h.getEntity());
 		EntityInfo einfo = new EntityInfo(rootTable, new SingleTableRootFieldColumnSource(rootTable, rootEntity));
 
 		JDefinedClass rootClass = genEntityClass(pakkage, rootTable.getName(), null, einfo);
 		rootClass.annotate(Inheritance.class)
 			.param("strategy", InheritanceType.SINGLE_TABLE);
-		genDiscriminatorColumnAnnotation(rootClass, rootTable, h.getSingleTable().getDiscriminateBy().getColumn());
+		genDiscriminatorColumnAnnotation(rootClass, rootTable, h.getDiscriminateBy().getColumn());
 		
-		genDiscriminatorValueAnnotation(rootClass, rootEntity.getDiscriminator());
+		genDiscriminatorValueAnnotation(rootClass, h.getRoot().getDiscriminator());
 		
-		genSingleTableChildEntities(rootTable, rootClass, rootEntity.getEntity());
+		genSingleTableChildEntities(rootTable, rootClass, h.getEntity());
 	}
 	
-	private void genSingleTableChildEntities(TableDto rootTable, JDefinedClass parentclass, List<SingleTableSubEntityDto> entities) throws JClassAlreadyExistsException {
-		for(SingleTableSubEntityDto entity : entities) {
+	private void genSingleTableChildEntities(TableDto rootTable, JDefinedClass parentclass, List<SingleTableEntityDto> entities) throws JClassAlreadyExistsException {
+		for(SingleTableEntityDto entity : entities) {
 			EntityInfo einfo = new EntityInfo(null, rootTable, new SingleTableFieldColumnSource(rootTable, entity));
 			JDefinedClass cls = genEntityClass(parentclass.getPackage(), entity.getName(), parentclass, einfo);
 			
@@ -492,7 +532,24 @@ public class Generator {
 		return LIST_ENTITY_REF_FACTORY;
 	}
 	
-	private JFieldVar genRelationCollectionFieldVar(JDefinedClass cls, JDefinedClass elementType, String targetTableName) {
+	void genElementCollectionEmbeddables(RootEntityTableDto table) throws JClassAlreadyExistsException{
+		
+		JDefinedClass entityClass = findEntity(table.getTable(), null);
+		
+		for(CollectionTableDto ct : table.getCollectionTable()) {
+			genEmbeddables(entityClass, ct);
+		}
+		
+		// FIXME: need to implement this for non-root entity tables in hierarchies as well
+	}
+	
+	
+	private void genEmbeddables(JDefinedClass entityClass, CollectionTableDto collectionTable) throws JClassAlreadyExistsException {
+		TableDto table = toTable(collectionTable.getTable());
+		genEmbeddableClass(table.getName(), table, collectionTable.getForeignKey(), entityClass);
+	}
+	
+	private JFieldVar genCollectionFieldVar(JDefinedClass cls, JDefinedClass elementType) {
 		EntityRefFactory factory = findEntityRefFactory(cls);
 		JClass fieldType = factory.getCollectionType(elementType);
 		
@@ -541,44 +598,51 @@ public class Generator {
 			assert  EnumSet.of(MANY_TO_ONE, UNI_MANY_TO_ONE).contains(otm.getKind());
 			childField.annotate(ManyToOne.class);
 		}
-
-		if(fkCols.size() == 1) {
-			ColumnDto fkColumn = fkCols.get(0).getColumn();
-			// @JoinColumn
-			JAnnotationUse joinColumnAnnotation = childField.annotate(JoinColumn.class);
-			joinColumnAnnotation.param("name", fkColumn.getName());
-			if(!isColumnNullable(fkColumn)) {
-				joinColumnAnnotation.param("nullable", false);
-			}
-		} else {
-			// @JoinColumns (plural!)
-			JAnnotationArrayMember joinColumnsArray = childField
-				.annotate(JoinColumns.class)
-				.paramArray("value");
-			for(ForeignKeyColumn fkColumn : fkCols) {
-				joinColumnsArray
-					.annotate(JoinColumn.class)
-					.param("name", fkColumn.getColumn().getName())
-					.param("referencedColumnName", fkColumn.getPk().getName())
-					;
-			}
-		}
-
+		
+		annotateJoinColumns(childField::annotate, () -> childField.annotate(JoinColumns.class).paramArray("value"), fkCols);
+		
 		// parent table side mapping, only for the two bidirectional mappings
 		if(otm.getKind() == ONE_TO_ONE) {
 			JFieldVar parentField = parentTableEntity.field(JMod.PROTECTED, childTableEntity, toFieldName(parentTableEntity, otm.getTable().getName()));
 			parentField.annotate(OneToOne.class)
 				.param("mappedBy", childField.name());
 		} else if(otm.getKind() == MANY_TO_ONE){
-			JFieldVar field = genRelationCollectionFieldVar(parentTableEntity, childTableEntity, otm.getTable().getName());
+			JFieldVar field = genCollectionFieldVar(parentTableEntity, childTableEntity);
 			field.annotate(OneToMany.class)
 				.param("mappedBy", childField.name());
 		}
 		
 	}
 	
+	private void annotateJoinColumns(Function<Class<? extends Annotation>, JAnnotationUse> singularAnnotator, Supplier<JAnnotationArrayMember> pluralAnnotator, List<ForeignKeyColumn> fkCols){
+		if(fkCols.size() == 1) {
+			ColumnDto fkColumn = fkCols.get(0).getColumn();
+			// @JoinColumn
+			JAnnotationUse joinColumnAnnotation = singularAnnotator.apply(JoinColumn.class);
+			joinColumnAnnotation.param("name", fkColumn.getName());
+			if(!isColumnNullable(fkColumn)) {
+				joinColumnAnnotation.param("nullable", false);
+			}
+		} else {
+			// @JoinColumns (plural!)
+			annotateJoinColumns(pluralAnnotator, fkCols);
+		}
+	}
+
+	private void annotateJoinColumns(Supplier<JAnnotationArrayMember> pluralAnnotator, List<ForeignKeyColumn> fkCols){
+		// @JoinColumns (plural!)
+		JAnnotationArrayMember joinColumnsArray = pluralAnnotator.get();
+		for(ForeignKeyColumn fkColumn : fkCols) {
+			joinColumnsArray
+				.annotate(JoinColumn.class)
+				.param("name", fkColumn.getColumn().getName())
+				.param("referencedColumnName", fkColumn.getPk().getName())
+				;
+		}
+	}
+	
 	private void genJoinTableRelation(JDefinedClass ownerClass, JDefinedClass inverseClass, JoinTableRelation jtr) {
-		JFieldVar ownerField = genRelationCollectionFieldVar(ownerClass, inverseClass, jtr.getInverseForeignKey().getToTable());
+		JFieldVar ownerField = genCollectionFieldVar(ownerClass, inverseClass);
 		
 		ownerField.annotate(ManyToMany.class);
 		
@@ -595,7 +659,7 @@ public class Generator {
 				.paramArray("inverseJoinColumns");
 			genJoinColumns(inverseJoinColumnsArray, jtr.getInverseForeignKey().getFkColumn());
 
-			JFieldVar inverseField = genRelationCollectionFieldVar(inverseClass, ownerClass, jtr.getOwnerForeignKey().getToTable());
+			JFieldVar inverseField = genCollectionFieldVar(inverseClass, ownerClass);
 
 			inverseField.annotate(ManyToMany.class)
 				.param("mappedBy", ownerField.name());
@@ -616,16 +680,16 @@ public class Generator {
 	}
 	
 	private boolean isSubclassTableInJoinedHierarchy(TableDto table) {
-		return findSubclassTableJoinedHierarchy(table).isPresent();
+		return cfg.getEntityTable().stream()
+			.filter(et -> et.getJoinedHierarchy() != null)
+			.flatMap(et -> et.getJoinedHierarchy().getEntityTable().stream())
+			.anyMatch(jt -> containsJoinedHierarchySubclassTable(jt, table.getName()));
 	}
 	
-	private Optional<HierarchyDto> findSubclassTableJoinedHierarchy(TableDto table) {
-		return cfg.getHierarchy().stream()
-			.filter(h -> h.getJoined() != null)
-			.filter(h -> h.getJoined().getJoinRelation().stream()
-				.anyMatch(jr -> jr.getTable().equals(table.getName()))
-			)
-			.findAny();
+	private boolean containsJoinedHierarchySubclassTable(JoinedEntityTableDto jt, String tableName) {
+		return jt.getTable().equals(tableName)
+			|| jt.getEntityTable().stream()
+				.anyMatch(subJt -> containsJoinedHierarchySubclassTable(subJt, tableName));
 	}
 	
 	private boolean isColumnPrimaryKey(TableDto table, ColumnDto column) {
@@ -656,9 +720,17 @@ public class Generator {
 	
 	private ConfigurationDto findClassOptions(String name) {
 		if(tableConfigurations == null) {
-			tableConfigurations = 
-				cfg.getTable().stream()
-				.collect(Collectors.toMap(TableConfigurationDto::getTable, cfg -> cfg));
+			tableConfigurations = new HashMap<>(Stream.of(
+				cfg.getJoinTable().stream(),
+				cfg.getEntityTable().stream()
+			)
+			.flatMap(t -> t)
+			.collect(Collectors.toMap(TableConfigurationDto::getTable, cfg -> cfg)));
+			
+			Consumer<EntityTableDto> addOp = et -> {
+				tableConfigurations.put(et.getTable(), et);
+				// FIXME: add recursive .foreach() here to add subtables
+			};
 		}
 		
 		if(globalConfiguration == null) {
@@ -701,20 +773,18 @@ public class Generator {
 		// see if there is a hierarchy containing this table (root or subclass)
 		// that has the given column name as discriminator
 		
-		return cfg.getHierarchy().stream()
-			.map(HierarchyDto::getJoined)
-			.filter(j -> j!=null)
-			.filter(j -> j.getDiscriminateBy().getColumn().equals(columnName))
+		return cfg.getEntityTable().stream()
+			.filter(j -> j.getJoinedHierarchy()!=null)
+			.filter(j -> j.getJoinedHierarchy().getDiscriminateBy().getColumn().equals(columnName))
 			.anyMatch(j -> 
-				j.getRoot().getTable().equals(table.getName())
+				j.getTable().equals(table.getName())
 			)
 			||
-			cfg.getHierarchy().stream()
-			.filter(h -> h.getSingleTable()!= null)
-			.map(h -> h.getSingleTable())
-			.filter(s -> s.getDiscriminateBy().getColumn().equals(columnName))
+			cfg.getEntityTable().stream()
+			.filter(h -> h.getSingleTableHierarchy()!= null)
+			.filter(s -> s.getSingleTableHierarchy().getDiscriminateBy().getColumn().equals(columnName))
 			.anyMatch(h -> 
-				h.getEntity().getTable().equals(table.getName())
+				h.getTable().equals(table.getName())
 			);
 	}
 	
@@ -726,15 +796,21 @@ public class Generator {
 			);
 	}
 	
+	private boolean containsSupertableJoinRelation(JoinedEntityTableDto et, String tableName, String foreignKeyName) {
+		if(et.getForeignKey().equals(foreignKeyName) && et.getTable().equals(tableName)) {
+			return true;
+		}
+		return et.getEntityTable().stream()
+			.anyMatch(subEt -> containsSupertableJoinRelation(subEt, tableName, foreignKeyName));
+	}
 	private boolean isSupertableJoinRelation(TableDto table, String foreignKeyName) {
 		// check if table is part of a joined hierarchy's join relations
 		// and if one of them contains the given table in its foreign key 
 		// declaration
-		return cfg.getHierarchy().stream()
-			.filter(h -> h.getJoined() != null)
-			.flatMap(h -> h.getJoined().getJoinRelation().stream())
-			.filter(jr -> jr.getTable().equals(table.getName()))
-			.anyMatch(jr -> jr.getForeignKey().equals(foreignKeyName));
+		return cfg.getEntityTable().stream()
+			.filter(h -> h.getJoinedHierarchy()!= null)
+			.flatMap(h -> h.getJoinedHierarchy().getEntityTable().stream())
+			.anyMatch(et -> containsSupertableJoinRelation(et, table.getName(), foreignKeyName));
 	}
 	
 	private String normalizeTypeName(String typeName) {
@@ -851,15 +927,14 @@ public class Generator {
 			.orElseThrow(()->new RuntimeException("foreign key '" + foreignKeyName + "' not found for table '" + tableName + "'"));
 	}
 	
-	private ChildTableRelation toChildTableRelation(ChildTableRelation.Kind kind, ChildTableRelationshipDto oneToMany) {
-		TableDto table = Optional.ofNullable(findTable(oneToMany.getTable()))
-			.orElseThrow(()->new RuntimeException("table not found in relation: '" + oneToMany.getTable() + "'"));
-		RelationDto orel = oneToMany.getOwnerRelation();
-		ForeignKeyDto fk = toTableForeignKey(table.getName(), orel.getForeignKey());
-		return new ChildTableRelation(kind, table, fk, orel.getOwningEntity(), orel.getInverseEntity());
+	private ChildTableRelation toChildTableRelation(ChildTableRelation.Kind kind, String tableName, XToOneRelationDto xToMany) {
+		TableDto table = Optional.ofNullable(findTable(tableName))
+			.orElseThrow(()->new RuntimeException("table not found in relation: '" + tableName + "'"));
+		ForeignKeyDto fk = toTableForeignKey(table.getName(), xToMany.getForeignKey());
+		return new ChildTableRelation(kind, table, fk, xToMany.getOwningEntity(), xToMany.getInverseEntity());
 	}
 	
-	private JoinTableRelation toJoinTableRelation(JoinTableRelation.Kind kind, JoinTableRelationshipDto manyToMany) {
+	private JoinTableRelation toJoinTableRelation(JoinTableRelation.Kind kind, JoinTableDto manyToMany) {
 		TableDto table = Optional.ofNullable(findTable(manyToMany.getTable()))
 			.orElseThrow(()->new RuntimeException("table not found in relation: '" + manyToMany.getTable() + "'"));
 		
@@ -881,7 +956,7 @@ public class Generator {
 		// inverse side, because we can pick that ourselves.
 		if(inverseFkName == null) {
 			if(table.getFk().size() != 2) {
-				throw new RuntimeException(String.format("cannot determine inverse side foreign key for table %s: either specify explicitely or make sure that there are exactly two foreign keys specified in this talbe", table.getName()));
+				throw new RuntimeException(String.format("cannot determine inverse side foreign key for table %s: either specify explicitely or make sure that there are exactly two foreign keys specified in this table", table.getName()));
 			}
 			// find the other foreign key name
 			inverseFkName = table.getFk().stream()
@@ -905,17 +980,36 @@ public class Generator {
 	
 	private void initOneToNRelations() {
 		// collect declared one-to-many et. al. relations
-		childTableRelations = Stream.of(
-			cfg.getManyToOne().stream()
-				.map(otm -> toChildTableRelation(ChildTableRelation.Kind.MANY_TO_ONE, otm)),
-			cfg.getUniManyToOne().stream()
-				.map(otm -> toChildTableRelation(ChildTableRelation.Kind.UNI_MANY_TO_ONE, otm)),
-			cfg.getUniOneToOne().stream()
-				.map(otm -> toChildTableRelation(ChildTableRelation.Kind.UNI_ONE_TO_ONE, otm))
+		
+		// define
+		Function<EntityTableDto, List<ChildTableRelation>> relationExtractor = et -> {
+			return Stream.of(
+				et.getManyToOne().stream()
+				.map(mto -> {
+					ChildTableRelation.Kind kind = mto.isBidirectional() ? ChildTableRelation.Kind.MANY_TO_ONE : ChildTableRelation.Kind.UNI_MANY_TO_ONE;
+					return toChildTableRelation(kind, et.getTable(), mto);
+				}),
+				et.getOneToOne().stream()
+				.map(oto -> {
+					ChildTableRelation.Kind kind = oto.isBidirectional() ? ChildTableRelation.Kind.ONE_TO_ONE : ChildTableRelation.Kind.UNI_ONE_TO_ONE;
+					return toChildTableRelation(kind, et.getTable(), oto);
+				})
 			)
-			.flatMap(Function.identity())
-			.collect(Collectors.toCollection(ArrayList::new));
-
+			.flatMap(s -> s)
+			.collect(Collectors.toList());
+		};
+		
+		childTableRelations = new ArrayList();
+		
+		Consumer<EntityTableDto> converter = et -> {
+			childTableRelations.addAll(relationExtractor.apply(et));
+			// FIXME: need to apply this recursively here to subtables in 
+			// defined hierarchies
+		};
+		cfg.getEntityTable().stream()
+			.forEach(converter);
+		
+		
 		// get all foreign key names involved in a declared one-to-many
 		Set<String> otmFkNames = childTableRelations.stream()
 			.map(otm -> otm.getForeignKey().getName())
@@ -930,6 +1024,9 @@ public class Generator {
 		// involved into a declared relationship (one-to-many, many-to-many,
 		// or a hierarchy
 		for(TableDto t : tables.values()) {
+			if(isCollectionTable(t.getName())) {
+				continue;
+			}
 			t.getFk().stream()
 				.filter(fk -> !otmFkNames.contains(fk.getName()))
 				.filter(fk -> !mtmFkNames.contains(fk.getName()))
@@ -941,14 +1038,13 @@ public class Generator {
 
 	private List<JoinTableRelation> getJoinTableRelations() {
 		if(joinTableRelations == null) {
-			joinTableRelations = Stream.of(
-				cfg.getManyToMany().stream()
-					.map(jtr -> toJoinTableRelation(JoinTableRelation.Kind.MANY_TO_MANY, jtr)),
-				cfg.getUniManyToMany().stream()
-					.map(jtr -> toJoinTableRelation(JoinTableRelation.Kind.UNI_MANY_TO_MANY, jtr))
-				)
-				.flatMap(Function.identity())
+			joinTableRelations = cfg.getJoinTable().stream()
+				.map(jt -> {
+					JoinTableRelation.Kind kind = jt.isUnidirectional() ? JoinTableRelation.Kind.UNI_MANY_TO_MANY : JoinTableRelation.Kind.MANY_TO_MANY;
+					return toJoinTableRelation(kind, jt);
+				})
 				.collect(Collectors.toList());
+				;
 		}
 		return joinTableRelations;
 	}
@@ -959,6 +1055,26 @@ public class Generator {
 				.collect(Collectors.toMap(mtm->mtm.getTable().getName(), mtm->mtm));
 		}
 		return manyToManyRelationsJoinTables.containsKey(tableName);
+	}
+	
+	private boolean isCollectionTable(String tableName) {
+		if(collectionTableNames == null) {
+			// FIXME: we'll need to do that recursively for joined and single table entity hierarchies
+			collectionTableNames = cfg.getEntityTable().stream()
+				.filter(et -> et.getCollectionTable() != null)
+				.flatMap(et -> et.getCollectionTable().stream())
+				.map(CollectionTableDto::getTable)
+				.collect(Collectors.toSet());
+		}
+		return collectionTableNames.contains(tableName);
+	}
+	
+	private List<ForeignKeyColumn> findForeignKeyColumns(TableDto table, String foreignKeyName) {
+		ForeignKeyDto foreignKey = table.getFk().stream()
+			.filter(fk -> fk.getName().equals(foreignKeyName))
+			.findAny()
+			.get();
+		return findForeignKeyColumns(table, foreignKey);
 	}
 	
 	private List<ForeignKeyColumn> findForeignKeyColumns(TableDto table, ForeignKeyDto foreignKey) {
