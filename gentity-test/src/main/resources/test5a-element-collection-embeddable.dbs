@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="test5a-element-collection-embeddable" id="Project_4794048" template="Default" database="HSql" >
+	<schema name="TEST5A-ELEMENT-COLLECTION-EMBEDDABLE" schemaname="TEST5A-ELEMENT-COLLECTION-EMBEDDABLE" >
+		<table name="PERSON" >
+			<column name="ID" type="integer" jt="4" mandatory="y" autoincrement="y" />
+			<column name="FIRST_NAME" type="varchar" length="100" jt="12" mandatory="y" />
+			<column name="LAST_NAME" type="varchar" length="100" jt="12" mandatory="y" />
+			<index name="PK_PERSON_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+		</table>
+		<table name="PHONE_NUMBER" >
+			<column name="PERSON_ID" type="integer" jt="4" mandatory="y" />
+			<column name="MOBILE" type="boolean" jt="16" mandatory="y" />
+			<column name="PHONE_NUM" type="varchar" length="20" jt="12" mandatory="y" />
+			<index name="IDX_PHONE_NUMBER_PERSON_ID" unique="NORMAL" >
+				<column name="PERSON_ID" />
+			</index>
+			<fk name="FK_PHONE_NUMBER_PERSON" to_schema="TEST5A-ELEMENT-COLLECTION-EMBEDDABLE" to_table="PERSON" delete_action="cascade" update_action="cascade" >
+				<fk_column name="PERSON_ID" pk="ID" />
+			</fk>
+		</table>
+	</schema>
+	<layout name="Default Layout" id="Layout_3449aed" show_relation="columns" >
+		<entity schema="TEST5A-ELEMENT-COLLECTION-EMBEDDABLE" name="PERSON" color="c8daf5" x="195" y="195" />
+		<entity schema="TEST5A-ELEMENT-COLLECTION-EMBEDDABLE" name="PHONE_NUMBER" color="c8daf5" x="480" y="195" />
+		<callout x="45" y="45" pointer="NO" >
+			<comment><![CDATA[This project is in offline mode.
+Design the schema and save the design to project file. Later create or upgrade the schema on any database.
+Right-click the layout to add new tables. Drop this callout from its right-click pop-up menu.]]></comment>
+		</callout>
+	</layout>
+</project>

@@ -20,12 +20,11 @@ limitations under the License.
 	xsi:schemaLocation="
 	    https://github.com/gentity/gentity/ns
 			../../../../gentity-core/src/main/java/com/github/gentity/core/xsd/genconfig.xsd
-	    https://github.com/gentity/gentity/ns
-			https://raw.githubusercontent.com/gentity/gentity/master/gentity-core/src/main/resources/xsd/genconfig.xsd
 	"
 >
-	<joinTable table="BOOK_AUTHOR">
-		<ownerRelation foreignKey="FK_BOOKS_AUTHORS_BOOK"/>
-		<referencedRelation foreignKey="FK_BOOKS_AUTHORS_AUTHOR"/>
-	</joinTable>
+	
+	<entityTable table='PERSON'>
+		<collectionTable table='PHONE_NUMBER' foreignKey='FK_PHONE_NUMBER_PERSON'/>
+	</entityTable>
+	
 </mappingConfig>

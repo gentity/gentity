@@ -25,10 +25,8 @@ limitations under the License.
 	"
 >
 
-	<uniOneToOne table="EMPLOYEE">
-		<ownerRelation foreignKey="FK_EMPLOYEE_COMPANYCAR"/>
-	</uniOneToOne>
-	<uniOneToOne table="EMPLOYEE">
-		<ownerRelation foreignKey="FK_EMPLOYEE_DESK"/>
-	</uniOneToOne>
+	<entityTable table="EMPLOYEE">
+		<oneToOne bidirectional="false" foreignKey="FK_EMPLOYEE_COMPANYCAR"/>
+		<oneToOne bidirectional="false" foreignKey="FK_EMPLOYEE_DESK"/>
+	</entityTable>
 </mappingConfig>

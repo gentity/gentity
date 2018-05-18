@@ -217,6 +217,18 @@
 							<mappingConfigFile>src/main/resources/test4d-polymorphism-single-table-relations.genconfig</mappingConfigFile>
 						</configuration>
 					</execution>
+					<execution>
+						<id>entities-test5a</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<targetPackageName>com.github.gentity.test.test5a_element_collection_embeddable</targetPackageName>
+							<inputDbsFile>src/main/resources/test5a-element-collection-embeddable.dbs</inputDbsFile>
+							<mappingConfigFile>src/main/resources/test5a-element-collection-embeddable.genconfig</mappingConfigFile>
+						</configuration>
+					</execution>
 					
 					
 					<execution>
