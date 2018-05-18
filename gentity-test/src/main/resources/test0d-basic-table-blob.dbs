@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="blob-test" id="Project_40a4e9" template="Default" database="HSql" >
+	<schema name="BLOB-TEST" schemaname="BLOB-TEST" >
+		<table name="DOCUMENT" >
+			<column name="ID" type="integer" jt="4" mandatory="y" autoincrement="y" />
+			<column name="NAME" type="varchar" length="100" jt="12" mandatory="y" />
+			<column name="CONTENT" type="binary" jt="-2" mandatory="y" />
+			<index name="PK_DOCUMENT_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+		</table>
+	</schema>
+	<layout name="Default Layout" id="Layout_42fffbe" show_relation="columns" >
+		<entity schema="BLOB-TEST" name="DOCUMENT" color="1f5182" x="45" y="45" />
+	</layout>
+</project>
