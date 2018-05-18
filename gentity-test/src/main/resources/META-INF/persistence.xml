@@ -27,6 +27,10 @@
     <class>com.github.gentity.test.test0c_basic_table_autoincrement.Person</class>
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
   </persistence-unit>
+  <persistence-unit name="Test0d_basic_table_blob" transaction-type="RESOURCE_LOCAL">
+    <class>com.github.gentity.test.test0d_basic_table_blob.Document</class>
+    <exclude-unlisted-classes>true</exclude-unlisted-classes>
+  </persistence-unit>
   <persistence-unit name="Test1a_many_to_one" transaction-type="RESOURCE_LOCAL">
     <class>com.github.gentity.test.test1a_many_to_one.Company</class>
     <class>com.github.gentity.test.test1a_many_to_one.Employee</class>

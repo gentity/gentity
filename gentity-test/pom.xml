@@ -54,6 +54,17 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>entities-test0d-basic-table-blob</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputDbsFile>src/main/resources/test0d-basic-table-blob.dbs</inputDbsFile>
+							<targetPackageName>com.github.gentity.test.test0d_basic_table_blob</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
 						<id>entities-test1</id>
 						<phase>generate-sources</phase>
 						<goals>

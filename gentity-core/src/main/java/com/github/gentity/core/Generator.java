@@ -30,7 +30,6 @@ import com.sun.codemodel.JMod;
 import com.sun.codemodel.JPackage;
 import com.sun.codemodel.JType;
 import java.io.Serializable;
-import java.sql.Blob;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -94,6 +93,7 @@ import com.github.gentity.core.fields.SingleTableFieldColumnSource;
 import com.github.gentity.core.fields.SingleTableRootFieldColumnSource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import javax.persistence.Lob;
 
 
 /**
@@ -317,6 +317,9 @@ public class Generator {
 			}
 		}
 		
+		if(isColumnByteArrayType(column)) {
+			field.annotate(Lob.class);
+		}
 		// @Column or @JoinColumn
 		
 		// @Column
@@ -738,6 +741,22 @@ public class Generator {
 		return typeName.toLowerCase();
 	}
 	
+	private boolean isLob(ColumnDto column) {
+		// NOTE: this may not always be the case, but for now it'll do
+		return isColumnByteArrayType(column);
+	}
+	
+	private boolean isColumnByteArrayType(ColumnDto column) {
+		switch(column.getType()) {
+			case "blob":
+			case "binary":
+			case "varbinary":
+			case "bytea":
+				return true;
+			default:
+				return false;
+		}
+	}
 	
 	private JType mapColumnType(TableDto table, ColumnDto column) {
 		String type = normalizeTypeName(column.getType());
@@ -775,12 +794,6 @@ public class Generator {
 			case "double precision":
 				jtype = cm.DOUBLE;
 				break;
-			case "blob":
-			case "binary":
-			case "varbinary":
-			case "bytea":
-				jtype = cm.ref(Blob.class);
-				break;
 			case "timestamp":
 				jtype = cm.ref(Timestamp.class);
 				break;
@@ -791,6 +804,10 @@ public class Generator {
 				jtype = cm.ref(LocalDateTime.class);
 				break;
 			default:
+				if(isColumnByteArrayType(column)) {
+					jtype = cm.ref(byte[].class);
+					break;
+				}
 				throw new RuntimeException("no mapping found for SQL type '" + column.getType() + "'");
 		}
 		
