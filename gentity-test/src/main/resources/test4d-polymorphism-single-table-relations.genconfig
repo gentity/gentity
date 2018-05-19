@@ -24,7 +24,6 @@ limitations under the License.
 >
 	
 	<entityTable table='LIFEFORM'>
-		<manyToOne bidirectional="true" foreignKey="FK_LIFEFORM_DOG_ACCESSORIES" owningEntity='Dog' inverseEntity="Kennel"/>
 		<singleTableHierarchy>
 			<discriminateBy column='KIND'/>
 			<root discriminator='LF'/>
@@ -34,7 +33,7 @@ limitations under the License.
 			<entity name='Mammal' discriminator='MA'>
 				<field column='FURRY'/>
 				<entity name="Dog" discriminator="DG">
-					<field column="LIVES_IN_KENNEL_ID"/>
+					<manyToOne bidirectional="true" foreignKey="FK_LIFEFORM_DOG_ACCESSORIES" inverseEntity="Kennel"/>
 				</entity>
 			</entity>
 		</singleTableHierarchy>

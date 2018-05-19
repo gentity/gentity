@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
 public class ChildTableRelation extends Relation{
 	
 	private final ForeignKeyDto foreignKey;
-	private Boolean oneToOne;
 	private final Kind kind;
 	private final String owningEntityName;
 	private final String inverseEntityName;

@@ -98,6 +98,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import javax.persistence.Lob;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.persistence.CollectionTable;
 import javax.persistence.ElementCollection;
@@ -916,9 +917,11 @@ public class Generator {
 	}
 	
 	private ForeignKeyDto findTableForeignKey(String tableName, String foreignKeyName) {
-		return findTable(tableName).getFk().stream()
-			.filter(fk -> foreignKeyName.equals(fk.getName()))
-			.findAny()
+		return Optional.ofNullable(findTable(tableName))
+			.flatMap(table -> table.getFk().stream()
+				.filter(fk -> foreignKeyName.equals(fk.getName()))
+				.findAny()
+			)
 			.orElse(null);
 	}
 	
@@ -927,11 +930,11 @@ public class Generator {
 			.orElseThrow(()->new RuntimeException("foreign key '" + foreignKeyName + "' not found for table '" + tableName + "'"));
 	}
 	
-	private ChildTableRelation toChildTableRelation(ChildTableRelation.Kind kind, String tableName, XToOneRelationDto xToMany) {
+	private ChildTableRelation toChildTableRelation(ChildTableRelation.Kind kind, String tableName, String entityName, XToOneRelationDto xToMany) {
 		TableDto table = Optional.ofNullable(findTable(tableName))
 			.orElseThrow(()->new RuntimeException("table not found in relation: '" + tableName + "'"));
 		ForeignKeyDto fk = toTableForeignKey(table.getName(), xToMany.getForeignKey());
-		return new ChildTableRelation(kind, table, fk, xToMany.getOwningEntity(), xToMany.getInverseEntity());
+		return new ChildTableRelation(kind, table, fk, entityName, xToMany.getInverseEntity());
 	}
 	
 	private JoinTableRelation toJoinTableRelation(JoinTableRelation.Kind kind, JoinTableDto manyToMany) {
@@ -943,9 +946,9 @@ public class Generator {
 		
 		String inverseFkName = null;
 		String inverseEntityName = null;
-		if(manyToMany.getReferencedRelation() != null) {
-			inverseFkName =  manyToMany.getReferencedRelation().getForeignKey();
-			inverseEntityName =  manyToMany.getReferencedRelation().getInverseEntity();
+		if(manyToMany.getInverseRelation() != null) {
+			inverseFkName =  manyToMany.getInverseRelation().getForeignKey();
+			inverseEntityName =  manyToMany.getInverseRelation().getInverseEntity();
 		}
 		
 		ForeignKeyDto ownerFk = toTableForeignKey(table.getName(), ownerFkName);
@@ -978,37 +981,58 @@ public class Generator {
 		return childTableRelations;
 	}
 	
+	List<ChildTableRelation> toChildTableRelations(String tableName, String entityName, List<XToOneRelationDto> mtos, List<XToOneRelationDto> otos) {
+		return Stream.of(mtos.stream()
+			.map(mto -> {
+				ChildTableRelation.Kind kind = mto.isBidirectional() ? ChildTableRelation.Kind.MANY_TO_ONE : ChildTableRelation.Kind.UNI_MANY_TO_ONE;
+				return toChildTableRelation(kind, tableName, entityName, mto);
+			}),
+			otos.stream()
+			.map(oto -> {
+				ChildTableRelation.Kind kind = oto.isBidirectional() ? ChildTableRelation.Kind.ONE_TO_ONE : ChildTableRelation.Kind.UNI_ONE_TO_ONE;
+				return toChildTableRelation(kind, tableName, entityName, oto);
+			})
+		)
+		.flatMap(s -> s)
+		.collect(Collectors.toList());
+	}
+	
+	private List<ChildTableRelation> toChildTableRelationsJoined(JoinedEntityTableDto et) {
+		ArrayList<ChildTableRelation> rels = new ArrayList<>();
+		rels.addAll(toChildTableRelations(et.getTable(), null, et.getManyToOne(), et.getOneToOne()));
+		et.getEntityTable().stream()
+			.map(jt -> toChildTableRelationsJoined(jt))
+			.forEach(rels::addAll);
+		
+		return rels;
+	}
+	
+	private List<ChildTableRelation> toChildTableRelationsSingleTable(String tableName, SingleTableEntityDto et) {
+		ArrayList<ChildTableRelation> rels = new ArrayList<>();
+		rels.addAll(toChildTableRelations(tableName, et.getName(), et.getManyToOne(), et.getOneToOne()));
+		et.getEntity().stream()
+			.map(jt -> toChildTableRelationsSingleTable(tableName, jt))
+			.forEach(rels::addAll);
+		
+		return rels;
+	}
+	
 	private void initOneToNRelations() {
 		// collect declared one-to-many et. al. relations
-		
-		// define
-		Function<EntityTableDto, List<ChildTableRelation>> relationExtractor = et -> {
-			return Stream.of(
-				et.getManyToOne().stream()
-				.map(mto -> {
-					ChildTableRelation.Kind kind = mto.isBidirectional() ? ChildTableRelation.Kind.MANY_TO_ONE : ChildTableRelation.Kind.UNI_MANY_TO_ONE;
-					return toChildTableRelation(kind, et.getTable(), mto);
-				}),
-				et.getOneToOne().stream()
-				.map(oto -> {
-					ChildTableRelation.Kind kind = oto.isBidirectional() ? ChildTableRelation.Kind.ONE_TO_ONE : ChildTableRelation.Kind.UNI_ONE_TO_ONE;
-					return toChildTableRelation(kind, et.getTable(), oto);
-				})
-			)
-			.flatMap(s -> s)
-			.collect(Collectors.toList());
-		};
-		
 		childTableRelations = new ArrayList();
 		
-		Consumer<EntityTableDto> converter = et -> {
-			childTableRelations.addAll(relationExtractor.apply(et));
-			// FIXME: need to apply this recursively here to subtables in 
-			// defined hierarchies
-		};
-		cfg.getEntityTable().stream()
-			.forEach(converter);
-		
+		for(RootEntityTableDto rt : cfg.getEntityTable()) {
+			childTableRelations.addAll(toChildTableRelations(rt.getTable(), null, rt.getManyToOne(), rt.getOneToOne()));
+			if(rt.getJoinedHierarchy() != null) {
+				rt.getJoinedHierarchy().getEntityTable().stream()
+					.map(jt -> toChildTableRelationsJoined(jt))
+					.forEach(childTableRelations::addAll);
+			} else if(rt.getSingleTableHierarchy() != null) {
+				rt.getSingleTableHierarchy().getEntity().stream()
+					.map(st -> toChildTableRelationsSingleTable(rt.getTable(), st))
+					.forEach(childTableRelations::addAll);
+			}
+		}
 		
 		// get all foreign key names involved in a declared one-to-many
 		Set<String> otmFkNames = childTableRelations.stream()
