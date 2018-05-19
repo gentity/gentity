@@ -69,8 +69,8 @@ limitations under the License.
 		<xs:complexContent>
 			<xs:extension base="tns:TableConfiguration">
 				<xs:sequence>
-					<xs:element name='ownerRelation' type='tns:Relation' minOccurs='1' maxOccurs='1'/>
-					<xs:element name='referencedRelation' type='tns:Relation' minOccurs='0' maxOccurs='1'/>
+					<xs:element name='ownerRelation' type='tns:JoinTableOwnerRelation' minOccurs='1' maxOccurs='1'/>
+					<xs:element name='inverseRelation' type='tns:JoinTableInverseRelation' minOccurs='0' maxOccurs='1'/>
 				</xs:sequence>
 				<xs:attribute name='unidirectional' type="xs:boolean" default="false"/>
 			</xs:extension>
@@ -139,8 +139,20 @@ limitations under the License.
 	
 	<xs:complexType name="Relation">
 		<xs:attribute name="foreignKey" type="xs:string"/>
-		<xs:attribute name="owningEntity" type="xs:string"/>
-		<xs:attribute name="inverseEntity" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="JoinTableOwnerRelation">
+		<xs:complexContent>
+			<xs:extension base="tns:Relation">
+				<xs:attribute name="owningEntity" type="xs:string"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="JoinTableInverseRelation">
+		<xs:complexContent>
+			<xs:extension base="tns:Relation">
+				<xs:attribute name="inverseEntity" type="xs:string"/>
+			</xs:extension>
+		</xs:complexContent>
 	</xs:complexType>
 	
 	<xs:complexType name="XToOneRelation">
@@ -148,6 +160,7 @@ limitations under the License.
 			<xs:extension base="tns:Relation">
 				<!-- FIXME: We'll need to turn the default to false -->
 				<xs:attribute name="bidirectional" type="xs:boolean" default="true"/>
+				<xs:attribute name="inverseEntity" type="xs:string"/>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
@@ -184,6 +197,8 @@ limitations under the License.
 	<xs:complexType name="SingleTableEntity">
 		<xs:sequence>
 			<xs:element name="collectionTable" type="tns:CollectionTable"  minOccurs='0' maxOccurs='unbounded'/>
+			<xs:element name="oneToOne" type="tns:XToOneRelation" minOccurs='0' maxOccurs='unbounded'/>
+			<xs:element name="manyToOne" type="tns:XToOneRelation" minOccurs='0' maxOccurs='unbounded'/>
 			<xs:element name="field" type="tns:SingleTableField" minOccurs='0' maxOccurs='unbounded'/>
 			<xs:element name="entity" type="tns:SingleTableEntity" minOccurs="0" maxOccurs='unbounded'/>
 		</xs:sequence>

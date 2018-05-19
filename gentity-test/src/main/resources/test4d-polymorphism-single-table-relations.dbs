@@ -27,7 +27,7 @@
 			<index name="PK_LIFEFORM_ID" unique="PRIMARY_KEY" >
 				<column name="ID" />
 			</index>
-			<index name="IDX_LIFEFORM_LIVES_IN_KETTLE_ID" unique="NORMAL" >
+			<index name="IDX_LIFEFORM_LIVES_IN_KENNEL_ID" unique="NORMAL" >
 				<column name="LIVES_IN_KENNEL_ID" />
 			</index>
 			<fk name="FK_LIFEFORM_DOG_ACCESSORIES" to_schema="TEST4D" to_table="DOG_ACCESSORIES" >
