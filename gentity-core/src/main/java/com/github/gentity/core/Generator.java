@@ -580,8 +580,10 @@ public class Generator {
 		
 		// child table side mapping
 		String fieldName;
-		List<ForeignKeyColumn> fkCols = findForeignKeyColumns(otm.getTable(), otm.getForeignKey());
-		
+		List<ForeignKeyColumn> fkCols = findForeignKeyColumns(otm.getTable(), ownerFk);
+		if(fkCols.isEmpty()) {
+			throw new RuntimeException(String.format("no columns defined in foreign key %s", ownerFk.getName()));
+		}
 		Matcher m = FK_COL_NAME_PATTERN.matcher(fkCols.get(0).getColumn().getName());
 		if(fkCols.size()==1 && m.matches() && m.group(2).equals(fkCols.get(0).getPk().getName())) {
 			fieldName = toFieldName(childTableEntity, m.group(1));
