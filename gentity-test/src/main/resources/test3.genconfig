@@ -27,7 +27,7 @@ limitations under the License.
 	
 	<joinTable table='CUSTOMER_PRODUCT'>
 		<ownerRelation foreignKey='FK_CUSTOMER_PRODUCT_CUSTOMER'/>
-		<referencedRelation foreignKey='FK_CUSTOMER_PRODUCT_PRODUCT'/>
+		<inverseRelation foreignKey='FK_CUSTOMER_PRODUCT_PRODUCT'/>
 	</joinTable> 
 		
 	<!--

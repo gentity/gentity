@@ -26,6 +26,6 @@ limitations under the License.
 >
 	<joinTable table="BOOK_AUTHOR">
 		<ownerRelation foreignKey="FK_BOOKS_AUTHORS_BOOK"/>
-		<referencedRelation foreignKey="FK_BOOKS_AUTHORS_AUTHOR"/>
+		<inverseRelation foreignKey="FK_BOOKS_AUTHORS_AUTHOR"/>
 	</joinTable>
 </mappingConfig>

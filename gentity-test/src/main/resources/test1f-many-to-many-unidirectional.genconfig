@@ -26,6 +26,6 @@ limitations under the License.
 >
 	<joinTable table="BOOK_GHOSTWRITER" unidirectional="true">
 		<ownerRelation foreignKey="FK_BOOKS_GHOSTWRITERS_GHOSTWRITER"/>
-		<referencedRelation foreignKey="FK_BOOKS_GHOSTWRITERS_BOOK"/>
+		<inverseRelation foreignKey="FK_BOOKS_GHOSTWRITERS_BOOK"/>
 	</joinTable>
 </mappingConfig>
