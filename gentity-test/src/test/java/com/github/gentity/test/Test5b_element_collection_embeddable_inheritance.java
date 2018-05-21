@@ -15,7 +15,7 @@
  */
 package com.github.gentity.test;
 
-import com.github.gentity.test.test5a_element_collection_embeddable.*;
+import com.github.gentity.test.test5b_element_collection_embeddable_inheritance.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -29,15 +29,15 @@ import org.junit.Test;
  *
  * @author upachler
  */
-public class Test5a_element_collection_embeddable extends AbstractGentityTest{
+public class Test5b_element_collection_embeddable_inheritance extends AbstractGentityTest{
 	
-
+	
 	@Test
 	public void test() {
 		
 		// make sure that PhoneNumber is generated as ebeddable, NOT as entity
-		assertTrue(hasClassAnnotation(PhoneNumber.class, Embeddable.class));
-		assertFalse(hasClassAnnotation(PhoneNumber.class, Entity.class));
+		assertTrue(hasClassAnnotation(com.github.gentity.test.test5a_element_collection_embeddable.PhoneNumber.class, Embeddable.class));
+		assertFalse(hasClassAnnotation(com.github.gentity.test.test5a_element_collection_embeddable.PhoneNumber.class, Entity.class));
 		
 		List<PhoneNumber> johnsPhoneNumbers = Arrays.asList(
 			PhoneNumber.builder()
