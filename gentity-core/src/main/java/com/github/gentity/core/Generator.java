@@ -143,6 +143,7 @@ public class Generator {
 	private List<JoinTableRelation> joinTableRelations;
 	private Map<String, JoinTableRelation> manyToManyRelationsJoinTables;
 	private Set<String> collectionTableNames;
+	private HashMap<SingleTableEntityDto, RootEntityTableDto> singleTableRootMap;
 	
 	public Generator(MappingConfigDto cfg, ProjectDto project) {
 		this.cfg = cfg;
@@ -187,9 +188,19 @@ public class Generator {
 			}
 			
 			// generate element collection embeddables
-			for(RootEntityTableDto et : cfg.getEntityTable()) {
-				genElementCollectionEmbeddables(et);
-			}
+			CollectionTableTravesal.of(cfg,
+					rt -> findEntity(rt.getTable(), null),
+					jt -> findEntity(jt.getTable(), null),
+					st -> findEntity(findParentRootEntityTable(st).getTable(), st.getName())
+				)
+				.traverse(ctx -> {
+					try {
+						JDefinedClass entityClass = ctx.getParentContext();
+						genEmbeddable(entityClass, ctx.getElement());
+					} catch (JClassAlreadyExistsException ex) {
+						throw new RuntimeException(ex);
+					}
+				});
 			
 			// for all entity-mapped tables, find entities where we need to
 			// map sequences
@@ -533,19 +544,7 @@ public class Generator {
 		return LIST_ENTITY_REF_FACTORY;
 	}
 	
-	void genElementCollectionEmbeddables(RootEntityTableDto table) throws JClassAlreadyExistsException{
-		
-		JDefinedClass entityClass = findEntity(table.getTable(), null);
-		
-		for(CollectionTableDto ct : table.getCollectionTable()) {
-			genEmbeddables(entityClass, ct);
-		}
-		
-		// FIXME: need to implement this for non-root entity tables in hierarchies as well
-	}
-	
-	
-	private void genEmbeddables(JDefinedClass entityClass, CollectionTableDto collectionTable) throws JClassAlreadyExistsException {
+	private void genEmbeddable(JDefinedClass entityClass, CollectionTableDto collectionTable) throws JClassAlreadyExistsException {
 		TableDto table = toTable(collectionTable.getTable());
 		genEmbeddableClass(table.getName(), table, collectionTable.getForeignKey(), entityClass);
 	}
@@ -909,6 +908,28 @@ public class Generator {
 		}
 		return tables.get(name);
 	}
+
+	Set<SingleTableEntityDto> findSingleTableEntities(List<SingleTableEntityDto> sts) {
+		Set<SingleTableEntityDto> set = new HashSet<>();
+		for(SingleTableEntityDto st : sts) {
+			set.add(st);
+			set.addAll(findSingleTableEntities(st.getEntity()));
+		}
+		return set;
+	}
+	private RootEntityTableDto findParentRootEntityTable(SingleTableEntityDto singleTableEntity) {
+		if(singleTableRootMap == null) {
+			singleTableRootMap = new HashMap<>();
+			for(RootEntityTableDto et : cfg.getEntityTable()) {
+				if(et.getSingleTableHierarchy() == null) {
+					continue;
+				}
+				findSingleTableEntities(et.getSingleTableHierarchy().getEntity())
+					.forEach(st -> singleTableRootMap.put(st, et));
+			}
+		}
+		return singleTableRootMap.get(singleTableEntity);
+	}
 	
 	private SequenceDto findSequence(String sequenceName) {
 		if(sequences == null) {
@@ -1082,15 +1103,12 @@ public class Generator {
 		}
 		return manyToManyRelationsJoinTables.containsKey(tableName);
 	}
-	
+
 	private boolean isCollectionTable(String tableName) {
 		if(collectionTableNames == null) {
-			// FIXME: we'll need to do that recursively for joined and single table entity hierarchies
-			collectionTableNames = cfg.getEntityTable().stream()
-				.filter(et -> et.getCollectionTable() != null)
-				.flatMap(et -> et.getCollectionTable().stream())
-				.map(CollectionTableDto::getTable)
-				.collect(Collectors.toSet());
+			collectionTableNames = new HashSet<>();
+			CollectionTableTravesal.of(cfg)
+					.traverse(ctx -> collectionTableNames.add(ctx.getElement().getTable()));
 		}
 		return collectionTableNames.contains(tableName);
 	}

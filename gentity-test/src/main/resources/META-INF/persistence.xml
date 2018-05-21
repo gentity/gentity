@@ -100,4 +100,10 @@
     <class>com.github.gentity.test.test5a_element_collection_embeddable.PhoneNumber</class>
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
   </persistence-unit>
+  <persistence-unit name="Test5b_element_collection_embeddable_inheritance" transaction-type="RESOURCE_LOCAL">
+    <class>com.github.gentity.test.test5b_element_collection_embeddable_inheritance.Lifeform</class>
+    <class>com.github.gentity.test.test5b_element_collection_embeddable_inheritance.Person</class>
+    <class>com.github.gentity.test.test5b_element_collection_embeddable_inheritance.PhoneNumber</class>
+    <exclude-unlisted-classes>true</exclude-unlisted-classes>
+  </persistence-unit>
 </persistence>

@@ -15,8 +15,10 @@
  */
 package com.github.gentity.test;
 
+import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -111,4 +113,11 @@ public class AbstractGentityTest {
 			return false;
 		}
 	}
+	
+
+	protected boolean hasClassAnnotation(Class<?> clazz, Class<? extends Annotation> annotationClass) {
+		return Stream.of(clazz.getAnnotations())
+			.anyMatch(a -> annotationClass.isAssignableFrom(a.getClass()));
+	}
+	
 }
