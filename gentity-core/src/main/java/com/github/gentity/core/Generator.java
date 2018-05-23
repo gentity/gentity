@@ -954,10 +954,25 @@ public class Generator {
 	}
 	
 	private ChildTableRelation toChildTableRelation(ChildTableRelation.Kind kind, String tableName, String entityName, XToOneRelationDto xToMany) {
+		if(isTableExcluded(tableName)) {
+			throw new RuntimeException(String.format("table %s is excluded, cannot add relation for foreign key %s", tableName, xToMany.getForeignKey()));
+		}
+		
 		TableDto table = Optional.ofNullable(findTable(tableName))
 			.orElseThrow(()->new RuntimeException("table not found in relation: '" + tableName + "'"));
 		ForeignKeyDto fk = toTableForeignKey(table.getName(), xToMany.getForeignKey());
+		
+		if(containsIgnoredTableColumns(tableName, fk)) {
+			throw new RuntimeException(String.format("foreign key %s of table %s contains excluded column(s)", fk.getName(), tableName));
+		};
+
 		return new ChildTableRelation(kind, table, fk, entityName, xToMany.getInverseEntity());
+	}
+	
+	private boolean containsIgnoredTableColumns(String tableName, ForeignKeyDto fk) {
+		return fk.getFkColumn().stream()
+			.map(col -> toTableColumnKey(tableName, col.getName()))
+			.anyMatch(excludedTableColumns::contains);
 	}
 	
 	private JoinTableRelation toJoinTableRelation(JoinTableRelation.Kind kind, JoinTableDto manyToMany) {
@@ -1071,13 +1086,14 @@ public class Generator {
 		// involved into a declared relationship (one-to-many, many-to-many,
 		// or a hierarchy
 		for(TableDto t : tables.values()) {
-			if(isCollectionTable(t.getName())) {
+			if(isCollectionTable(t.getName()) || isTableExcluded(t.getName())) {
 				continue;
 			}
 			t.getFk().stream()
 				.filter(fk -> !otmFkNames.contains(fk.getName()))
 				.filter(fk -> !mtmFkNames.contains(fk.getName()))
 				.filter(fk -> !isSupertableJoinRelation(t, fk.getName()))
+				.filter(fk -> !containsIgnoredTableColumns(t.getName(), fk))
 				.map(fk -> new ChildTableRelation(t, fk))
 				.forEach(childTableRelations::add);
 		}
