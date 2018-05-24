@@ -31,6 +31,10 @@
     <class>com.github.gentity.test.test0d_basic_table_blob.Document</class>
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
   </persistence-unit>
+  <persistence-unit name="Test0e_basic_table_field" transaction-type="RESOURCE_LOCAL">
+    <class>com.github.gentity.test.test0e_basic_table_field.Person</class>
+    <exclude-unlisted-classes>true</exclude-unlisted-classes>
+  </persistence-unit>
   <persistence-unit name="Test1a_many_to_one" transaction-type="RESOURCE_LOCAL">
     <class>com.github.gentity.test.test1a_many_to_one.Company</class>
     <class>com.github.gentity.test.test1a_many_to_one.Employee</class>

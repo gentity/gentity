@@ -65,6 +65,18 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>entities-test0e-basic-table-field</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputDbsFile>src/main/resources/test0e-basic-table-field.dbs</inputDbsFile>
+							<mappingConfigFile>src/main/resources/test0e-basic-table-field.genconfig</mappingConfigFile>
+							<targetPackageName>com.github.gentity.test.test0e_basic_table_field</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
 						<id>entities-test1</id>
 						<phase>generate-sources</phase>
 						<goals>

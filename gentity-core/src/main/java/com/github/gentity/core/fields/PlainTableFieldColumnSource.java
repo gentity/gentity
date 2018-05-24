@@ -15,8 +15,12 @@
  */
 package com.github.gentity.core.fields;
 
+import com.github.dbsjpagen.config.TableConfigurationDto;
+import com.github.dbsjpagen.config.TableFieldDto;
 import com.github.dbsjpagen.dbsmodel.TableDto;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -26,16 +30,26 @@ import java.util.stream.Collectors;
 public class PlainTableFieldColumnSource extends AbstractFieldColumnSource{
 
 	private final TableDto table;
+	private final TableConfigurationDto tableConfiguration;
 
 	
 	public PlainTableFieldColumnSource(TableDto table) {
+		this(table, null);
+	}
+	public PlainTableFieldColumnSource(TableDto table, TableConfigurationDto tc) {
 		this.table = table;
+		this.tableConfiguration = tc;
 	}
 	
 	@Override
 	public List<FieldMapping> getFieldMappings() {
+		Map<String,TableFieldDto> fieldMap = tableConfiguration == null
+			?	Collections.EMPTY_MAP
+			:	tableConfiguration.getField().stream()
+				.collect(Collectors.toMap(TableFieldDto::getColumn, f->f));
+		
 		return table.getColumn().stream()
-			.map(c -> toDefaultColumnFieldMapping(table, c))
+			.map(c -> toDefaultColumnFieldMapping(table, c, fieldMap.get(c.getName())))
 			.collect(Collectors.toList())
 			;
 	}

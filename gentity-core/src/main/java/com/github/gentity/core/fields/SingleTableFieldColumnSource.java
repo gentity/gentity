@@ -16,8 +16,10 @@
 package com.github.gentity.core.fields;
 
 import com.github.dbsjpagen.config.SingleTableEntityDto;
+import com.github.dbsjpagen.config.TableFieldDto;
 import com.github.dbsjpagen.dbsmodel.TableDto;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -41,9 +43,11 @@ public class SingleTableFieldColumnSource extends AbstractFieldColumnSource{
 		Set<String> columns = entity.getField().stream()
 			.map(f -> f.getColumn())
 			.collect(Collectors.toSet());
+		Map<String,TableFieldDto> fieldMap = entity.getField().stream()
+			.collect(Collectors.toMap(TableFieldDto::getColumn, f->f));
 		return table.getColumn().stream()
 			.filter(c -> columns.contains(c.getName()))
-			.map(c -> toDefaultColumnFieldMapping(table, c))
+			.map(c -> toDefaultColumnFieldMapping(table, c, fieldMap.get(c.getName())))
 			.collect(Collectors.toList());
 	}
 	
