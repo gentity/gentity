@@ -17,6 +17,7 @@ package com.github.gentity.core.fields;
 
 import com.github.dbsjpagen.dbsmodel.ColumnDto;
 import com.github.dbsjpagen.dbsmodel.TableDto;
+import com.sun.codemodel.JClass;
 
 /**
  *
@@ -27,11 +28,13 @@ class DefaultColumnFieldMapping implements FieldMapping {
 	private final TableDto table;
 	private final ColumnDto column;
 	private final String fieldName;
+	private final String enumType;
 
-	DefaultColumnFieldMapping(TableDto table, ColumnDto col, String fieldName) {
+	DefaultColumnFieldMapping(TableDto table, ColumnDto col, String fieldName, String enumType) {
 		this.table = table;
 		this.column = col;
 		this.fieldName = fieldName;
+		this.enumType = enumType;
 	}
 
 	@Override
@@ -47,6 +50,11 @@ class DefaultColumnFieldMapping implements FieldMapping {
 	@Override
 	public TableDto getTable() {
 		return table;
+	}
+
+	@Override
+	public String getEnumType() {
+		return enumType;
 	}
 	
 }
