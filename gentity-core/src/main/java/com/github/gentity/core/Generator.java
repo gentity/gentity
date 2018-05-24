@@ -89,6 +89,7 @@ import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.PrimaryKeyJoinColumns;
 import static com.github.gentity.core.ChildTableRelation.Kind.MANY_TO_ONE;
 import static com.github.gentity.core.ChildTableRelation.Kind.UNI_MANY_TO_ONE;
+import com.github.gentity.core.fields.FieldMapping;
 import com.github.gentity.core.fields.PlainTableFieldColumnSource;
 import com.github.gentity.core.fields.SingleTableFieldColumnSource;
 import com.github.gentity.core.fields.SingleTableRootFieldColumnSource;
@@ -103,6 +104,8 @@ import java.util.function.Supplier;
 import javax.persistence.CollectionTable;
 import javax.persistence.ElementCollection;
 import javax.persistence.Embeddable;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 
 
 /**
@@ -249,7 +252,7 @@ public class Generator {
 
 					src.getFieldMappings().stream()
 						.filter((m) -> (!isColumnExcluded(m.getTable().getName(), m.getColumn().getName())))
-						.forEachOrdered((m) -> genColumn(cls, m.getTable(), m.getColumn(), m.getFieldName()));
+						.forEachOrdered((m) -> genColumn(cls, m));
 				});
 			
 			// add one-to-many relations
@@ -363,12 +366,33 @@ public class Generator {
 		}
 	}
 	
-	private void genColumn(JDefinedClass cls, TableDto table, ColumnDto column, String fieldNameCanditate) {
+	private void genColumn(JDefinedClass cls, FieldMapping m) {
+		TableDto table = m.getTable();
+		ColumnDto column = m.getColumn();
+		String fieldNameCanditate = m.getFieldName();
 		
 		JType colType = mapColumnType(table, column);
+		
+		EnumType etype = null;
+		if(m.getEnumType() != null) {
+			
+			if(colType == cm._ref(java.lang.String.class)) {
+				etype = EnumType.STRING;
+			} else if(colType == cm.INT || colType == cm.LONG || colType == cm.BYTE || colType == cm.SHORT) {
+				etype = EnumType.ORDINAL;
+			} else {
+				throw new RuntimeException(String.format("column %s field definition with enumType of %s must be mappable to a Java String or integral type", m.getColumn(), m.getEnumType()));
+			}
+			
+			colType = cm.ref(m.getEnumType());
+		}
 		String fieldName = toFieldName(cls, fieldNameCanditate);
 		JFieldVar field = cls.field(JMod.PROTECTED, colType, fieldName);
 		
+		if(etype != null) {
+			field.annotate(Enumerated.class)
+				.param("value", etype);
+		}
 		// @Id
 		if(isColumnPrimaryKey(table, column)) {
 			field.annotate(Id.class);

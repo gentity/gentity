@@ -27,4 +27,5 @@ public interface FieldMapping {
 	String getFieldName();
 	ColumnDto getColumn();
 	TableDto getTable();
+	String getEnumType();
 }

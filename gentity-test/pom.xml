@@ -77,6 +77,18 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>entities-test0f-basic-table-enumerated</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputDbsFile>src/main/resources/test0f-basic-table-enumerated.dbs</inputDbsFile>
+							<mappingConfigFile>src/main/resources/test0f-basic-table-enumerated.genconfig</mappingConfigFile>
+							<targetPackageName>com.github.gentity.test.test0f_basic_table_enumerated</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
 						<id>entities-test1</id>
 						<phase>generate-sources</phase>
 						<goals>

@@ -34,6 +34,8 @@ abstract class AbstractFieldColumnSource implements FieldColumnSource{
 		} else {
 			nameCandidate = np.javatizeName(col.getName(), false);
 		}
-		return new DefaultColumnFieldMapping(t, col, nameCandidate);
+		String enumType = field != null? field.getEnumType() : null;
+				
+		return new DefaultColumnFieldMapping(t, col, nameCandidate, enumType);
 	}
 }
