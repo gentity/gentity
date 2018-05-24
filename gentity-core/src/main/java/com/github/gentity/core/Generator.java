@@ -172,6 +172,8 @@ public class Generator {
 					genJoinedHierarchy(et, p);
 				} else if(et.getSingleTableHierarchy() != null) {
 					genSingleTableHierarchy(et, p);
+				} else {
+					genPlainTable(et, p);
 				}
 			}
 			
@@ -183,8 +185,7 @@ public class Generator {
 				if(isTableExcluded(table.getName()) || isJoinTable(table.getName()) || isCollectionTable(table.getName())) {
 					continue;
 				}
-				EntityInfo einfo = new EntityInfo(table, new PlainTableFieldColumnSource(table));
-				genEntityClass(p, table.getName(), null, einfo);
+				genPlainTable(table, null, p);
 			}
 			
 			// generate element collection embeddables
@@ -407,7 +408,7 @@ public class Generator {
 			.filter(t -> t.getName().equals(rt.getTable()))
 			.findAny()
 			.orElseThrow(() -> new RuntimeException("root table '"+rt.getTable() + "' not found"));
-		EntityInfo rootEInfo = new EntityInfo(rootTable, new PlainTableFieldColumnSource(rootTable));
+		EntityInfo rootEInfo = new EntityInfo(rootTable, new PlainTableFieldColumnSource(rootTable, rt));
 		JDefinedClass rootClass = genEntityClass(pakkage, rootTable.getName(), null, rootEInfo);
 		hierarchyClasses.put(rootTable.getName(), rootClass);
 		rootClass.annotate(cm.ref(Inheritance.class))
@@ -430,7 +431,7 @@ public class Generator {
 				throw new RuntimeException(String.format("specified foreign key %s of table %s refers to table %s, but the supertable is %s", fk.getName(), subTable.getTable(), fk.getToTable(), parent.getTable()));
 			}
 			TableDto table = findTable(subTable.getTable());
-			EntityInfo einfo = new EntityInfo(table, rootTable, new PlainTableFieldColumnSource(table));
+			EntityInfo einfo = new EntityInfo(table, rootTable, new PlainTableFieldColumnSource(table, subTable));
 			JDefinedClass subclassEntity = genEntityClass(pakkage, table.getName(), superclassEntity, einfo);
 			genDiscriminatorValueAnnotation(subclassEntity, subTable.getDiscriminator());
 
@@ -501,6 +502,15 @@ public class Generator {
 		}
 	}
 	
+	private void genPlainTable(RootEntityTableDto et, JPackage pakkage) throws JClassAlreadyExistsException {
+		TableDto table = findTable(et.getTable());
+		genPlainTable(table, et, pakkage);
+	}
+	
+	private void genPlainTable(TableDto table, RootEntityTableDto et, JPackage pakkage) throws JClassAlreadyExistsException {
+		EntityInfo einfo = new EntityInfo(table, new PlainTableFieldColumnSource(table, et));
+		genEntityClass(pakkage, table.getName(), null, einfo);
+	}
 	private void genSingleTableHierarchy(RootEntityTableDto rootEntity, JPackage pakkage) throws JClassAlreadyExistsException {
 		SingleTableHierarchyDto h = rootEntity.getSingleTableHierarchy();
 		TableDto rootTable = findTable(rootEntity.getTable());

@@ -60,6 +60,9 @@ limitations under the License.
 		</xs:annotation>
 		<xs:complexContent>
 			<xs:extension base="tns:Configuration">
+				<xs:sequence>
+					<xs:element name="field" type="tns:TableField" minOccurs='0' maxOccurs='unbounded'/>
+				</xs:sequence>
 				<xs:attribute name='table' type="xs:string"/>
 			</xs:extension>
 		</xs:complexContent>
@@ -205,7 +208,16 @@ limitations under the License.
 		<xs:attribute name="name" type="xs:string" use='required'/>
 		<xs:attribute name="discriminator" type="xs:string" use='required'/>
 	</xs:complexType>
-	<xs:complexType name="SingleTableField">
+	
+	<xs:complexType name="TableField">
+		<xs:attribute name="enumType" type="xs:string"/>
 		<xs:attribute name="column" type="xs:string"/>
+		<xs:attribute name="name" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="SingleTableField">
+		<xs:complexContent>
+			<xs:extension base="tns:TableField">
+			</xs:extension>
+		</xs:complexContent>
 	</xs:complexType>
 </xs:schema>

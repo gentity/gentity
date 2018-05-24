@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="person" id="Project_180f1c" template="Default" database="HSql" >
+	<schema name="TEST0E-BASIC-TABLE-FIELD" schemaname="TEST0E-BASIC-TABLE-FIELD" >
+		<table name="PERSON" >
+			<column name="ID" type="integer" jt="4" mandatory="y" autoincrement="y" />
+			<column name="NAME1" type="varchar" length="100" jt="12" mandatory="y" />
+			<column name="NAME2" type="varchar" length="100" jt="12" mandatory="y" />
+			<index name="PK_TABLE_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+		</table>
+	</schema>
+	<layout name="Default Layout" id="Layout_1a8036" show_relation="columns" >
+		<entity schema="TEST0E-BASIC-TABLE-FIELD" name="PERSON" color="1f5182" x="225" y="150" />
+		<callout x="45" y="45" pointer="NO" >
+			<comment><![CDATA[This project is in offline mode.
+Design the schema and save the design to project file. Later create or upgrade the schema on any database.
+Right-click the layout to add new tables. Drop this callout from its right-click pop-up menu.]]></comment>
+		</callout>
+	</layout>
+</project>
