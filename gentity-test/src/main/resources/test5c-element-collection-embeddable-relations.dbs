@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="test5c-element-collection-relations" id="Project_4794048" template="Default" database="HSql" >
+	<schema name="TEST5A-ELEMENT-COLLECTION-EMBEDDABLE" schemaname="TEST5A-ELEMENT-COLLECTION-EMBEDDABLE" >
+		<table name="PIZZA_ORDER" >
+			<column name="ID" type="integer" jt="4" mandatory="y" autoincrement="y" />
+			<column name="CUSTOMER_NAME" type="varchar" length="20" jt="12" mandatory="y" />
+			<index name="PK_INVOICE_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+		</table>
+		<table name="PIZZA_ORDER_ITEM" >
+			<column name="PIZZA_ORDER_ID" type="integer" jt="4" mandatory="y" />
+			<column name="PRODUCT_ID" type="char" length="10" jt="1" />
+			<column name="AMOUNT" type="integer" jt="4" mandatory="y" />
+			<column name="REBATE" type="float" jt="6" />
+			<index name="IDX_ORDER_ITEM_ORDER_ID" unique="NORMAL" >
+				<column name="PIZZA_ORDER_ID" />
+			</index>
+			<index name="IDX_ORDER_ITEM_PRODUCT_ID" unique="NORMAL" >
+				<column name="PRODUCT_ID" />
+			</index>
+			<fk name="FK_PIZZA_ORDER_ITEM_PIZZA_ORDER" to_schema="TEST5A-ELEMENT-COLLECTION-EMBEDDABLE" to_table="PIZZA_ORDER" >
+				<fk_column name="PIZZA_ORDER_ID" pk="ID" />
+			</fk>
+			<fk name="FK_PIZZA_ORDER_ITEM_PRODUCT" to_schema="TEST5A-ELEMENT-COLLECTION-EMBEDDABLE" to_table="PRODUCT" >
+				<fk_column name="PRODUCT_ID" pk="ID" />
+			</fk>
+		</table>
+		<table name="PRODUCT" >
+			<column name="ID" type="char" length="10" jt="1" mandatory="y" />
+			<column name="NAME" type="varchar" length="100" jt="12" mandatory="y" />
+			<index name="PK_PRODUCT_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+		</table>
+	</schema>
+	<layout name="Default Layout" id="Layout_3449aed" show_relation="columns" >
+		<entity schema="TEST5A-ELEMENT-COLLECTION-EMBEDDABLE" name="PRODUCT" color="c1d8ee" x="825" y="60" />
+		<entity schema="TEST5A-ELEMENT-COLLECTION-EMBEDDABLE" name="PIZZA_ORDER" color="c1d8ee" x="45" y="60" />
+		<entity schema="TEST5A-ELEMENT-COLLECTION-EMBEDDABLE" name="PIZZA_ORDER_ITEM" color="c1d8ee" x="435" y="45" />
+	</layout>
+</project>

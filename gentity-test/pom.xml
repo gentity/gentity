@@ -265,6 +265,18 @@
 							<mappingConfigFile>src/main/resources/test5b-element-collection-embeddable-inheritance.genconfig</mappingConfigFile>
 						</configuration>
 					</execution>
+					<execution>
+						<id>entities-test5c</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<targetPackageName>com.github.gentity.test.test5c_element_collection_embeddable_relations</targetPackageName>
+							<inputDbsFile>src/main/resources/test5c-element-collection-embeddable-relations.dbs</inputDbsFile>
+							<mappingConfigFile>src/main/resources/test5c-element-collection-embeddable-relations.genconfig</mappingConfigFile>
+						</configuration>
+					</execution>
 					
 					
 					<execution>

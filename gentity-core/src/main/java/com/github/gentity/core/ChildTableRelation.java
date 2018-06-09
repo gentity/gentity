@@ -20,6 +20,7 @@ import com.github.dbsjpagen.dbsmodel.ForeignKeyColumnDto;
 import com.github.dbsjpagen.dbsmodel.ForeignKeyDto;
 import com.github.dbsjpagen.dbsmodel.IndexUniqueDto;
 import com.github.dbsjpagen.dbsmodel.TableDto;
+import static com.github.gentity.core.ChildTableRelation.Directionality.BIDIRECTIONAL;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -33,16 +34,33 @@ public class ChildTableRelation extends Relation{
 	private final Kind kind;
 	private final String owningEntityName;
 	private final String inverseEntityName;
-
-	public enum Kind {
-		ONE_TO_ONE,
-		MANY_TO_ONE,
-		UNI_ONE_TO_ONE,
-		UNI_MANY_TO_ONE
+	
+	public enum Directionality {
+		UNIDIRECTIONAL,
+		BIDIRECTIONAL
 	}
 	
-	public ChildTableRelation(TableDto table, ForeignKeyDto foreignKey) {
-		this(deriveKind(table, foreignKey), table, foreignKey, null, null);
+	public enum Kind {
+		ONE_TO_ONE(Directionality.BIDIRECTIONAL),
+		MANY_TO_ONE(Directionality.BIDIRECTIONAL),
+		UNI_ONE_TO_ONE(Directionality.UNIDIRECTIONAL),
+		UNI_MANY_TO_ONE(Directionality.UNIDIRECTIONAL)
+		;
+		
+		final private Directionality directionality;
+
+		private Kind(Directionality directionality) {
+			this.directionality = directionality;
+		}
+		
+		
+		public Directionality getDirectionality() {
+			return directionality;
+		}
+	}
+	
+	public ChildTableRelation(TableDto table, ForeignKeyDto foreignKey, Directionality directionality) {
+		this(deriveKind(table, foreignKey, directionality), table, foreignKey, null, null);
 	}
 	
 	public ChildTableRelation(Kind kind, TableDto table, ForeignKeyDto foreignKey, String owningEntityName, String inverseEntityName) {
@@ -69,7 +87,7 @@ public class ChildTableRelation extends Relation{
 		return inverseEntityName;
 	}
 	
-	public static Kind deriveKind(TableDto table, ForeignKeyDto foreignKey) {
+	public static Kind deriveKind(TableDto table, ForeignKeyDto foreignKey, Directionality directionality) {
 		Set<String> fkColNames = foreignKey.getFkColumn().stream()
 			.map(ForeignKeyColumnDto::getName)
 			.collect(Collectors.toSet());
@@ -81,7 +99,14 @@ public class ChildTableRelation extends Relation{
 			)
 			.anyMatch(fkColNames::equals);
 		
-		return isOneToOne ? Kind.ONE_TO_ONE : Kind.MANY_TO_ONE;
+		switch(directionality) {
+			case BIDIRECTIONAL:
+				return isOneToOne ? Kind.ONE_TO_ONE : Kind.MANY_TO_ONE;
+			case UNIDIRECTIONAL:
+				return isOneToOne ? Kind.UNI_ONE_TO_ONE : Kind.UNI_MANY_TO_ONE;
+			default:
+				throw new RuntimeException("unknown directionality type");
+		}
 	}
 	
 	
