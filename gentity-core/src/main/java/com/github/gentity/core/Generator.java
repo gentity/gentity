@@ -76,10 +76,11 @@ import com.github.dbsjpagen.dbsmodel.IndexUniqueDto;
 import com.github.dbsjpagen.dbsmodel.ProjectDto;
 import com.github.dbsjpagen.dbsmodel.SequenceDto;
 import com.github.dbsjpagen.dbsmodel.TableDto;
+import com.github.gentity.core.ChildTableRelation.Directionality;
+import static com.github.gentity.core.ChildTableRelation.Directionality.UNIDIRECTIONAL;
 import static com.github.gentity.core.ChildTableRelation.Kind.ONE_TO_ONE;
 import static com.github.gentity.core.ChildTableRelation.Kind.UNI_ONE_TO_ONE;
 import java.util.EnumSet;
-import java.util.function.Function;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.ForeignKey;
@@ -145,7 +146,7 @@ public class Generator {
 	private List<ChildTableRelation> childTableRelations;
 	private List<JoinTableRelation> joinTableRelations;
 	private Map<String, JoinTableRelation> manyToManyRelationsJoinTables;
-	private Set<String> collectionTableNames;
+	private Map<String, CollectionTableDecl> collectionTableDeclarations;
 	private HashMap<SingleTableEntityDto, RootEntityTableDto> singleTableRootMap;
 	
 	public Generator(MappingConfigDto cfg, ProjectDto project) {
@@ -608,7 +609,18 @@ public class Generator {
 		}
 	}
 	private void genChildTableRelation(ChildTableRelation otm) {
-		JDefinedClass childTableEntity = findEntity(otm.getTable().getName(), otm.getOwningEntityName());
+		// find entity for child table side, requires special handling for
+		// collection tables
+		String childTableName = otm.getTable().getName();
+		JDefinedClass childTableClass;
+		CollectionTableDecl collectionTable = getCollectionTableDeclaration(childTableName);
+		if(collectionTable != null) {
+			assert otm.getKind().getDirectionality() == UNIDIRECTIONAL: "collection tables may not contain bidirectional child table relations";
+			childTableClass = tablesToEmbeddables.get(collectionTable.getTable());
+		} else {
+			childTableClass = findEntity(childTableName, otm.getOwningEntityName());
+		}
+		// find entity representing parent table
 		ForeignKeyDto ownerFk = otm.getForeignKey();
 		JDefinedClass parentTableEntity = findEntity(ownerFk.getToTable(), otm.getInverseEntityName());
 		
@@ -620,12 +632,12 @@ public class Generator {
 		}
 		Matcher m = FK_COL_NAME_PATTERN.matcher(fkCols.get(0).getColumn().getName());
 		if(fkCols.size()==1 && m.matches() && m.group(2).equals(fkCols.get(0).getPk().getName())) {
-			fieldName = toFieldName(childTableEntity, m.group(1));
+			fieldName = toFieldName(childTableClass, m.group(1));
 		} else {
-			fieldName = toFieldName(childTableEntity, parentTableEntity.name());
+			fieldName = toFieldName(childTableClass, parentTableEntity.name());
 		}
 		
-		JFieldVar childField = childTableEntity.field(JMod.PROTECTED, parentTableEntity, fieldName);
+		JFieldVar childField = childTableClass.field(JMod.PROTECTED, parentTableEntity, fieldName);
 		
 		// @ManyToOne / @OneToOne
 		if(EnumSet.of(ONE_TO_ONE, UNI_ONE_TO_ONE).contains(otm.getKind())) {
@@ -639,11 +651,11 @@ public class Generator {
 		
 		// parent table side mapping, only for the two bidirectional mappings
 		if(otm.getKind() == ONE_TO_ONE) {
-			JFieldVar parentField = parentTableEntity.field(JMod.PROTECTED, childTableEntity, toFieldName(parentTableEntity, otm.getTable().getName()));
+			JFieldVar parentField = parentTableEntity.field(JMod.PROTECTED, childTableClass, toFieldName(parentTableEntity, otm.getTable().getName()));
 			parentField.annotate(OneToOne.class)
 				.param("mappedBy", childField.name());
 		} else if(otm.getKind() == MANY_TO_ONE){
-			JFieldVar field = genCollectionFieldVar(parentTableEntity, childTableEntity);
+			JFieldVar field = genCollectionFieldVar(parentTableEntity, childTableClass);
 			field.annotate(OneToMany.class)
 				.param("mappedBy", childField.name());
 		}
@@ -1120,15 +1132,23 @@ public class Generator {
 		// involved into a declared relationship (one-to-many, many-to-many,
 		// or a hierarchy
 		for(TableDto t : tables.values()) {
-			if(isCollectionTable(t.getName()) || isTableExcluded(t.getName())) {
+			if(isTableExcluded(t.getName())) {
 				continue;
 			}
+			
+			CollectionTableDecl collectionTable = getCollectionTableDeclaration(t.getName());
+			
+			Directionality defaultDirectionality = collectionTable == null
+				?	ChildTableRelation.Directionality.BIDIRECTIONAL
+				:	ChildTableRelation.Directionality.UNIDIRECTIONAL;
+			
 			t.getFk().stream()
 				.filter(fk -> !otmFkNames.contains(fk.getName()))
 				.filter(fk -> !mtmFkNames.contains(fk.getName()))
 				.filter(fk -> !isSupertableJoinRelation(t, fk.getName()))
 				.filter(fk -> !containsIgnoredTableColumns(t.getName(), fk))
-				.map(fk -> new ChildTableRelation(t, fk))
+				.filter(fk -> collectionTable==null || !collectionTable.getForeignKey().equals(fk.getName()))
+				.map(fk -> new ChildTableRelation(t, fk, defaultDirectionality))
 				.forEach(childTableRelations::add);
 		}
 	}
@@ -1155,12 +1175,24 @@ public class Generator {
 	}
 
 	private boolean isCollectionTable(String tableName) {
-		if(collectionTableNames == null) {
-			collectionTableNames = new HashSet<>();
-			CollectionTableTravesal.of(cfg)
-					.traverse(ctx -> collectionTableNames.add(ctx.getElement().getTable()));
+		return getCollectionTableDeclaration(tableName) != null;
+	}
+	
+	private CollectionTableDecl getCollectionTableDeclaration(String tableName) {
+		if(collectionTableDeclarations == null) {
+			collectionTableDeclarations = new HashMap<>();
+			CollectionTableTravesal.of(cfg,
+				rt -> Tuple.of(rt.getTable(), (String)null),
+				jt -> Tuple.of(jt.getTable(), (String)null),
+				st -> Tuple.of(findParentRootEntityTable(st).getTable(), st.getName())
+			)
+			.traverse(ctx -> {
+				Tuple<String, String> tableEntityTuple = ctx.getParentContext();
+				CollectionTableDecl decl = new CollectionTableDecl(ctx.getElement(), tableEntityTuple.getX(), tableEntityTuple.getY());
+				collectionTableDeclarations.put(ctx.getElement().getTable(), decl);
+			});
 		}
-		return collectionTableNames.contains(tableName);
+		return collectionTableDeclarations.get(tableName);
 	}
 	
 	private List<ForeignKeyColumn> findForeignKeyColumns(TableDto table, String foreignKeyName) {

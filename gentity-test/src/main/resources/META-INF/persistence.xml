@@ -1,9 +1,5 @@
-<persistence xmlns="http://xmlns.jcp.org/xml/ns/persistence"
-             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence
-             http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd"
-             version="2.1">
-
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence version="2.1" xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence              http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
   <!-- 
 			copy/paste the following properties into a persistence unit's
 			<properties> section to enable logging and/or generate a DDL script
@@ -14,7 +10,6 @@
 			<property name="eclipselink.logging.level.sql" value="FINE"/>
 			<property name="eclipselink.logging.parameters" value="true"/>
 		-->
-				 
   <persistence-unit name="Test0a_basic_table" transaction-type="RESOURCE_LOCAL">
     <class>com.github.gentity.test.test0a_basic_table.Person</class>
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
@@ -112,6 +107,11 @@
     <class>com.github.gentity.test.test5b_element_collection_embeddable_inheritance.Lifeform</class>
     <class>com.github.gentity.test.test5b_element_collection_embeddable_inheritance.Person</class>
     <class>com.github.gentity.test.test5b_element_collection_embeddable_inheritance.PhoneNumber</class>
+    <exclude-unlisted-classes>true</exclude-unlisted-classes>
+  </persistence-unit>
+  <persistence-unit name="Test5c_element_collection_embeddable_relations" transaction-type="RESOURCE_LOCAL">
+    <class>com.github.gentity.test.test5c_element_collection_embeddable_relations.Product</class>
+    <class>com.github.gentity.test.test5c_element_collection_embeddable_relations.PizzaOrder</class>
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
   </persistence-unit>
 </persistence>
