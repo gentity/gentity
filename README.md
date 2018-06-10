@@ -11,6 +11,7 @@ defines:
   - Join tables to create @ManyToMany relationships
   - Inheritance hierarchies (supported strategies are JOINED and SINGLE_TABLE)
 * Bidirectional and unidirectional relationships are supported
+* Non-Entity collections (@ElementCollection / @Embeddable)
 
 ## TODO
 
@@ -18,13 +19,12 @@ defines:
   JPA defaulting requires a join table - however, JPA 2.2 also supports them
   without one, but that has implications)
 * Per Class inheritance
-* Non-Entity collections (@ElementCollection / @Embeddable)
 * External (non-generated) superclasses for generated entities
 * Provide better error output, especially for the mapping config file explaining
   where in the file to look for errors. See this post on how to do this for
   our deserialized mapping config info:
   https://stackoverflow.com/questions/7079796/jaxb-location-in-file-for-unmarshalled-objects
-
+* Mutual update of bidirectional relations (when one side is updated, the other is updated automagically)
 
 Maven Central shield image from [shields.io](https://shields.io/)
 
