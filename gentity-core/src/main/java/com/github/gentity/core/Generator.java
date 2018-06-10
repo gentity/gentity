@@ -701,12 +701,12 @@ public class Generator {
 			.paramArray("joinColumns");
 		genJoinColumns(joinColumnsArray, jtr.getOwnerForeignKey().getFkColumn());
 		
+		JAnnotationArrayMember inverseJoinColumnsArray = joinTableAnnotation
+			.paramArray("inverseJoinColumns");
+		genJoinColumns(inverseJoinColumnsArray, jtr.getInverseForeignKey().getFkColumn());
+
 		boolean isBidirectional = jtr.getKind() == JoinTableRelation.Kind.MANY_TO_MANY;
 		if(isBidirectional) {
-			JAnnotationArrayMember inverseJoinColumnsArray = joinTableAnnotation
-				.paramArray("inverseJoinColumns");
-			genJoinColumns(inverseJoinColumnsArray, jtr.getInverseForeignKey().getFkColumn());
-
 			JFieldVar inverseField = genCollectionFieldVar(inverseClass, ownerClass);
 
 			inverseField.annotate(ManyToMany.class)
