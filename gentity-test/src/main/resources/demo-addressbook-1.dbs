@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="demo-addressbook-simple" id="Project_7740c9" template="Default" database="HSql" >
+	<schema name="DEMO-ADDRESSBOOK-SIMPLE" schemaname="DEMO-ADDRESSBOOK-SIMPLE" >
+		<table name="ENTRY" >
+			<column name="ID" type="integer" jt="4" mandatory="y" autoincrement="y" />
+			<column name="FIRST_NAME" type="varchar" length="100" jt="12" mandatory="y" />
+			<column name="LAST_NAME" type="varchar" length="100" jt="12" />
+			<column name="PHONE_NUMBER" type="varchar" length="20" jt="12" />
+			<column name="STREET" type="varchar" length="100" jt="12" />
+			<column name="CITY" type="varchar" length="50" jt="12" />
+			<index name="PK_ENTRY_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+		</table>
+	</schema>
+	<layout name="Default Layout" id="Layout_175b8c2" show_relation="columns" >
+		<entity schema="DEMO-ADDRESSBOOK-SIMPLE" name="ENTRY" color="c1d8ee" x="45" y="45" />
+	</layout>
+</project>
