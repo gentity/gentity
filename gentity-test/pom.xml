@@ -291,6 +291,30 @@
 							<mappingConfigFile>src/main/resources/demo-gallery.genconfig</mappingConfigFile>
 						</configuration>
 					</execution>
+					
+					<execution>
+						<id>entities-demo-addressbook-1</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<targetPackageName>com.github.gentity.demoaddressbook1</targetPackageName>
+							<inputDbsFile>src/main/resources/demo-addressbook-1.dbs</inputDbsFile>
+						</configuration>
+					</execution>
+					
+					<execution>
+						<id>entities-demo-addressbook-2</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<targetPackageName>com.github.gentity.demoaddressbook2</targetPackageName>
+							<inputDbsFile>src/main/resources/demo-addressbook-2.dbs</inputDbsFile>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 		</plugins>
