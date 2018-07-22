@@ -42,20 +42,20 @@ public class CollectionTableTravesal<T> {
 	
 	private class ContextImpl<T> implements Context<T> {
 		private final CollectionTableDto element;
-		private final Supplier<T> parentContextSupplier;
+		private final T parentContext;
 		@Override
 		public CollectionTableDto getElement() {
 			return element;
 		}
 
-		public ContextImpl(CollectionTableDto element, Supplier<T> parentContextSupplier) {
+		public ContextImpl(CollectionTableDto element, T parentContext) {
 			this.element = element;
-			this.parentContextSupplier = parentContextSupplier;
+			this.parentContext = parentContext;
 		}
 
 		@Override
 		public T getParentContext() {
-			return parentContextSupplier.get(); 
+			return parentContext;
 		}
 	}
 	
@@ -83,35 +83,38 @@ public class CollectionTableTravesal<T> {
 		this.singleTableContextProvider = singleTableContextProvider;
 	}
 	
-	private void visitJoined(List<JoinedEntityTableDto> jts, Consumer<Context<T>> ctConsumer) {
+	private void traverseJoined(List<JoinedEntityTableDto> jts, Consumer<Context<T>> ctConsumer) {
 		for(JoinedEntityTableDto jt : jts) {
+			T parent = joinedContextProvider.apply(jt);
 			jt.getCollectionTable().stream()
-				.forEach(ct -> ctConsumer.accept(new ContextImpl(ct, () -> joinedContextProvider.apply(jt))));
-			visitJoined(jt.getEntityTable(), ctConsumer);
+				.forEach(ct -> ctConsumer.accept(new ContextImpl(ct, parent)));
+			traverseJoined(jt.getEntityTable(), ctConsumer);
 		}
 	}
 	
-	private void visitSingleTable(List<SingleTableEntityDto> ets, Consumer<Context<T>> ctConsumer) {
+	private void traverseSingleTable(List<SingleTableEntityDto> ets, Consumer<Context<T>> ctConsumer) {
 		for(SingleTableEntityDto et : ets) {
+			T parent = singleTableContextProvider.apply(et);
 			et.getCollectionTable().stream()
-				.forEach(ct -> ctConsumer.accept(new ContextImpl(ct, () -> singleTableContextProvider.apply(et))));
-			visitSingleTable(et.getEntity(), ctConsumer);
+				.forEach(ct -> ctConsumer.accept(new ContextImpl(ct, parent)));
+			traverseSingleTable(et.getEntity(), ctConsumer);
 		}
 	}
 	
-	private void visitRoot(Consumer<Context<T>> ctConsumer) {
+	private void traverseRoot(Consumer<Context<T>> ctConsumer) {
 		for(RootEntityTableDto et : cfg.getEntityTable()) {
+			T parent = rootContextProvider.apply(et);
 			et.getCollectionTable().stream()
-				.forEach(ct -> ctConsumer.accept(new ContextImpl(ct, () -> rootContextProvider.apply(et))));
+				.forEach(ct -> ctConsumer.accept(new ContextImpl(ct, parent)));
 			if(et.getJoinedHierarchy() != null) {
-				visitJoined(et.getJoinedHierarchy().getEntityTable(), ctConsumer);
+				traverseJoined(et.getJoinedHierarchy().getEntityTable(), ctConsumer);
 			} else if(et.getSingleTableHierarchy() != null) {
-				visitSingleTable(et.getSingleTableHierarchy().getEntity(), ctConsumer);
+				traverseSingleTable(et.getSingleTableHierarchy().getEntity(), ctConsumer);
 			}
 		}
 	}
 	
 	public void traverse(Consumer<Context<T>> ctConsumer) {
-		visitRoot(ctConsumer);
+		traverseRoot(ctConsumer);
 	}
 }
