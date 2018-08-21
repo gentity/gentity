@@ -13,29 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core;
+package com.github.gentity.core.entities;
 
+import com.github.dbsjpagen.dbsmodel.ForeignKeyDto;
 import com.github.dbsjpagen.dbsmodel.TableDto;
 import com.github.gentity.core.fields.FieldColumnSource;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  *
  * @author count
  */
-public class EntityInfo {
+public class EntityInfo<T extends EntityInfo> {
 	
+	private final EntityInfo parentEntityInfo;
 	private final TableDto baseTable;
 	private final FieldColumnSource fieldColumnSource;
 	private final TableDto table;
+	private final List<T> childEntities = new ArrayList<>();
+	private final String discriminatorValue;
 
-	public EntityInfo(TableDto table, FieldColumnSource fieldColumnSource) {
-		this(table, table, fieldColumnSource);
+
+	public EntityInfo(TableDto table, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, String discriminatorValue) {
+		this(table, table, fieldColumnSource, parentEntityInfo, discriminatorValue);
 	}
 	
-	public EntityInfo(TableDto table, TableDto baseTable, FieldColumnSource fieldColumnSource) {
+	public EntityInfo(TableDto table, TableDto baseTable, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, String discriminatorValue) {
 		this.table = table;
 		this.baseTable = baseTable;
 		this.fieldColumnSource = fieldColumnSource;
+		this.parentEntityInfo = parentEntityInfo;
+		if(parentEntityInfo != null) {
+			this.parentEntityInfo.childEntities.add(this);
+		}
+		this.discriminatorValue = discriminatorValue;
 	}
 
 	
@@ -54,12 +67,19 @@ public class EntityInfo {
 
 	/**
 	 * If the entity is part of a hierarchy, this returns the base table of that
-	 * hierarchy. Otherwise, returns the same a table.
+	 * hierarchy. Otherwise, returns the same as #getTable().
 	 * @return 
 	 */
-	TableDto getBaseTable() {
+	public TableDto getBaseTable() {
 		return baseTable;
 	}
 	
+	public List<T> getChildren() {
+		return Collections.unmodifiableList(childEntities);
+	}
+
+	public String getDiscriminatorValue() {
+		return discriminatorValue;
+	}
 	
 }
