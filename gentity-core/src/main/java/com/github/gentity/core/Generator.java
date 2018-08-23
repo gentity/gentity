@@ -158,7 +158,8 @@ public class Generator {
 			for(RootEntityTableDto et : sm.getRootEntityDefinitions()) {
 				
 				if(et.getJoinedHierarchy()!= null) {
-					genJoinedHierarchy(et, p);
+					JoinedRootEntityInfo ei = buildJoinedHierarchyEntityInfos(et);
+					genJoinedHierarchy(ei, p);
 				} else if(et.getSingleTableHierarchy() != null) {
 					SingleTableRootEntityInfo ei = buildSingleTableHierarchy(et);
 					genSingleTableHierarchy(ei, p);
@@ -407,10 +408,6 @@ public class Generator {
 		}
 	}
 	
-	private void genJoinedHierarchy(RootEntityTableDto rt, JPackage pakkage) throws JClassAlreadyExistsException {
-		JoinedRootEntityInfo rootInfo = buildJoinedHierarchyEntityInfos(rt);
-		genJoinedHierarchyImpl(rootInfo, pakkage);
-	}
 	private JoinedRootEntityInfo buildJoinedHierarchyEntityInfos(RootEntityTableDto rt) throws JClassAlreadyExistsException {
 		TableDto rootTable = sm.getTables().stream()
 			.filter(t -> t.getName().equals(rt.getTable()))
@@ -430,7 +427,7 @@ public class Generator {
 		return rootEInfo;
 	}
 	
-	private void genJoinedHierarchyImpl(JoinedRootEntityInfo rootEInfo, JPackage pakkage) throws JClassAlreadyExistsException {
+	private void genJoinedHierarchy(JoinedRootEntityInfo rootEInfo, JPackage pakkage) throws JClassAlreadyExistsException {
 		
 		TableDto rootTable = rootEInfo.getTable();
 		JDefinedClass rootClass = genEntityClass(pakkage, rootTable.getName(), null, rootEInfo);
