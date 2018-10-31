@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core;
+package com.github.gentity.core.entities;
 
 import com.github.dbsjpagen.config.CollectionTableDto;
-import com.github.dbsjpagen.dbsmodel.TableDto;
+import com.github.gentity.core.entities.EntityInfo;
+import com.github.gentity.core.model.ForeignKeyModel;
+import com.github.gentity.core.model.TableModel;
 
 /**
  *
@@ -24,28 +26,24 @@ import com.github.dbsjpagen.dbsmodel.TableDto;
  */
 public class CollectionTableDecl {
 	private final CollectionTableDto collectionTableDto;
-	private final String parentTableName;
-	private final String parentEntityName;
+	private final EntityInfo parentEntity;
+	private final ForeignKeyModel foreignKey;
+	private final TableModel table;
 
-	public CollectionTableDecl(CollectionTableDto collectionTableDto, String parentTableName, String parentEntityName) {
+	public CollectionTableDecl(CollectionTableDto collectionTableDto, TableModel table, ForeignKeyModel foreignKey, EntityInfo parentEntity) {
 		this.collectionTableDto = collectionTableDto;
-		this.parentTableName = parentTableName;
-		this.parentEntityName = parentEntityName;
+		this.parentEntity = parentEntity;
+		this.foreignKey = foreignKey;
+		this.table = table;
+		
+		parentEntity.addCollectionTable(this);
 	}
 	
-	public String getParentTableName(){
-		return parentTableName;
-	}
-
-	public String getParentEntityName() {
-		return parentEntityName;
-	}
-
-	String getForeignKey() {
-		return collectionTableDto.getForeignKey();
+	public ForeignKeyModel getForeignKey() {
+		return foreignKey;
 	}
 	
-	String getTable() {
-		return collectionTableDto.getTable();
+	public TableModel getTable() {
+		return table;
 	}
 }

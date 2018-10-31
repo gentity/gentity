@@ -15,9 +15,9 @@
  */
 package com.github.gentity.core.entities;
 
-import com.github.dbsjpagen.dbsmodel.ForeignKeyDto;
 import com.github.dbsjpagen.dbsmodel.TableDto;
 import com.github.gentity.core.fields.FieldColumnSource;
+import com.github.gentity.core.model.TableModel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -29,18 +29,19 @@ import java.util.List;
 public class EntityInfo<T extends EntityInfo> {
 	
 	private final EntityInfo parentEntityInfo;
-	private final TableDto baseTable;
+	private final TableModel baseTable;
 	private final FieldColumnSource fieldColumnSource;
-	private final TableDto table;
+	private final TableModel table;
 	private final List<T> childEntities = new ArrayList<>();
 	private final String discriminatorValue;
+	private final List<CollectionTableDecl> collectionTables = new ArrayList<>();
 
 
-	public EntityInfo(TableDto table, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, String discriminatorValue) {
+	public EntityInfo(TableModel table, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, String discriminatorValue) {
 		this(table, table, fieldColumnSource, parentEntityInfo, discriminatorValue);
 	}
 	
-	public EntityInfo(TableDto table, TableDto baseTable, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, String discriminatorValue) {
+	public EntityInfo(TableModel table, TableModel baseTable, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, String discriminatorValue) {
 		this.table = table;
 		this.baseTable = baseTable;
 		this.fieldColumnSource = fieldColumnSource;
@@ -51,6 +52,13 @@ public class EntityInfo<T extends EntityInfo> {
 		this.discriminatorValue = discriminatorValue;
 	}
 
+	void addCollectionTable(CollectionTableDecl ctdecl) {
+		collectionTables.add(ctdecl);
+	}
+	
+	public List<CollectionTableDecl> getCollectionTables() {
+		return Collections.unmodifiableList(collectionTables);
+	}
 	
 	public FieldColumnSource getFieldColumnSource() {
 		return fieldColumnSource;
@@ -61,7 +69,7 @@ public class EntityInfo<T extends EntityInfo> {
 	 * as a subentity in a single table hierarchy.
 	 * @return 
 	 */
-	public TableDto getTable() {
+	public TableModel getTable() {
 		return table;
 	}
 
@@ -70,7 +78,7 @@ public class EntityInfo<T extends EntityInfo> {
 	 * hierarchy. Otherwise, returns the same as #getTable().
 	 * @return 
 	 */
-	public TableDto getBaseTable() {
+	public TableModel getBaseTable() {
 		return baseTable;
 	}
 	

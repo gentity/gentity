@@ -13,28 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.entities;
+package com.github.gentity.core.model.dbs;
 
-import com.github.dbsjpagen.dbsmodel.ColumnDto;
-import com.github.gentity.core.fields.FieldColumnSource;
-import com.github.gentity.core.model.ColumnModel;
+import com.github.dbsjpagen.dbsmodel.ForeignKeyDto;
+import com.github.gentity.core.model.ForeignKeyModel;
 import com.github.gentity.core.model.TableModel;
 
 /**
  *
  * @author count
  */
-public abstract class RootEntityInfo<T extends EntityInfo> extends EntityInfo<T> {
-	
-	private final ColumnModel discriminatorColumn;
+public class DbsForeignKeyModel extends DbsTableColumnGroup implements ForeignKeyModel<DbsColumnModel>{
+	private final ForeignKeyDto fkDto;
+	private final TableModel targetTable;
 
-	public RootEntityInfo(TableModel table, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, ColumnModel discriminatorColumn, String discriminatorValue) {
-		super(table, table, fieldColumnSource, parentEntityInfo, discriminatorValue);
-		this.discriminatorColumn = discriminatorColumn;
+	public DbsForeignKeyModel(ForeignKeyDto fkDto, TableModel targetTable) {
+		this.fkDto = fkDto;
+		this.targetTable = targetTable;
+	}
+
+	
+	@Override
+	public String getName() {
+		return fkDto.getName();
+	}
+
+	@Override
+	public TableModel getTargetTable() {
+		return targetTable;
 	}
 	
 	
-	public ColumnModel getDiscriminatorColumn() {
-		return discriminatorColumn;
-	}
 }

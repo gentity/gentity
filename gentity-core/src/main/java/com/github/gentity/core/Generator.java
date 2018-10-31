@@ -15,6 +15,7 @@
  */
 package com.github.gentity.core;
 
+import com.github.gentity.core.entities.CollectionTableDecl;
 import com.github.gentity.core.entities.EntityInfo;
 import com.github.dbsjpagen.config.CollectionTableDto;
 import com.github.gentity.core.fields.FieldColumnSource;
@@ -408,25 +409,6 @@ public class Generator {
 		}
 	}
 	
-	private JoinedRootEntityInfo buildJoinedHierarchyEntityInfos(RootEntityTableDto rt) throws JClassAlreadyExistsException {
-		TableDto rootTable = sm.getTables().stream()
-			.filter(t -> t.getName().equals(rt.getTable()))
-			.findAny()
-			.orElseThrow(() -> new RuntimeException("root table '"+rt.getTable() + "' not found"));
-		String dcolName = rt.getJoinedHierarchy().getDiscriminateBy().getColumn();
-		ColumnDto dcol = rootTable.getColumn().stream()
-			.filter(c -> c.getName().equals(dcolName))
-			.findAny()
-			.orElseThrow(() -> new RuntimeException("cannot find discriminator column '" + dcolName + "' declared for table '" + rootTable.getName() + "'"));
-		
-		String dval = rt.getJoinedHierarchy().getRoot().getDiscriminator();
-		JoinedRootEntityInfo rootEInfo = new JoinedRootEntityInfo(rootTable, new PlainTableFieldColumnSource(rootTable, rt), null, dcol, dval);
-
-		buildJoinedHierarchySubentities(rootTable, rt, rootEInfo, rt.getJoinedHierarchy().getEntityTable());
-		
-		return rootEInfo;
-	}
-	
 	private void genJoinedHierarchy(JoinedRootEntityInfo rootEInfo, JPackage pakkage) throws JClassAlreadyExistsException {
 		
 		TableDto rootTable = rootEInfo.getTable();
@@ -437,24 +419,6 @@ public class Generator {
 		genDiscriminatorColumnAnnotation(rootClass, rootTable, rootEInfo.getDiscriminatorColumn().getName());
 		
 		genJoinedHierarchySubentities(rootTable, pakkage, rootEInfo, rootClass);
-	}
-	
-	private void buildJoinedHierarchySubentities(TableDto rootTable, EntityTableDto parent, EntityInfo<JoinedSubEntityInfo> parentEntityInfo, List<JoinedEntityTableDto> subTables) throws JClassAlreadyExistsException {
-		for(JoinedEntityTableDto subTable : subTables) {
-			
-			// use the foreign key to get to the supertable and its
-			// corresponding superclass entity, and generate the
-			// subclass entity from there
-			ForeignKeyDto fk = sm.toTableForeignKey(subTable.getTable(), subTable.getForeignKey());
-			
-			if(!fk.getToTable().equals(parent.getTable())) {
-				throw new RuntimeException(String.format("specified foreign key %s of table %s refers to table %s, but the supertable is %s", fk.getName(), subTable.getTable(), fk.getToTable(), parent.getTable()));
-			}
-			TableDto table = sm.findTable(subTable.getTable());
-			EntityInfo einfo = new JoinedSubEntityInfo(table, rootTable, new PlainTableFieldColumnSource(table, subTable), parentEntityInfo, fk, subTable.getDiscriminator());
-			
-			buildJoinedHierarchySubentities(rootTable, subTable, einfo, subTable.getEntityTable());
-		}
 	}
 	
 	private void genJoinedHierarchySubentities(TableDto rootTable, JPackage pakkage, EntityInfo<JoinedSubEntityInfo> parentEntityInfo, JClass superclassEntity) throws JClassAlreadyExistsException {
@@ -541,31 +505,7 @@ public class Generator {
 		EntityInfo einfo = new EntityInfo(table, new PlainTableFieldColumnSource(table, et), null, null);
 		genEntityClass(pakkage, table.getName(), null, einfo);
 	}
-	private SingleTableRootEntityInfo buildSingleTableHierarchy(RootEntityTableDto rootEntity) {
-		SingleTableHierarchyDto h = rootEntity.getSingleTableHierarchy();
-		TableDto rootTable = sm.findTable(rootEntity.getTable());
-		String dcolName = h.getDiscriminateBy().getColumn();
-		ColumnDto dcol = rootTable.getColumn().stream()
-			.filter(c -> c.getName().equals(dcolName))
-			.findAny()
-			.orElseThrow(() -> new RuntimeException("could not find discriminator column '" + dcolName + "' in table '" + rootTable.getName() + "'"));
-		String dval = h.getRoot().getDiscriminator();
-		checkEachFieldOnlyOnce(rootTable, h.getEntity());
-		SingleTableRootEntityInfo einfo = new SingleTableRootEntityInfo(rootTable, new SingleTableRootFieldColumnSource(rootTable, rootEntity), null, dcol, dval);
-		
-		buildSingleTableChildEntities(rootTable, einfo, h.getEntity());
-		
-		return einfo;
-	}
-	
-	private void buildSingleTableChildEntities(TableDto rootTable, EntityInfo parentEntityInfo, List<SingleTableEntityDto> entities) {
-		for(SingleTableEntityDto entity : entities) {
-			String dval = entity.getDiscriminator();
-			EntityInfo einfo = new SingleTableSubEntityInfo(entity.getName(), rootTable, new SingleTableFieldColumnSource(rootTable, entity), parentEntityInfo, dval);
-			buildSingleTableChildEntities(rootTable, einfo, entity.getEntity());
-		}
-	}
-	
+
 	private void genSingleTableHierarchy(SingleTableRootEntityInfo einfo, JPackage pakkage) throws JClassAlreadyExistsException {
 		JDefinedClass rootClass = genEntityClass(pakkage, einfo.getTable().getName(), null, einfo);
 		rootClass.annotate(Inheritance.class)

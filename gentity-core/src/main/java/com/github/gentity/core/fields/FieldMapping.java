@@ -15,8 +15,8 @@
  */
 package com.github.gentity.core.fields;
 
-import com.github.dbsjpagen.dbsmodel.ColumnDto;
-import com.github.dbsjpagen.dbsmodel.TableDto;
+import com.github.gentity.core.model.ColumnModel;
+import com.github.gentity.core.model.TableModel;
 
 /**
  *
@@ -25,7 +25,7 @@ import com.github.dbsjpagen.dbsmodel.TableDto;
 public interface FieldMapping {
 	
 	String getFieldName();
-	ColumnDto getColumn();
-	TableDto getTable();
+	ColumnModel getColumn();
+	TableModel getTable();
 	String getEnumType();
 }

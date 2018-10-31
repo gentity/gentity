@@ -13,26 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.entities;
+package com.github.gentity.core.model.dbs;
 
-import com.github.gentity.core.fields.FieldColumnSource;
-import com.github.gentity.core.model.TableModel;
+import com.github.dbsjpagen.dbsmodel.IndexDto;
+import com.github.gentity.core.model.PrimaryKeyModel;
 
 /**
  *
  * @author count
  */
-public class SingleTableSubEntityInfo extends EntityInfo<SingleTableSubEntityInfo> {
-	private final String name;
+public class DbsPrimaryKeyModel extends DbsTableColumnGroup implements PrimaryKeyModel<DbsColumnModel> {
+	private final IndexDto pkIndex;
 
-	public SingleTableSubEntityInfo(String name, TableModel baseTable, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, String discriminatorValue) {
-		super(null, baseTable, fieldColumnSource, parentEntityInfo, discriminatorValue);
-		this.name = name;
-	}
-
-	public String getName() {
-		return name;
+	public DbsPrimaryKeyModel(IndexDto pkIndex) {
+		this.pkIndex = pkIndex;
 	}
 	
-	
+
 }

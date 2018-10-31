@@ -15,9 +15,9 @@
  */
 package com.github.gentity.core.entities;
 
-import com.github.dbsjpagen.dbsmodel.ColumnDto;
-import com.github.dbsjpagen.dbsmodel.TableDto;
 import com.github.gentity.core.fields.FieldColumnSource;
+import com.github.gentity.core.model.ColumnModel;
+import com.github.gentity.core.model.TableModel;
 
 /**
  *
@@ -25,7 +25,7 @@ import com.github.gentity.core.fields.FieldColumnSource;
  */
 public class JoinedRootEntityInfo extends RootEntityInfo<JoinedSubEntityInfo>{
 
-	public JoinedRootEntityInfo(TableDto table, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, ColumnDto discriminatorColumn, String discriminatorValue) {
+	public JoinedRootEntityInfo(TableModel table, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, ColumnModel discriminatorColumn, String discriminatorValue) {
 		super(table, fieldColumnSource, parentEntityInfo, discriminatorColumn, discriminatorValue);
 	}
 	

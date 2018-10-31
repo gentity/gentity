@@ -13,26 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.entities;
+package com.github.gentity.core.model;
 
-import com.github.gentity.core.fields.FieldColumnSource;
-import com.github.gentity.core.model.TableModel;
+import java.util.Collection;
 
 /**
  *
  * @author count
  */
-public class SingleTableSubEntityInfo extends EntityInfo<SingleTableSubEntityInfo> {
-	private final String name;
-
-	public SingleTableSubEntityInfo(String name, TableModel baseTable, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, String discriminatorValue) {
-		super(null, baseTable, fieldColumnSource, parentEntityInfo, discriminatorValue);
-		this.name = name;
-	}
-
-	public String getName() {
-		return name;
-	}
-	
-	
+public interface TableColumnGroup<T extends ColumnModel> extends Collection<T>{
+	ColumnModel findColumn(String name);
 }
