@@ -16,9 +16,9 @@
 package com.github.gentity.core.fields;
 
 import com.github.dbsjpagen.config.TableFieldDto;
-import com.github.dbsjpagen.dbsmodel.ColumnDto;
-import com.github.dbsjpagen.dbsmodel.TableDto;
 import com.github.gentity.core.NameProvider;
+import com.github.gentity.core.model.ColumnModel;
+import com.github.gentity.core.model.TableModel;
 
 /**
  *
@@ -27,7 +27,7 @@ import com.github.gentity.core.NameProvider;
 abstract class AbstractFieldColumnSource implements FieldColumnSource{
 	static NameProvider np = new NameProvider();
 	
-	protected DefaultColumnFieldMapping toDefaultColumnFieldMapping(TableDto t, ColumnDto col, TableFieldDto field) {
+	protected DefaultColumnFieldMapping toDefaultColumnFieldMapping(TableModel<?,?> t, ColumnModel col, TableFieldDto field) {
 		String nameCandidate;
 		if(field != null && field.getName() != null) {
 			nameCandidate = field.getName();

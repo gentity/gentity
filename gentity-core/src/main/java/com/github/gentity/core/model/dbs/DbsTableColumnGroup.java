@@ -13,28 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.entities;
+package com.github.gentity.core.model.dbs;
 
-import com.github.dbsjpagen.dbsmodel.ColumnDto;
-import com.github.gentity.core.fields.FieldColumnSource;
 import com.github.gentity.core.model.ColumnModel;
-import com.github.gentity.core.model.TableModel;
+import com.github.gentity.core.model.TableColumnGroup;
+import java.util.ArrayList;
 
 /**
  *
  * @author count
  */
-public abstract class RootEntityInfo<T extends EntityInfo> extends EntityInfo<T> {
-	
-	private final ColumnModel discriminatorColumn;
+public class DbsTableColumnGroup extends ArrayList<DbsColumnModel> implements TableColumnGroup<DbsColumnModel> {
 
-	public RootEntityInfo(TableModel table, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, ColumnModel discriminatorColumn, String discriminatorValue) {
-		super(table, table, fieldColumnSource, parentEntityInfo, discriminatorValue);
-		this.discriminatorColumn = discriminatorColumn;
+	@Override
+	public DbsColumnModel findColumn(String name) {
+		return stream()
+			.filter(c -> name.equals(c.getName()))
+			.findAny()
+			.orElse(null);
 	}
 	
-	
-	public ColumnModel getDiscriminatorColumn() {
-		return discriminatorColumn;
-	}
 }

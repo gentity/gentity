@@ -15,6 +15,7 @@
  */
 package com.github.gentity.core;
 
+import com.github.gentity.core.entities.CollectionTableDecl;
 import com.github.dbsjpagen.config.ConfigurationDto;
 import com.github.dbsjpagen.config.JoinedEntityTableDto;
 import com.github.dbsjpagen.config.RootEntityTableDto;

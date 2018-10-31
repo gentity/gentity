@@ -15,6 +15,8 @@
  */
 package com.github.gentity.core;
 
+import com.github.gentity.core.entities.CollectionTableDecl;
+import com.github.dbsjpagen.config.CollectionTableDto;
 import com.sun.codemodel.JAnnotationUse;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,6 +37,7 @@ import com.github.dbsjpagen.config.MappingConfigDto;
 import com.github.dbsjpagen.config.RootEntityTableDto;
 import com.github.dbsjpagen.config.SingleTableEntityDto;
 import com.github.dbsjpagen.config.SingleTableFieldDto;
+import com.github.dbsjpagen.config.SingleTableHierarchyDto;
 import com.github.dbsjpagen.config.TableConfigurationDto;
 import com.github.dbsjpagen.config.XToOneRelationDto;
 import com.github.dbsjpagen.dbsmodel.ColumnDto;
@@ -45,6 +48,20 @@ import com.github.dbsjpagen.dbsmodel.ProjectDto;
 import com.github.dbsjpagen.dbsmodel.SequenceDto;
 import com.github.dbsjpagen.dbsmodel.TableDto;
 import com.github.gentity.core.ChildTableRelation.Directionality;
+import com.github.gentity.core.entities.EntityInfo;
+import com.github.gentity.core.entities.JoinedRootEntityInfo;
+import com.github.gentity.core.entities.JoinedSubEntityInfo;
+import com.github.gentity.core.entities.SingleTableRootEntityInfo;
+import com.github.gentity.core.entities.SingleTableSubEntityInfo;
+import com.github.gentity.core.fields.PlainTableFieldColumnSource;
+import com.github.gentity.core.fields.SingleTableFieldColumnSource;
+import com.github.gentity.core.fields.SingleTableRootFieldColumnSource;
+import com.github.gentity.core.model.ColumnModel;
+import com.github.gentity.core.model.DatabaseModel;
+import com.github.gentity.core.model.ForeignKeyModel;
+import com.github.gentity.core.model.TableModel;
+import com.github.gentity.core.model.dbs.DbsModelReader;
+import com.github.gentity.core.model.dbs.Exclusions;
 import javax.persistence.ForeignKey;
 import com.github.gentity.core.util.Tuple;
 import java.util.function.Consumer;
@@ -76,6 +93,147 @@ public class SchemaModelImpl implements SchemaModel {
 	public SchemaModelImpl(MappingConfigDto cfg, ProjectDto project) {
 		this.cfg = cfg;
 		this.project = project;
+		
+		List<EntityInfo> entityInfos = new ArrayList<>();
+		Set<String> mappedTables = new HashSet<>();
+		Set<String> excludedTables = new HashSet<>();
+		Map<String,Set<String>> excludedTableColumns = new HashMap<>();
+		
+		Exclusions exclusions = new Exclusions();
+		for(ExclusionDto ex : cfg.getExclude()) {
+			if(ex.getTable()!=null) {
+				if(ex.getColumn() == null) {
+					exclusions.addTable(ex.getTable());
+				} else {
+					exclusions.addTableColumn(ex.getTable(), ex.getColumn());
+				}
+			}
+		}
+		
+		// TODO: abstract DbsModelReader out so that we finally are independent of the
+		// DBS format
+		DatabaseModel databaseSchemaModel = new DbsModelReader(project, exclusions).read();
+		
+		// generate entity infos first that are declared in the mapping configuration file
+		for(RootEntityTableDto et : cfg.getEntityTable()) {
+			if(exclusions.isTableExcluded(et.getTable())) {
+				throw new RuntimeException("configuration found for excluded table '"+et.getTable()+"'");
+			}
+			if(et.getJoinedHierarchy()!= null) {
+				JoinedRootEntityInfo ei = buildJoinedHierarchyEntityInfos(et, databaseSchemaModel);
+				entityInfos.add(ei);
+			} else if(et.getSingleTableHierarchy() != null) {
+				SingleTableRootEntityInfo ei = buildSingleTableHierarchy(et, databaseSchemaModel);
+				entityInfos.add(ei);
+			} else {
+				TableModel table = databaseSchemaModel.getTable(et.getTable());
+				EntityInfo ei = new EntityInfo(table, new PlainTableFieldColumnSource(table), null, null);
+				buildCollectionTableDecls(ei, et.getCollectionTable(), databaseSchemaModel);
+				entityInfos.add(ei);
+			}
+		}
+		
+		
+		// TODO: generate join relations declared in configuration
+		joinTableRelations = cfg.getJoinTable().stream()
+			.map(jt -> {
+				JoinTableRelation.Kind kind = jt.isUnidirectional() ? JoinTableRelation.Kind.UNI_MANY_TO_MANY : JoinTableRelation.Kind.MANY_TO_MANY;
+				return toJoinTableRelation(kind, jt);
+			})
+			.collect(Collectors.toList());
+		initDeclaredOneToNRelations();
+		
+		// TODO: generate collection tables declared in configuration
+		// NOTE: currently we're generating them while generating entity tables above..
+		
+		// TODO / FINISH: implement default table mappings not declared in configurations
+		for(TableModel t : databaseSchemaModel.getTables()) {
+			if(mappedTables.contains(t.getName())) {
+				// a mapping for this table was generated before -> no default
+				continue;
+			}
+		}
+		
+		initDefaultOneToNRelations();
+	}
+	
+	private JoinedRootEntityInfo buildJoinedHierarchyEntityInfos(RootEntityTableDto rt, DatabaseModel dm) {
+		TableModel rootTable = dm.getTables().stream()
+			.filter(t -> t.getName().equals(rt.getTable()))
+			.findAny()
+			.orElseThrow(() -> new RuntimeException("root table '"+rt.getTable() + "' not found"));
+		String dcolName = rt.getJoinedHierarchy().getDiscriminateBy().getColumn();
+		ColumnModel dcol = rootTable.getColumns().findColumn(dcolName);
+		if(dcol == null) {
+			throw new RuntimeException("cannot find discriminator column '" + dcolName + "' declared for table '" + rootTable.getName() + "'");
+		}
+		
+		String dval = rt.getJoinedHierarchy().getRoot().getDiscriminator();
+		JoinedRootEntityInfo rootEInfo = new JoinedRootEntityInfo(rootTable, new PlainTableFieldColumnSource(rootTable, rt), null, dcol, dval);
+		buildCollectionTableDecls(rootEInfo, rt.getCollectionTable(), dm);
+		
+		buildJoinedHierarchySubentities(rootTable, rt, rootEInfo, rt.getJoinedHierarchy().getEntityTable(), dm);
+		
+		return rootEInfo;
+	}
+
+	private void buildCollectionTableDecls(EntityInfo einfo, List<CollectionTableDto> ctableDtos, DatabaseModel dm) {
+		for(CollectionTableDto ctableDto : ctableDtos) {
+			TableModel table = dm.getTable(ctableDto.getTable());
+			if(table == null) {
+				throw new RuntimeException("table '" + ctableDto.getTable() + "' declared in collection table tag not found in database model");
+			}
+			ForeignKeyModel fk = table.findForeignKey(ctableDto.getForeignKey());
+			if(fk == null) {
+				throw new RuntimeException("foreign key '" + ctableDto.getForeignKey() + "' not found in table '" + ctableDto.getTable() + "' declared in collection table tag");
+			}
+			collectionTableDeclarations.put(table.getName(), new CollectionTableDecl(ctableDto, table, fk, einfo));
+		}
+	}
+	private void buildJoinedHierarchySubentities(TableModel rootTable, EntityTableDto parent, EntityInfo<JoinedSubEntityInfo> parentEntityInfo, List<JoinedEntityTableDto> subTables, DatabaseModel dm) {
+		for(JoinedEntityTableDto subTable : subTables) {
+			
+			// use the foreign key to get to the supertable and its
+			// corresponding superclass entity, and generate the
+			// subclass entity from there
+			TableModel table = dm.getTable(subTable.getTable());
+			if(table == null) {
+				throw new RuntimeException("declared join table '" + subTable.getTable() + "' not found");
+			}
+			ForeignKeyModel fk = table.findForeignKey(subTable.getForeignKey());
+			if(!fk.getTargetTable().equals(parentEntityInfo.getTable())) {
+				throw new RuntimeException(String.format("specified foreign key %s of table %s refers to table %s, but the supertable is %s", fk.getName(), subTable.getTable(), fk.getTargetTable().getName(), parent.getTable()));
+			}
+			EntityInfo einfo = new JoinedSubEntityInfo(table, rootTable, new PlainTableFieldColumnSource(table, subTable), parentEntityInfo, fk, subTable.getDiscriminator());
+			buildCollectionTableDecls(einfo, subTable.getCollectionTable(), dm);
+			buildJoinedHierarchySubentities(rootTable, subTable, einfo, subTable.getEntityTable(), dm);
+		}
+	}
+	
+	private SingleTableRootEntityInfo buildSingleTableHierarchy(RootEntityTableDto rootEntity, DatabaseModel dm) {
+		SingleTableHierarchyDto h = rootEntity.getSingleTableHierarchy();
+		TableModel<?,?> rootTable = dm.getTable(rootEntity.getTable());
+		String dcolName = h.getDiscriminateBy().getColumn();
+		ColumnModel dcol = rootTable.getColumns().findColumn(dcolName);
+		if(dcol == null) {
+			throw new RuntimeException("could not find discriminator column '" + dcolName + "' in table '" + rootTable.getName() + "'");
+		}
+		String dval = h.getRoot().getDiscriminator();
+		checkEachFieldOnlyOnce(rootTable, h.getEntity());
+		SingleTableRootEntityInfo einfo = new SingleTableRootEntityInfo(rootTable, new SingleTableRootFieldColumnSource(rootTable, rootEntity), null, dcol, dval);
+		
+		buildSingleTableChildEntities(rootTable, einfo, h.getEntity(), dm);
+		buildCollectionTableDecls(einfo, rootEntity.getCollectionTable(), dm);
+		return einfo;
+	}
+	
+	private void buildSingleTableChildEntities(TableModel rootTable, EntityInfo parentEntityInfo, List<SingleTableEntityDto> entities, DatabaseModel dm) {
+		for(SingleTableEntityDto entity : entities) {
+			String dval = entity.getDiscriminator();
+			EntityInfo einfo = new SingleTableSubEntityInfo(entity.getName(), rootTable, new SingleTableFieldColumnSource(rootTable, entity), parentEntityInfo, dval);
+			buildSingleTableChildEntities(rootTable, einfo, entity.getEntity(), dm);
+			buildCollectionTableDecls(einfo, entity.getCollectionTable(), dm);
+		}
 	}
 	
 	private void fillPrimaryKeyJoinColumn(JAnnotationUse primaryKeyJoinColumnUse, ForeignKeyDto fk, ForeignKeyColumnDto fkCol) {
@@ -87,16 +245,16 @@ public class SchemaModelImpl implements SchemaModel {
 	}
 	
 
-	private void checkEachFieldOnlyOnce(TableDto table, List<SingleTableEntityDto> entities) {
+	private void checkEachFieldOnlyOnce(TableModel<?,?> table, List<SingleTableEntityDto> entities) {
 		for (SingleTableEntityDto entity : entities) {
-			Set<String> colMap = table.getColumn().stream()
+			Set<String> colMap = table.getColumns().stream()
 				.map(c -> c.getName())
 				.collect(Collectors.toSet());
 			checkEachFieldOnlyOnceImpl(table, colMap, new HashSet<>(), entity.getEntity());
 		}
 	}
 	
-	private void checkEachFieldOnlyOnceImpl(TableDto table, Set<String> colSet, Set<String> usedColNames, List<SingleTableEntityDto> entities) {
+	private void checkEachFieldOnlyOnceImpl(TableModel<?,?> table, Set<String> colSet, Set<String> usedColNames, List<SingleTableEntityDto> entities) {
 		for(SingleTableEntityDto entity : entities) {
 			for(SingleTableFieldDto f : entity.getField()) {
 				if(!colSet.contains(f.getColumn())) {
@@ -399,6 +557,11 @@ public class SchemaModelImpl implements SchemaModel {
 	}
 	
 	private void initOneToNRelations() {
+		initDeclaredOneToNRelations();
+		initDefaultOneToNRelations();
+	}
+	
+	private void initDeclaredOneToNRelations() {
 		// collect declared one-to-many et. al. relations
 		childTableRelations = new ArrayList();
 		
@@ -414,7 +577,9 @@ public class SchemaModelImpl implements SchemaModel {
 					.forEach(childTableRelations::addAll);
 			}
 		}
-		
+	}
+	
+	private void initDefaultOneToNRelations() {
 		// get all foreign key names involved in a declared one-to-many
 		Set<String> otmFkNames = childTableRelations.stream()
 			.map(otm -> otm.getForeignKey().getName())
@@ -452,15 +617,6 @@ public class SchemaModelImpl implements SchemaModel {
 
 	@Override
 	public List<JoinTableRelation> getJoinTableRelations() {
-		if(joinTableRelations == null) {
-			joinTableRelations = cfg.getJoinTable().stream()
-				.map(jt -> {
-					JoinTableRelation.Kind kind = jt.isUnidirectional() ? JoinTableRelation.Kind.UNI_MANY_TO_MANY : JoinTableRelation.Kind.MANY_TO_MANY;
-					return toJoinTableRelation(kind, jt);
-				})
-				.collect(Collectors.toList());
-				;
-		}
 		return joinTableRelations;
 	}
 	
@@ -480,6 +636,7 @@ public class SchemaModelImpl implements SchemaModel {
 	
 	@Override
 	public CollectionTableDecl getCollectionTableDeclaration(String tableName) {
+		/*
 		if(collectionTableDeclarations == null) {
 			collectionTableDeclarations = new HashMap<>();
 			CollectionTableTravesal.of(cfg,
@@ -493,6 +650,7 @@ public class SchemaModelImpl implements SchemaModel {
 				collectionTableDeclarations.put(ctx.getElement().getTable(), decl);
 			});
 		}
+		*/
 		return collectionTableDeclarations.get(tableName);
 	}
 	
