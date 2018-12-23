@@ -17,6 +17,7 @@ package com.github.gentity.core.model.dbs;
 
 import com.github.dbsjpagen.dbsmodel.ColumnDto;
 import com.github.gentity.core.model.ColumnModel;
+import com.github.gentity.core.model.SequenceModel;
 
 /**
  *
@@ -38,7 +39,7 @@ public class DbsColumnModel implements ColumnModel {
 
 	@Override
 	public boolean isNullable() {
-		return "y".equals(dbsColumn.getMandatory());
+		return !"y".equals(dbsColumn.getMandatory());
 	}
 
 	@Override
@@ -57,8 +58,8 @@ public class DbsColumnModel implements ColumnModel {
 	}
 
 	@Override
-	public String getSequenceName() {
-		return dbsColumn.getSequence();
+	public SequenceModel getSequence() {
+		return parentTable.getDbsDatabaseModel().getSequence(dbsColumn.getSequence());
 	}
 
 	

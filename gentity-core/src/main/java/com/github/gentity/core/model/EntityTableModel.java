@@ -16,7 +16,7 @@
 package com.github.gentity.core.model;
 
 /**
- *
+ * @deprecated 
  * @author count
  */
 public interface EntityTableModel extends TableModel {

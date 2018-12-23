@@ -17,6 +17,7 @@ package com.github.gentity.core.model.dbs;
 
 import com.github.dbsjpagen.dbsmodel.ProjectDto;
 import com.github.gentity.core.model.DatabaseModel;
+import com.github.gentity.core.model.SequenceModel;
 import com.github.gentity.core.model.TableModel;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,11 +33,16 @@ public class DbsDatabaseModel implements DatabaseModel{
 	private final ProjectDto dbsProject;
 	private final Exclusions exclusions;
 	private final Map<String,DbsTableModel> tables;
+	private final Map<String,DbsSequenceModel> sequences;
 
-	public DbsDatabaseModel(ProjectDto dbsProject, Exclusions exclusions, Map<String,DbsTableModel> tables) {
+	public DbsDatabaseModel(ProjectDto dbsProject, Exclusions exclusions, Map<String,DbsTableModel> tables, Map<String,DbsSequenceModel> sequences) {
 		this.dbsProject = dbsProject;
 		this.exclusions = exclusions;
 		this.tables = tables;
+		for(DbsTableModel table : tables.values()) {
+			table.setDbsDatabaseModel(this);
+		}
+		this.sequences = sequences;
 	}
 
 	@Override
@@ -47,6 +53,10 @@ public class DbsDatabaseModel implements DatabaseModel{
 	@Override
 	public List<TableModel> getTables() {
 		return Collections.unmodifiableList(new ArrayList<>(tables.values()));
+	}
+
+	SequenceModel getSequence(String name) {
+		return sequences.get(name);
 	}
 	
 }

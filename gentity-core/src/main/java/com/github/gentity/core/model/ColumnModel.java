@@ -25,5 +25,5 @@ public interface ColumnModel {
 	String getSqlType();
 	int getLength();
 	boolean isIdentityColumn();
-	String getSequenceName();
+	SequenceModel getSequence();
 }

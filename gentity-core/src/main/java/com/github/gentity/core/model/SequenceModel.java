@@ -15,21 +15,11 @@
  */
 package com.github.gentity.core.model;
 
-import java.util.List;
-
 /**
  *
- * @author count
+ * @author upachler
  */
-public interface TableModel {
+public interface SequenceModel {
 	String getName();
-	
-	PrimaryKeyModel getPrimaryKey();
-	
-	List<ForeignKeyModel> getForeignKeys();
-	ForeignKeyModel findForeignKey(String name);
-	
-	TableColumnGroup<ColumnModel> getColumns();
-	
-	List<IndexModel> getIndices();
+	Long getStartValue();
 }

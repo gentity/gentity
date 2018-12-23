@@ -27,7 +27,7 @@ import com.github.gentity.core.model.TableModel;
 abstract class AbstractFieldColumnSource implements FieldColumnSource{
 	static NameProvider np = new NameProvider();
 	
-	protected DefaultColumnFieldMapping toDefaultColumnFieldMapping(TableModel<?,?> t, ColumnModel col, TableFieldDto field) {
+	protected DefaultColumnFieldMapping toDefaultColumnFieldMapping(TableModel t, ColumnModel col, TableFieldDto field) {
 		String nameCandidate;
 		if(field != null && field.getName() != null) {
 			nameCandidate = field.getName();

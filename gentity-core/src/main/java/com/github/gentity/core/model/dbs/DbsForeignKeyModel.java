@@ -18,17 +18,23 @@ package com.github.gentity.core.model.dbs;
 import com.github.dbsjpagen.dbsmodel.ForeignKeyDto;
 import com.github.gentity.core.model.ForeignKeyModel;
 import com.github.gentity.core.model.TableModel;
+import java.util.Collection;
+import java.util.List;
 
 /**
  *
  * @author count
  */
-public class DbsForeignKeyModel extends DbsTableColumnGroup implements ForeignKeyModel<DbsColumnModel>{
+public class DbsForeignKeyModel implements ForeignKeyModel{
 	private final ForeignKeyDto fkDto;
 	private final TableModel targetTable;
+	private final DbsTableModel childTable;
+	private final List<Mapping> mappings;
 
-	public DbsForeignKeyModel(ForeignKeyDto fkDto, TableModel targetTable) {
+	DbsForeignKeyModel(ForeignKeyDto fkDto, List<Mapping> mappings, DbsTableModel childTable, DbsTableModel targetTable) {
 		this.fkDto = fkDto;
+		this.mappings = mappings;
+		this.childTable = childTable;
 		this.targetTable = targetTable;
 	}
 
@@ -42,6 +48,10 @@ public class DbsForeignKeyModel extends DbsTableColumnGroup implements ForeignKe
 	public TableModel getTargetTable() {
 		return targetTable;
 	}
-	
+
+	@Override
+	public List<Mapping> getColumnMappings() {
+		return mappings;
+	}
 	
 }

@@ -13,24 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.model.dbs;
+package com.github.gentity.core.entities;
 
-import com.github.gentity.core.model.ColumnModel;
-import com.github.gentity.core.model.TableColumnGroup;
-import java.util.ArrayList;
+import com.github.gentity.core.fields.FieldColumnSource;
+import com.github.gentity.core.model.TableModel;
 
 /**
  *
- * @author count
+ * @author upachler
  */
-public class DbsTableColumnGroup extends ArrayList<DbsColumnModel> implements TableColumnGroup<DbsColumnModel> {
-
-	@Override
-	public DbsColumnModel findColumn(String name) {
-		return stream()
-			.filter(c -> name.equals(c.getName()))
-			.findAny()
-			.orElse(null);
+public class PlainEntityInfo extends EntityInfo<EntityInfo>{
+	
+	public PlainEntityInfo(TableModel table, FieldColumnSource fieldColumnSource) {
+		super(table, fieldColumnSource, null, null);
 	}
 	
 }

@@ -18,7 +18,6 @@ package com.github.gentity.core.fields;
 import com.github.dbsjpagen.config.RootEntityTableDto;
 import com.github.dbsjpagen.config.SingleTableEntityDto;
 import com.github.dbsjpagen.config.TableFieldDto;
-import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.TableModel;
 import java.util.HashSet;
 import java.util.List;
@@ -39,7 +38,7 @@ public class SingleTableRootFieldColumnSource extends AbstractFieldColumnSource{
 		mappings = calculateMappings(table, root);
 	}
 	
-	private List<FieldMapping> calculateMappings(TableModel<?,?> table, RootEntityTableDto root) {
+	private List<FieldMapping> calculateMappings(TableModel table, RootEntityTableDto root) {
 		Set<String> subColNames = new HashSet<>();
 		collectColumnNames(subColNames, root.getSingleTableHierarchy().getEntity());
 		

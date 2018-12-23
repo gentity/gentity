@@ -15,7 +15,6 @@
  */
 package com.github.gentity.core.entities;
 
-import com.github.dbsjpagen.dbsmodel.TableDto;
 import com.github.gentity.core.fields.FieldColumnSource;
 import com.github.gentity.core.model.TableModel;
 import java.util.ArrayList;
@@ -26,12 +25,10 @@ import java.util.List;
  *
  * @author count
  */
-public class EntityInfo<T extends EntityInfo> {
+public abstract class EntityInfo<T extends EntityInfo> extends MappingInfo {
 	
 	private final EntityInfo parentEntityInfo;
 	private final TableModel baseTable;
-	private final FieldColumnSource fieldColumnSource;
-	private final TableModel table;
 	private final List<T> childEntities = new ArrayList<>();
 	private final String discriminatorValue;
 	private final List<CollectionTableDecl> collectionTables = new ArrayList<>();
@@ -42,9 +39,8 @@ public class EntityInfo<T extends EntityInfo> {
 	}
 	
 	public EntityInfo(TableModel table, TableModel baseTable, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, String discriminatorValue) {
-		this.table = table;
+		super(fieldColumnSource, table);
 		this.baseTable = baseTable;
-		this.fieldColumnSource = fieldColumnSource;
 		this.parentEntityInfo = parentEntityInfo;
 		if(parentEntityInfo != null) {
 			this.parentEntityInfo.childEntities.add(this);
@@ -60,18 +56,6 @@ public class EntityInfo<T extends EntityInfo> {
 		return Collections.unmodifiableList(collectionTables);
 	}
 	
-	public FieldColumnSource getFieldColumnSource() {
-		return fieldColumnSource;
-	}
-
-	/**
-	 * The table this entity is based upon. Can be null if Entity was generated
-	 * as a subentity in a single table hierarchy.
-	 * @return 
-	 */
-	public TableModel getTable() {
-		return table;
-	}
 
 	/**
 	 * If the entity is part of a hierarchy, this returns the base table of that

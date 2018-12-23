@@ -19,6 +19,6 @@ package com.github.gentity.core.model;
  *
  * @author count
  */
-public interface PrimaryKeyModel<T extends ColumnModel> extends TableColumnGroup<T> {
+public interface PrimaryKeyModel extends TableColumnGroup<ColumnModel> {
 	
 }

@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 public class SingleTableFieldColumnSource extends AbstractFieldColumnSource{
 
 	private final SingleTableEntityDto entity;
-	private final TableModel<?,?> table;
+	private final TableModel table;
 
 	public SingleTableFieldColumnSource(TableModel table, SingleTableEntityDto entity) {
 		this.table = table;

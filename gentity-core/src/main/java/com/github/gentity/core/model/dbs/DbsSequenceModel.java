@@ -13,23 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.model;
+package com.github.gentity.core.model.dbs;
 
-import java.util.List;
+import com.github.dbsjpagen.dbsmodel.SequenceDto;
+import com.github.gentity.core.model.SequenceModel;
 
 /**
  *
- * @author count
+ * @author upachler
  */
-public interface TableModel {
-	String getName();
+public class DbsSequenceModel implements SequenceModel{
+	final SequenceDto dto;
+
+	public DbsSequenceModel(SequenceDto dto) {
+		this.dto = dto;
+	}
 	
-	PrimaryKeyModel getPrimaryKey();
 	
-	List<ForeignKeyModel> getForeignKeys();
-	ForeignKeyModel findForeignKey(String name);
+	@Override
+	public String getName() {
+		return dto.getName();
+	}
+
+	@Override
+	public Long getStartValue() {
+		return dto.getStart();
+	}
 	
-	TableColumnGroup<ColumnModel> getColumns();
-	
-	List<IndexModel> getIndices();
 }

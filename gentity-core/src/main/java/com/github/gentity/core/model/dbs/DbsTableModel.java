@@ -17,21 +17,29 @@ package com.github.gentity.core.model.dbs;
 
 import com.github.dbsjpagen.dbsmodel.TableDto;
 import com.github.gentity.core.model.ForeignKeyModel;
+import com.github.gentity.core.model.IndexModel;
 import com.github.gentity.core.model.PrimaryKeyModel;
+import com.github.gentity.core.model.TableColumnGroup;
 import com.github.gentity.core.model.TableModel;
+import com.github.gentity.core.model.util.ArrayListIndexModel;
+import com.github.gentity.core.model.util.ArrayListTableColumnGroup;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *
  * @author count
  */
-public class DbsTableModel implements TableModel<DbsColumnModel, DbsForeignKeyModel> {
+public class DbsTableModel implements TableModel {
+	private DbsDatabaseModel dbsDatabaseModel;
 	private final TableDto dbsTable;
 	private DbsPrimaryKeyModel dbsPrimaryKey;
-	private DbsTableColumnGroup columns;
+	private List<DbsColumnModel> columns;
 	private final List<DbsForeignKeyModel> dbsForeignKeys = new ArrayList<>();
-
+	private final List<ArrayListIndexModel> indexModels = new ArrayList<>();
+	
 	public DbsTableModel(TableDto dbsTable) {
 		this.dbsTable = dbsTable;
 	}
@@ -51,7 +59,11 @@ public class DbsTableModel implements TableModel<DbsColumnModel, DbsForeignKeyMo
 	}
 
 	@Override
-	public List<DbsForeignKeyModel> getForeignKeys() {
+	public List<ForeignKeyModel> getForeignKeys() {
+		return Collections.unmodifiableList(dbsForeignKeys);
+	}
+	
+	public List<DbsForeignKeyModel> getForeignKeysImpl() {
 		return dbsForeignKeys;
 	}
 
@@ -64,13 +76,33 @@ public class DbsTableModel implements TableModel<DbsColumnModel, DbsForeignKeyMo
 	}
 
 	@Override
-	public DbsTableColumnGroup getColumns() {
-		return columns;
+	public TableColumnGroup getColumns() {
+		if(columns == null) {
+			columns = dbsTable.getColumn().stream()
+				.map(dc -> new DbsColumnModel(this, dc))
+				.collect(Collectors.toList());
+		}
+		return new ArrayListTableColumnGroup(columns);
 	}
 
 	public void setDbsPrimaryKey(DbsPrimaryKeyModel dbsPrimaryKey) {
 		this.dbsPrimaryKey = dbsPrimaryKey;
 	}
+
+	@Override
+	public List<IndexModel> getIndices() {
+		return Collections.unmodifiableList(indexModels);
+	}
 	
+	public List<ArrayListIndexModel> getIndicesImpl() {
+		return indexModels;
+	}
 	
+	public DbsDatabaseModel getDbsDatabaseModel() {
+		return dbsDatabaseModel;
+	}
+
+	void setDbsDatabaseModel(DbsDatabaseModel dbsDatabaseModel) {
+		this.dbsDatabaseModel = dbsDatabaseModel;
+	}
 }
