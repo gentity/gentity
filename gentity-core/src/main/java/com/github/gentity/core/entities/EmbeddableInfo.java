@@ -13,23 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.model;
-
-import java.util.List;
+package com.github.gentity.core.entities;
 
 /**
  *
- * @author count
+ * @author upachler
  */
-public interface TableModel {
-	String getName();
+public class EmbeddableInfo {
 	
-	PrimaryKeyModel getPrimaryKey();
-	
-	List<ForeignKeyModel> getForeignKeys();
-	ForeignKeyModel findForeignKey(String name);
-	
-	TableColumnGroup<ColumnModel> getColumns();
-	
-	List<IndexModel> getIndices();
 }

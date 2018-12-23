@@ -13,23 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.model;
+package com.github.gentity.core.model.util;
 
-import java.util.List;
+import com.github.gentity.core.model.ColumnModel;
+import com.github.gentity.core.model.TableColumnGroup;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  *
- * @author count
+ * @author upachler
  */
-public interface TableModel {
-	String getName();
+public class ArrayListTableColumnGroup<T extends ColumnModel> extends ArrayList<T> implements TableColumnGroup<T>{
+
+	public ArrayListTableColumnGroup() {
+	}
+
+	public ArrayListTableColumnGroup(Collection<? extends T> c) {
+		super(c);
+	}
 	
-	PrimaryKeyModel getPrimaryKey();
-	
-	List<ForeignKeyModel> getForeignKeys();
-	ForeignKeyModel findForeignKey(String name);
-	
-	TableColumnGroup<ColumnModel> getColumns();
-	
-	List<IndexModel> getIndices();
 }

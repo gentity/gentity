@@ -16,13 +16,15 @@
 package com.github.gentity.core.model.dbs;
 
 import com.github.dbsjpagen.dbsmodel.IndexDto;
+import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.PrimaryKeyModel;
+import java.util.ArrayList;
 
 /**
  *
  * @author count
  */
-public class DbsPrimaryKeyModel extends DbsTableColumnGroup implements PrimaryKeyModel<DbsColumnModel> {
+public class DbsPrimaryKeyModel extends ArrayList<ColumnModel> implements PrimaryKeyModel {
 	private final IndexDto pkIndex;
 
 	public DbsPrimaryKeyModel(IndexDto pkIndex) {

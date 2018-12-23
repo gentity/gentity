@@ -15,6 +15,7 @@
  */
 package com.github.gentity.core.model;
 
+import com.github.gentity.core.model.util.ArrayListTableColumnGroup;
 import java.util.Collection;
 
 /**
@@ -22,5 +23,15 @@ import java.util.Collection;
  * @author count
  */
 public interface TableColumnGroup<T extends ColumnModel> extends Collection<T>{
-	ColumnModel findColumn(String name);
+	public default T findColumn(String name) {
+		return stream()
+			.filter(c -> name.equals(c.getName()))
+			.findAny()
+			.orElse(null);
+	}
+	
+	public static <T extends ColumnModel> TableColumnGroup<T> of(Collection<T> c) {
+		return new ArrayListTableColumnGroup<>(c);
+	}
 }
+

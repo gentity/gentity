@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  */
 public class PlainTableFieldColumnSource extends AbstractFieldColumnSource{
 
-	private final TableModel<?,?> table;
+	private final TableModel table;
 	private final TableConfigurationDto tableConfiguration;
 
 	

@@ -15,8 +15,8 @@
  */
 package com.github.gentity.core;
 
-import com.github.dbsjpagen.dbsmodel.ForeignKeyDto;
-import com.github.dbsjpagen.dbsmodel.TableDto;
+import com.github.gentity.core.model.ForeignKeyModel;
+import com.github.gentity.core.model.TableModel;
 
 /**
  *
@@ -31,12 +31,12 @@ public class JoinTableRelation extends Relation {
 	}
 	
 	private final Kind kind;
-	private final ForeignKeyDto foreignKey1;
-	private final ForeignKeyDto foreignKey2;
+	private final ForeignKeyModel foreignKey1;
+	private final ForeignKeyModel foreignKey2;
 	private final String ownerEntityName;
 	private final String inverseEntityName;
 	
-	public JoinTableRelation(Kind kind, TableDto table, ForeignKeyDto foreignKey1, String ownerEntityName, ForeignKeyDto foreignKey2, String inverseEntityName) {
+	public JoinTableRelation(Kind kind, TableModel table, ForeignKeyModel foreignKey1, String ownerEntityName, ForeignKeyModel foreignKey2, String inverseEntityName) {
 		super(table);
 		this.kind = kind;
 		this.foreignKey1 = foreignKey1;
@@ -49,11 +49,11 @@ public class JoinTableRelation extends Relation {
 		return kind;
 	}
 
-	public ForeignKeyDto getOwnerForeignKey() {
+	public ForeignKeyModel getOwnerForeignKey() {
 		return foreignKey1;
 	}
 	
-	public ForeignKeyDto getInverseForeignKey() {
+	public ForeignKeyModel getInverseForeignKey() {
 		return foreignKey2;
 	}
 

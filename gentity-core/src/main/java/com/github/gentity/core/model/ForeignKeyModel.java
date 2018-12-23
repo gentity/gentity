@@ -15,12 +15,50 @@
  */
 package com.github.gentity.core.model;
 
+import com.github.gentity.core.model.util.ArrayListTableColumnGroup;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 /**
  *
  * @author count
  */
-public interface ForeignKeyModel<T extends ColumnModel> extends TableColumnGroup<T>{
+public interface ForeignKeyModel {
+	class Mapping {
+		private final ColumnModel childColumn;
+		private final ColumnModel parentColumn;
+
+		public Mapping(ColumnModel childColumn, ColumnModel parentColumn) {
+			this.childColumn = childColumn;
+			this.parentColumn = parentColumn;
+		}
+		
+		public ColumnModel getChildColumn() {
+			return childColumn;
+		}
+		public ColumnModel getParentColumn() {
+			return parentColumn;
+		}
+	}
 	String getName();
 	
+	List<Mapping> getColumnMappings();
+	
+	default TableColumnGroup<ColumnModel> getColumns() {
+		return _mapColumns(Mapping::getChildColumn);
+	}
+	
+	default TableColumnGroup<ColumnModel> getParentColumns() {
+		return _mapColumns(Mapping::getParentColumn);
+	}
+	
+	default TableColumnGroup<ColumnModel> _mapColumns(Function<Mapping,ColumnModel> mapper) {
+		return getColumnMappings().stream()
+			.map(mapper)
+			.collect(Collectors.toCollection(ArrayListTableColumnGroup::new));
+	}
 	TableModel getTargetTable();
+	
+	
 }
