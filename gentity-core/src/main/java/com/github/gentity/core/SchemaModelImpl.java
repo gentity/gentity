@@ -186,10 +186,47 @@ public class SchemaModelImpl implements SchemaModel {
 			
 			joinTableRelations.add(new JoinTableRelation(JoinTableRelation.Kind.MANY_TO_MANY, table, foreignKey1, null, foreignKey2, null));
 		});
+		tablesToMap.removeAll(defaultJoinTables);
+		
+		// tables without a primary key but a foreign key become
+		// collection tables (except for those mapped previously as join
+		// tables, see above), if their first foreign key refers to a table
+		// mapped as an entity
+		Set<TableModel> defaultCollectionTables = new HashSet<>();
+		for(TableModel table : tablesToMap) {
+			if(table.getForeignKeys().isEmpty()) {
+				// no foreign keys -> not a collection table
+				continue;
+			}
+			
+			// default collection tables use the first foreign key in declaration order
+			ForeignKeyModel fk = table.getForeignKeys().get(0);
+			EntityInfo einfo = findRootOrJoinedEntityOfTable(fk.getTargetTable());
+			collectionTableDeclarations.put(table.getName(), new CollectionTableDecl(null, table, fk, einfo));
+
+		}
 		
 		initDefaultOneToNRelations();
 	}
-			
+	
+	private EntityInfo findRootOrJoinedEntityOfTable(TableModel table) {
+		return findRootOrJoinedEntityOfTableImpl(table, entityInfos);
+	}
+	
+	private EntityInfo findRootOrJoinedEntityOfTableImpl(TableModel table, List<EntityInfo> eis) {
+		for(EntityInfo ei : eis) {
+			if(ei.getBaseTable() == table) {
+				return ei;
+			} else {
+				EntityInfo result = findRootOrJoinedEntityOfTableImpl(table, ei.getChildren());
+				if(result != null) {
+					return result;
+				}
+			}
+		}
+		return null;
+	}
+	
 	void visitJoinedSubEntityInfos(List<JoinedSubEntityInfo> entityInfos, Consumer<JoinedSubEntityInfo> consumer) {
 		entityInfos.forEach(jsei -> consumer.accept(jsei));
 		entityInfos.forEach(jsei -> visitJoinedSubEntityInfos(jsei.getChildren(), consumer));
@@ -702,43 +739,9 @@ public class SchemaModelImpl implements SchemaModel {
 	
 	@Override
 	public CollectionTableDecl getCollectionTableDeclaration(String tableName) {
-		/*
-		if(collectionTableDeclarations == null) {
-			collectionTableDeclarations = new HashMap<>();
-			CollectionTableTravesal.of(cfg,
-				rt -> Tuple.of(rt.getTable(), (String)null),
-				jt -> Tuple.of(jt.getTable(), (String)null),
-				st -> Tuple.of(findParentRootEntityTable(st).getTable(), st.getName())
-			)
-			.traverse(ctx -> {
-				Tuple<String, String> tableEntityTuple = ctx.getParentContext();
-				CollectionTableDecl decl = new CollectionTableDecl(ctx.getElement(), tableEntityTuple.getX(), tableEntityTuple.getY());
-				collectionTableDeclarations.put(ctx.getElement().getTable(), decl);
-			});
-		}
-		*/
 		return collectionTableDeclarations.get(tableName);
 	}
-/*	
-	public List<ForeignKeyColumn> findForeignKeyColumns(TableDto table, String foreignKeyName) {
-		ForeignKeyDto foreignKey = table.getFk().stream()
-			.filter(fk -> fk.getName().equals(foreignKeyName))
-			.findAny()
-			.get();
-		return findForeignKeyColumns(table, foreignKey);
-	}
 	
-	private List<ForeignKeyColumn> findForeignKeyColumns(TableDto table, ForeignKeyDto foreignKey) {
-		TableModel parentTable = toTable(foreignKey.getToTable());
-		Map<String, ColumnDto> childColumns = table.getColumn().stream()
-			.collect(Collectors.toMap(ColumnDto::getName, col -> col));
-		Map<String, ColumnDto> parentColumns = parentTable.getColumn().stream()
-			.collect(Collectors.toMap(ColumnDto::getName, col -> col));
-		return foreignKey.getFkColumn().stream()
-			.map(fkcol -> new ForeignKeyColumn(parentColumns.get(fkcol.getPk()), childColumns.get(fkcol.getName())))
-			.collect(Collectors.toList());
-	}
-*/
 	@Override
 	public GenerationType findPrimaryKeyColumnGenerationStrategy(TableModel table, ColumnModel column) {
 		if(!isColumnPrimaryKey(table, column)) {

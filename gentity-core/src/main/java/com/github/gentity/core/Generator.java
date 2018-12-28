@@ -590,7 +590,7 @@ public class Generator {
 			// @JoinColumn
 			JAnnotationUse joinColumnAnnotation = singularAnnotator.apply(JoinColumn.class);
 			joinColumnAnnotation.param("name", fkColumn.getName());
-			if(fkColumn.isNullable()) {
+			if(!fkColumn.isNullable()) {
 				joinColumnAnnotation.param("nullable", false);
 			}
 		} else {
