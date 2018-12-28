@@ -16,7 +16,6 @@
 package com.github.gentity.core.entities;
 
 import com.github.dbsjpagen.config.CollectionTableDto;
-import com.github.gentity.core.entities.EntityInfo;
 import com.github.gentity.core.model.ForeignKeyModel;
 import com.github.gentity.core.model.TableModel;
 
