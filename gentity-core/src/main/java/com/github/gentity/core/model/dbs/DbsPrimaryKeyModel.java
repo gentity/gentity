@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.fields;
+package com.github.gentity.core.model.dbs;
 
+import com.github.dbsjpagen.dbsmodel.IndexDto;
 import com.github.gentity.core.model.ColumnModel;
-import com.github.gentity.core.model.TableModel;
+import com.github.gentity.core.model.PrimaryKeyModel;
+import java.util.ArrayList;
 
 /**
  *
  * @author count
  */
-public interface FieldMapping {
+public class DbsPrimaryKeyModel extends ArrayList<ColumnModel> implements PrimaryKeyModel {
+	private final IndexDto pkIndex;
+
+	public DbsPrimaryKeyModel(IndexDto pkIndex) {
+		this.pkIndex = pkIndex;
+	}
 	
-	String getFieldName();
-	ColumnModel getColumn();
-	TableModel getTable();
-	String getEnumType();
+
 }

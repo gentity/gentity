@@ -15,7 +15,7 @@
  */
 package com.github.gentity.core;
 
-import com.github.dbsjpagen.dbsmodel.TableDto;
+import com.github.gentity.core.model.TableModel;
 
 /**
  *
@@ -23,12 +23,12 @@ import com.github.dbsjpagen.dbsmodel.TableDto;
  */
 public abstract class Relation {
 
-	protected final TableDto table;
+	protected final TableModel table;
 	
-	protected Relation(TableDto table) {
+	protected Relation(TableModel table) {
 		this.table = table;
 	}
-	public TableDto getTable() {
+	public TableModel getTable() {
 		return table;
 	}
 	

@@ -13,19 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.fields;
+package com.github.gentity.core.model.dbs;
 
-import com.github.gentity.core.model.ColumnModel;
-import com.github.gentity.core.model.TableModel;
+import com.github.dbsjpagen.dbsmodel.SequenceDto;
+import com.github.gentity.core.model.SequenceModel;
 
 /**
  *
- * @author count
+ * @author upachler
  */
-public interface FieldMapping {
+public class DbsSequenceModel implements SequenceModel{
+	final SequenceDto dto;
+
+	public DbsSequenceModel(SequenceDto dto) {
+		this.dto = dto;
+	}
 	
-	String getFieldName();
-	ColumnModel getColumn();
-	TableModel getTable();
-	String getEnumType();
+	
+	@Override
+	public String getName() {
+		return dto.getName();
+	}
+
+	@Override
+	public Long getStartValue() {
+		return dto.getStart();
+	}
+	
 }

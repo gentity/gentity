@@ -13,19 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.fields;
+package com.github.gentity.core.entities;
 
-import com.github.gentity.core.model.ColumnModel;
+import com.github.gentity.core.fields.FieldColumnSource;
+import com.github.gentity.core.model.ForeignKeyModel;
 import com.github.gentity.core.model.TableModel;
 
 /**
  *
  * @author count
  */
-public interface FieldMapping {
+public class JoinedSubEntityInfo extends EntityInfo<JoinedSubEntityInfo>{
+	private final ForeignKeyModel joiningForeignKey;
+
+	public JoinedSubEntityInfo(TableModel table, TableModel baseTable, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, ForeignKeyModel joiningForeignKey, String discriminatorValue) {
+		super(table, baseTable, fieldColumnSource, parentEntityInfo, discriminatorValue);
+		this.joiningForeignKey = joiningForeignKey;
+	}
 	
-	String getFieldName();
-	ColumnModel getColumn();
-	TableModel getTable();
-	String getEnumType();
+	public ForeignKeyModel getJoiningForeignKey() {
+		return joiningForeignKey;
+	}
+
+
+	
 }

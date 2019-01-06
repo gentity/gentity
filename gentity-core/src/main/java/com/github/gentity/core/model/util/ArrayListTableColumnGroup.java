@@ -13,19 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.fields;
+package com.github.gentity.core.model.util;
 
 import com.github.gentity.core.model.ColumnModel;
-import com.github.gentity.core.model.TableModel;
+import com.github.gentity.core.model.TableColumnGroup;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  *
- * @author count
+ * @author upachler
  */
-public interface FieldMapping {
+public class ArrayListTableColumnGroup<T extends ColumnModel> extends ArrayList<T> implements TableColumnGroup<T>{
+
+	public ArrayListTableColumnGroup() {
+	}
+
+	public ArrayListTableColumnGroup(Collection<? extends T> c) {
+		super(c);
+	}
 	
-	String getFieldName();
-	ColumnModel getColumn();
-	TableModel getTable();
-	String getEnumType();
 }

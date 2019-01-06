@@ -13,19 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.fields;
-
-import com.github.gentity.core.model.ColumnModel;
-import com.github.gentity.core.model.TableModel;
+package com.github.gentity.core.model;
 
 /**
- *
+ * @deprecated 
  * @author count
  */
-public interface FieldMapping {
+public interface RootEntityTableModel extends EntityTableModel {
 	
-	String getFieldName();
-	ColumnModel getColumn();
-	TableModel getTable();
-	String getEnumType();
 }

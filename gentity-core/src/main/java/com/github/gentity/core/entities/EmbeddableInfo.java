@@ -13,19 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.fields;
-
-import com.github.gentity.core.model.ColumnModel;
-import com.github.gentity.core.model.TableModel;
+package com.github.gentity.core.entities;
 
 /**
  *
- * @author count
+ * @author upachler
  */
-public interface FieldMapping {
+public class EmbeddableInfo {
 	
-	String getFieldName();
-	ColumnModel getColumn();
-	TableModel getTable();
-	String getEnumType();
 }

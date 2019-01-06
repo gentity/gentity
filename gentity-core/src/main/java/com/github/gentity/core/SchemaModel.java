@@ -15,16 +15,21 @@
  */
 package com.github.gentity.core;
 
+import com.github.gentity.core.entities.CollectionTableDecl;
 import com.github.dbsjpagen.config.ConfigurationDto;
 import com.github.dbsjpagen.config.JoinedEntityTableDto;
 import com.github.dbsjpagen.config.RootEntityTableDto;
 import com.github.dbsjpagen.config.SingleTableEntityDto;
 import com.github.dbsjpagen.dbsmodel.ColumnDto;
-import com.github.dbsjpagen.dbsmodel.ForeignKeyDto;
 import com.github.dbsjpagen.dbsmodel.SequenceDto;
 import com.github.dbsjpagen.dbsmodel.TableDto;
+import com.github.gentity.core.entities.EntityInfo;
+import com.github.gentity.core.model.ColumnModel;
+import com.github.gentity.core.model.ForeignKeyModel;
+import com.github.gentity.core.model.TableModel;
 import java.util.List;
 import java.util.function.Function;
+import javax.persistence.GenerationType;
 
 /**
  *
@@ -39,31 +44,29 @@ public interface SchemaModel {
 
 	boolean isTableExcluded(String tableName);
 	
-	ForeignKeyDto findTableForeignKey(String tableName, String foreignKeyName);
+	ForeignKeyModel findTableForeignKey(String tableName, String foreignKeyName);
 	
-	ForeignKeyDto toTableForeignKey(String tableName, String foreignKeyName);
+	ForeignKeyModel toTableForeignKey(String tableName, String foreignKeyName);
 
 	// column specific queries
 	boolean isColumnExcluded(String tableName, String columnName);
 	
-	boolean isColumnPrimaryKey(TableDto table, ColumnDto column);
+	boolean isColumnIgnored(String tableName, String columnName);
+	
+	boolean isColumnPrimaryKey(TableModel table, ColumnModel column);
 	
 	boolean isColumnNullable(ColumnDto column);
 
-	String findPrimaryKeyColumnGeneratorSequence(TableDto table, ColumnDto column);
+	GenerationType findPrimaryKeyColumnGenerationStrategy(TableModel table, ColumnModel column);
 	
 	// ----
 	RootEntityTableDto findParentRootEntityTable(SingleTableEntityDto singleTableEntity);
 	
-	List<RootEntityTableDto> getRootEntityDefinitions();
+	List<EntityInfo> getRootEntityDefinitions();
 	
-	List<TableDto> getTables();
+	TableModel findTable(String name);
 	
-	TableDto findTable(String name);
-	
-	TableDto toTable(String name);
-	
-	List<String> getPrimaryKeySequenceGeneratorNames(String tableName);
+	TableModel toTable(String name);
 	
 	SequenceDto getSequence(String sequenceName);
 	
@@ -72,8 +75,6 @@ public interface SchemaModel {
 	List<ChildTableRelation> getChildTableRelations();
 
 	List<JoinTableRelation> getJoinTableRelations();
-
-	List<ForeignKeyColumn> findForeignKeyColumns(TableDto table, String foreignKeyName);
 
 	ConfigurationDto findClassOptions(String name);
 

@@ -13,19 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.fields;
+package com.github.gentity.core.model;
 
-import com.github.gentity.core.model.ColumnModel;
-import com.github.gentity.core.model.TableModel;
+import com.github.gentity.core.model.util.ArrayListTableColumnGroup;
+import java.util.Collection;
 
 /**
  *
  * @author count
  */
-public interface FieldMapping {
+public interface TableColumnGroup<T extends ColumnModel> extends Collection<T>{
+	public default T findColumn(String name) {
+		return stream()
+			.filter(c -> name.equals(c.getName()))
+			.findAny()
+			.orElse(null);
+	}
 	
-	String getFieldName();
-	ColumnModel getColumn();
-	TableModel getTable();
-	String getEnumType();
+	public static <T extends ColumnModel> TableColumnGroup<T> of(Collection<T> c) {
+		return new ArrayListTableColumnGroup<>(c);
+	}
 }
+

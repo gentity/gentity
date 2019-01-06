@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.fields;
+package com.github.gentity.core.entities;
 
+import com.github.gentity.core.fields.FieldColumnSource;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.TableModel;
 
@@ -22,38 +23,10 @@ import com.github.gentity.core.model.TableModel;
  *
  * @author count
  */
-class DefaultColumnFieldMapping implements FieldMapping {
-	
-	private final TableModel table;
-	private final ColumnModel column;
-	private final String fieldName;
-	private final String enumType;
+public class SingleTableRootEntityInfo extends RootEntityInfo<SingleTableSubEntityInfo>{
 
-	DefaultColumnFieldMapping(TableModel table, ColumnModel col, String fieldName, String enumType) {
-		this.table = table;
-		this.column = col;
-		this.fieldName = fieldName;
-		this.enumType = enumType;
-	}
-
-	@Override
-	public String getFieldName() {
-		return fieldName;
-	}
-
-	@Override
-	public ColumnModel getColumn() {
-		return column;
-	}
-
-	@Override
-	public TableModel getTable() {
-		return table;
-	}
-
-	@Override
-	public String getEnumType() {
-		return enumType;
+	public SingleTableRootEntityInfo(TableModel table, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, ColumnModel discriminatorColumn, String discriminatorValue) {
+		super(table, fieldColumnSource, parentEntityInfo, discriminatorColumn, discriminatorValue);
 	}
 	
 }

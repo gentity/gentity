@@ -13,19 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.fields;
+package com.github.gentity.core.model.util;
 
 import com.github.gentity.core.model.ColumnModel;
-import com.github.gentity.core.model.TableModel;
+import com.github.gentity.core.model.IndexModel;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  *
- * @author count
+ * @author upachler
  */
-public interface FieldMapping {
+public class ArrayListIndexModel extends ArrayList<ColumnModel> implements IndexModel{
+
+	private final boolean unique;
+
+	public ArrayListIndexModel(boolean unique) {
+		this(unique, Collections.EMPTY_LIST);
+	}
+
+	public ArrayListIndexModel(boolean unique, Collection<? extends ColumnModel> c) {
+		super(c);
+		this.unique = unique;
+	}
+
+	public boolean isUnique() {
+		return unique;
+	}
 	
-	String getFieldName();
-	ColumnModel getColumn();
-	TableModel getTable();
-	String getEnumType();
 }

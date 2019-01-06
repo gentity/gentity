@@ -18,7 +18,7 @@ package com.github.gentity.core.fields;
 import com.github.dbsjpagen.config.RootEntityTableDto;
 import com.github.dbsjpagen.config.SingleTableEntityDto;
 import com.github.dbsjpagen.config.TableFieldDto;
-import com.github.dbsjpagen.dbsmodel.TableDto;
+import com.github.gentity.core.model.TableModel;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -34,16 +34,16 @@ public class SingleTableRootFieldColumnSource extends AbstractFieldColumnSource{
 
 	private final List<FieldMapping> mappings;
 
-	public SingleTableRootFieldColumnSource(TableDto table, RootEntityTableDto root) {
+	public SingleTableRootFieldColumnSource(TableModel table, RootEntityTableDto root) {
 		mappings = calculateMappings(table, root);
 	}
 	
-	private List<FieldMapping> calculateMappings(TableDto table, RootEntityTableDto root) {
+	private List<FieldMapping> calculateMappings(TableModel table, RootEntityTableDto root) {
 		Set<String> subColNames = new HashSet<>();
 		collectColumnNames(subColNames, root.getSingleTableHierarchy().getEntity());
 		
 		Set<String> rootCols = new HashSet<>(
-			table.getColumn().stream()
+			table.getColumns().stream()
 				.map(c -> c.getName())
 			.collect(toList())
 		);
@@ -51,7 +51,7 @@ public class SingleTableRootFieldColumnSource extends AbstractFieldColumnSource{
 		
 		Map<String,TableFieldDto> fieldMap = root.getField().stream()
 			.collect(Collectors.toMap(TableFieldDto::getColumn, f -> f));
-		return table.getColumn().stream()
+		return table.getColumns().stream()
 			.filter(c -> rootCols.contains(c.getName()))
 			.map(c -> toDefaultColumnFieldMapping(table, c, fieldMap.get(c.getName())))
 			.collect(toList());

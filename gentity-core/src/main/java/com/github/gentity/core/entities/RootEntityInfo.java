@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.fields;
+package com.github.gentity.core.entities;
 
+import com.github.dbsjpagen.dbsmodel.ColumnDto;
+import com.github.gentity.core.fields.FieldColumnSource;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.TableModel;
 
@@ -22,38 +24,17 @@ import com.github.gentity.core.model.TableModel;
  *
  * @author count
  */
-class DefaultColumnFieldMapping implements FieldMapping {
+public abstract class RootEntityInfo<T extends EntityInfo> extends EntityInfo<T> {
 	
-	private final TableModel table;
-	private final ColumnModel column;
-	private final String fieldName;
-	private final String enumType;
+	private final ColumnModel discriminatorColumn;
 
-	DefaultColumnFieldMapping(TableModel table, ColumnModel col, String fieldName, String enumType) {
-		this.table = table;
-		this.column = col;
-		this.fieldName = fieldName;
-		this.enumType = enumType;
-	}
-
-	@Override
-	public String getFieldName() {
-		return fieldName;
-	}
-
-	@Override
-	public ColumnModel getColumn() {
-		return column;
-	}
-
-	@Override
-	public TableModel getTable() {
-		return table;
-	}
-
-	@Override
-	public String getEnumType() {
-		return enumType;
+	public RootEntityInfo(TableModel table, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, ColumnModel discriminatorColumn, String discriminatorValue) {
+		super(table, table, fieldColumnSource, parentEntityInfo, discriminatorValue);
+		this.discriminatorColumn = discriminatorColumn;
 	}
 	
+	
+	public ColumnModel getDiscriminatorColumn() {
+		return discriminatorColumn;
+	}
 }
