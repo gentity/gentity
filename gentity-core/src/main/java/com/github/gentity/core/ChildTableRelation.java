@@ -15,12 +15,12 @@
  */
 package com.github.gentity.core;
 
-import com.github.dbsjpagen.dbsmodel.ColumnDto;
 import com.github.dbsjpagen.dbsmodel.ForeignKeyColumnDto;
-import com.github.dbsjpagen.dbsmodel.ForeignKeyDto;
-import com.github.dbsjpagen.dbsmodel.IndexUniqueDto;
-import com.github.dbsjpagen.dbsmodel.TableDto;
 import static com.github.gentity.core.ChildTableRelation.Directionality.BIDIRECTIONAL;
+import com.github.gentity.core.model.ColumnModel;
+import com.github.gentity.core.model.ForeignKeyModel;
+import com.github.gentity.core.model.IndexModel;
+import com.github.gentity.core.model.TableModel;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  */
 public class ChildTableRelation extends Relation{
 	
-	private final ForeignKeyDto foreignKey;
+	private final ForeignKeyModel foreignKey;
 	private final Kind kind;
 	private final String owningEntityName;
 	private final String inverseEntityName;
@@ -59,11 +59,11 @@ public class ChildTableRelation extends Relation{
 		}
 	}
 	
-	public ChildTableRelation(TableDto table, ForeignKeyDto foreignKey, Directionality directionality) {
+	public ChildTableRelation(TableModel table, ForeignKeyModel foreignKey, Directionality directionality) {
 		this(deriveKind(table, foreignKey, directionality), table, foreignKey, null, null);
 	}
 	
-	public ChildTableRelation(Kind kind, TableDto table, ForeignKeyDto foreignKey, String owningEntityName, String inverseEntityName) {
+	public ChildTableRelation(Kind kind, TableModel table, ForeignKeyModel foreignKey, String owningEntityName, String inverseEntityName) {
 		super(table);
 		this.kind = kind;
 		this.foreignKey = foreignKey;
@@ -75,7 +75,7 @@ public class ChildTableRelation extends Relation{
 		return kind;
 	}
 	
-	public ForeignKeyDto getForeignKey() {
+	public ForeignKeyModel getForeignKey() {
 		return foreignKey;
 	}
 
@@ -87,14 +87,14 @@ public class ChildTableRelation extends Relation{
 		return inverseEntityName;
 	}
 	
-	public static Kind deriveKind(TableDto table, ForeignKeyDto foreignKey, Directionality directionality) {
-		Set<String> fkColNames = foreignKey.getFkColumn().stream()
-			.map(ForeignKeyColumnDto::getName)
+	public static Kind deriveKind(TableModel table, ForeignKeyModel foreignKey, Directionality directionality) {
+		Set<String> fkColNames = foreignKey.getColumns().stream()
+			.map(ColumnModel::getName)
 			.collect(Collectors.toSet());
-		boolean isOneToOne = table.getIndex().stream()
-			.filter(idx -> IndexUniqueDto.UNIQUE.equals(idx.getUnique()))
-			.map(idx -> idx.getColumn().stream()
-				.map(ColumnDto::getName)
+		boolean isOneToOne = table.getIndices().stream()
+			.filter(IndexModel::isUnique)
+			.map(idx -> idx.stream()
+				.map(ColumnModel::getName)
 				.collect(Collectors.toSet())
 			)
 			.anyMatch(fkColNames::equals);
