@@ -774,6 +774,13 @@ public class SchemaModelImpl implements SchemaModel {
 			.map(ConfigurationDto::getExtends)
 			.orElse(null);
 	}
+
+	@Override
+	public List<String> getDefaultImplements() {
+		return Optional.ofNullable(cfg.getConfiguration())
+			.map(ConfigurationDto::getImplements)
+			.orElse(null);
+	}
 	
 	@Override
 	public TableModel toTable(String name) {

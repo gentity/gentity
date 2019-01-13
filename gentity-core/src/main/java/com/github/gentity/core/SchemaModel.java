@@ -77,6 +77,12 @@ public interface SchemaModel {
 	 * (which sets the base class), or {@code null} if none is configured.
 	 */
 	String getDefaultExtends();
+
+	/**
+	 * @return The default value for an entity declaration's 'implements' attribute
+	 * (which sets the interfaces that a generated class should implement
+	 */
+	List<String> getDefaultImplements();
 	
 	List<ChildTableRelation> getChildTableRelations();
 

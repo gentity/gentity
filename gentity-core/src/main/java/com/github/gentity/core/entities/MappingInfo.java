@@ -18,6 +18,8 @@ package com.github.gentity.core.entities;
 import com.github.dbsjpagen.config.ConfigurationDto;
 import com.github.gentity.core.fields.FieldColumnSource;
 import com.github.gentity.core.model.TableModel;
+import java.util.List;
+import java.util.Optional;
 
 /**
  *
@@ -60,6 +62,12 @@ public abstract class MappingInfo {
 		return configDto != null
 			?	configDto.getExtends()
 			:	null;
+	}
+	
+	public List<String> getImplements() {
+		return Optional.ofNullable(configDto)
+			.map(ConfigurationDto::getImplements)
+			.orElse(null);
 	}
 
 	public String getClassNameSuffix() {
