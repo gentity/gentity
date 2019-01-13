@@ -15,7 +15,7 @@
  */
 package com.github.gentity.core.entities;
 
-import com.github.dbsjpagen.dbsmodel.ColumnDto;
+import com.github.dbsjpagen.config.ConfigurationDto;
 import com.github.gentity.core.fields.FieldColumnSource;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.TableModel;
@@ -28,8 +28,8 @@ public abstract class RootEntityInfo<T extends EntityInfo> extends EntityInfo<T>
 	
 	private final ColumnModel discriminatorColumn;
 
-	public RootEntityInfo(TableModel table, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, ColumnModel discriminatorColumn, String discriminatorValue) {
-		super(table, table, fieldColumnSource, parentEntityInfo, discriminatorValue);
+	public RootEntityInfo(TableModel table, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, ColumnModel discriminatorColumn, String discriminatorValue, ConfigurationDto configDto) {
+		super(table, table, fieldColumnSource, parentEntityInfo, discriminatorValue, configDto);
 		this.discriminatorColumn = discriminatorColumn;
 	}
 	

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 The Gentity Project. All rights reserved.
+ * Copyright 2019 The Gentity Project. All rights reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.entities;
-
-import com.github.dbsjpagen.config.ConfigurationDto;
-import com.github.gentity.core.fields.FieldColumnSource;
-import com.github.gentity.core.model.TableModel;
+package com.github.gentity.test.test6a_inheritance_basic_tables;
 
 /**
- *
- * @author upachler
+ * An empty base class
+ * @author count
  */
-public class PlainEntityInfo extends EntityInfo<EntityInfo>{
-	
-	public PlainEntityInfo(TableModel table, FieldColumnSource fieldColumnSource, ConfigurationDto configDto) {
-		super(table, fieldColumnSource, null, null, configDto);
-	}
+public class VehicleBase {
 	
 }

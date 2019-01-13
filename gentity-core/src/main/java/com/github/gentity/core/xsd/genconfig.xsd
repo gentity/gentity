@@ -38,15 +38,25 @@ limitations under the License.
 
 	<xs:complexType name="Configuration">
 		<xs:sequence>
-			<xs:element name='extends' type='tns:Extends' minOccurs="0" maxOccurs='1'/>
 			<xs:element name='implements' type='tns:Implements' minOccurs="0" maxOccurs='unbounded'/>
 		</xs:sequence>
 		
+		<xs:attribute name='extends' type='tns:FQCN' use="optional"/>
 		<xs:attribute name="classNameSuffix" default="" type="xs:string"/>
 		<xs:attribute name="classNamePrefix" default="" type="xs:string"/>
 		<xs:attribute name="fieldNameSuffix" default="" type="xs:string"/>
 		<xs:attribute name="fieldNamePrefix" default="" type="xs:string"/>
 	</xs:complexType>
+	
+	<xs:simpleType name="FQCN">
+		<xs:annotation>
+			<xs:documentation>Fully Qualified Class Name. A Java class name with package prefix</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="([\p{L}_$][\p{L}\p{N}_$]*\.)*[\p{L}_$][\p{L}\p{N}_$]*"/>
+		</xs:restriction>
+	</xs:simpleType>
+	
 	
 	<xs:complexType name="Exclusion">
 		<xs:attribute name="table" type="xs:string"/>
@@ -198,26 +208,23 @@ limitations under the License.
 		</xs:complexContent>
 	</xs:complexType>
 	<xs:complexType name="SingleTableEntity">
-		<xs:sequence>
-			<xs:element name="collectionTable" type="tns:CollectionTable"  minOccurs='0' maxOccurs='unbounded'/>
-			<xs:element name="oneToOne" type="tns:XToOneRelation" minOccurs='0' maxOccurs='unbounded'/>
-			<xs:element name="manyToOne" type="tns:XToOneRelation" minOccurs='0' maxOccurs='unbounded'/>
-			<xs:element name="field" type="tns:SingleTableField" minOccurs='0' maxOccurs='unbounded'/>
-			<xs:element name="entity" type="tns:SingleTableEntity" minOccurs="0" maxOccurs='unbounded'/>
-		</xs:sequence>
-		<xs:attribute name="name" type="xs:string" use='required'/>
-		<xs:attribute name="discriminator" type="xs:string" use='required'/>
+		<xs:complexContent>
+			<xs:extension base="tns:TableConfiguration">
+				<xs:sequence>
+					<xs:element name="collectionTable" type="tns:CollectionTable"  minOccurs='0' maxOccurs='unbounded'/>
+					<xs:element name="oneToOne" type="tns:XToOneRelation" minOccurs='0' maxOccurs='unbounded'/>
+					<xs:element name="manyToOne" type="tns:XToOneRelation" minOccurs='0' maxOccurs='unbounded'/>
+					<xs:element name="entity" type="tns:SingleTableEntity" minOccurs="0" maxOccurs='unbounded'/>
+				</xs:sequence>
+				<xs:attribute name="name" type="xs:string" use='required'/>
+				<xs:attribute name="discriminator" type="xs:string" use='required'/>
+			</xs:extension>
+		</xs:complexContent>
 	</xs:complexType>
 	
 	<xs:complexType name="TableField">
 		<xs:attribute name="enumType" type="xs:string"/>
 		<xs:attribute name="column" type="xs:string"/>
 		<xs:attribute name="name" type="xs:string"/>
-	</xs:complexType>
-	<xs:complexType name="SingleTableField">
-		<xs:complexContent>
-			<xs:extension base="tns:TableField">
-			</xs:extension>
-		</xs:complexContent>
 	</xs:complexType>
 </xs:schema>

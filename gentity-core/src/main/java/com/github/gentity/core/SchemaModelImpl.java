@@ -36,9 +36,9 @@ import com.github.dbsjpagen.config.JoinedEntityTableDto;
 import com.github.dbsjpagen.config.MappingConfigDto;
 import com.github.dbsjpagen.config.RootEntityTableDto;
 import com.github.dbsjpagen.config.SingleTableEntityDto;
-import com.github.dbsjpagen.config.SingleTableFieldDto;
 import com.github.dbsjpagen.config.SingleTableHierarchyDto;
 import com.github.dbsjpagen.config.TableConfigurationDto;
+import com.github.dbsjpagen.config.TableFieldDto;
 import com.github.dbsjpagen.config.XToOneRelationDto;
 import com.github.dbsjpagen.dbsmodel.ColumnDto;
 import com.github.dbsjpagen.dbsmodel.ForeignKeyColumnDto;
@@ -128,7 +128,7 @@ public class SchemaModelImpl implements SchemaModel {
 				ei = buildSingleTableHierarchy(et, databaseSchemaModel);
 			} else {
 				TableModel table = databaseSchemaModel.getTable(et.getTable());
-				ei = new PlainEntityInfo(table, new PlainTableFieldColumnSource(table, et));
+				ei = new PlainEntityInfo(table, new PlainTableFieldColumnSource(table, et), et);
 				buildCollectionTableDecls(ei, et.getCollectionTable(), databaseSchemaModel);
 			}
 			entityInfos.add(ei);
@@ -170,7 +170,7 @@ public class SchemaModelImpl implements SchemaModel {
 				.collect(Collectors.toSet());
 		defaultEntityMappedTables
 			.forEach(t -> {
-				entityInfos.add(new PlainEntityInfo(t, new PlainTableFieldColumnSource(t)));
+				entityInfos.add(new PlainEntityInfo(t, new PlainTableFieldColumnSource(t), null));
 			});
 		tablesToMap.removeAll(defaultEntityMappedTables);
 		
@@ -254,7 +254,7 @@ public class SchemaModelImpl implements SchemaModel {
 		}
 		
 		String dval = rt.getJoinedHierarchy().getRoot().getDiscriminator();
-		JoinedRootEntityInfo rootEInfo = new JoinedRootEntityInfo(rootTable, new PlainTableFieldColumnSource(rootTable, rt), null, dcol, dval);
+		JoinedRootEntityInfo rootEInfo = new JoinedRootEntityInfo(rootTable, new PlainTableFieldColumnSource(rootTable, rt), null, dcol, dval, rt);
 		buildCollectionTableDecls(rootEInfo, rt.getCollectionTable(), dm);
 		
 		buildJoinedHierarchySubentities(rootTable, rt, rootEInfo, rt.getJoinedHierarchy().getEntityTable(), dm);
@@ -289,7 +289,7 @@ public class SchemaModelImpl implements SchemaModel {
 			if(!fk.getTargetTable().equals(parentEntityInfo.getTable())) {
 				throw new RuntimeException(String.format("specified foreign key %s of table %s refers to table %s, but the supertable is %s", fk.getName(), subTable.getTable(), fk.getTargetTable().getName(), parent.getTable()));
 			}
-			EntityInfo einfo = new JoinedSubEntityInfo(table, rootTable, new PlainTableFieldColumnSource(table, subTable), parentEntityInfo, fk, subTable.getDiscriminator());
+			EntityInfo einfo = new JoinedSubEntityInfo(table, rootTable, new PlainTableFieldColumnSource(table, subTable), parentEntityInfo, fk, subTable.getDiscriminator(), subTable);
 			buildCollectionTableDecls(einfo, subTable.getCollectionTable(), dm);
 			buildJoinedHierarchySubentities(rootTable, subTable, einfo, subTable.getEntityTable(), dm);
 		}
@@ -305,7 +305,7 @@ public class SchemaModelImpl implements SchemaModel {
 		}
 		String dval = h.getRoot().getDiscriminator();
 		checkEachFieldOnlyOnce(rootTable, h.getEntity());
-		SingleTableRootEntityInfo einfo = new SingleTableRootEntityInfo(rootTable, new SingleTableRootFieldColumnSource(rootTable, rootEntity), null, dcol, dval);
+		SingleTableRootEntityInfo einfo = new SingleTableRootEntityInfo(rootTable, new SingleTableRootFieldColumnSource(rootTable, rootEntity), null, dcol, dval, rootEntity);
 		
 		buildSingleTableChildEntities(rootTable, einfo, h.getEntity(), dm);
 		buildCollectionTableDecls(einfo, rootEntity.getCollectionTable(), dm);
@@ -315,7 +315,7 @@ public class SchemaModelImpl implements SchemaModel {
 	private void buildSingleTableChildEntities(TableModel rootTable, EntityInfo parentEntityInfo, List<SingleTableEntityDto> entities, DatabaseModel dm) {
 		for(SingleTableEntityDto entity : entities) {
 			String dval = entity.getDiscriminator();
-			EntityInfo einfo = new SingleTableSubEntityInfo(entity.getName(), rootTable, new SingleTableFieldColumnSource(rootTable, entity), parentEntityInfo, dval);
+			EntityInfo einfo = new SingleTableSubEntityInfo(entity.getName(), rootTable, new SingleTableFieldColumnSource(rootTable, entity), parentEntityInfo, dval, entity);
 			buildSingleTableChildEntities(rootTable, einfo, entity.getEntity(), dm);
 			buildCollectionTableDecls(einfo, entity.getCollectionTable(), dm);
 		}
@@ -341,7 +341,7 @@ public class SchemaModelImpl implements SchemaModel {
 	
 	private void checkEachFieldOnlyOnceImpl(TableModel table, Set<String> colSet, Set<String> usedColNames, List<SingleTableEntityDto> entities) {
 		for(SingleTableEntityDto entity : entities) {
-			for(SingleTableFieldDto f : entity.getField()) {
+			for(TableFieldDto f : entity.getField()) {
 				if(!colSet.contains(f.getColumn())) {
 					throw new RuntimeException(String.format("Specified field column %s does not exist in table %s", f.getColumn(), table.getName()));
 				}
@@ -766,6 +766,13 @@ public class SchemaModelImpl implements SchemaModel {
 	@Override
 	public String getTargetPackageName() {
 		return cfg.getTargetPackageName();
+	}
+
+	@Override
+	public String getDefaultExtends() {
+		return Optional.ofNullable(cfg.getConfiguration())
+			.map(ConfigurationDto::getExtends)
+			.orElse(null);
 	}
 	
 	@Override

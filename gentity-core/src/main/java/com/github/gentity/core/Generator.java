@@ -288,13 +288,27 @@ public class Generator {
 			.anyMatch(au -> au.getAnnotationClass().equals(cm.ref(Entity.class)));
 	}
 	
-	private JDefinedClass genEntityClass(JPackage p, String nameCandidate, JClass superClass, EntityInfo einfo) throws JClassAlreadyExistsException {
+	private JDefinedClass genEntityClass(JPackage p, String nameCandidate, JDefinedClass superClassEntity, EntityInfo einfo) throws JClassAlreadyExistsException {
 		JClass serializableClass = cm.ref(Serializable.class);
 			
 		JDefinedClass cls = p._class(JMod.PUBLIC, toClassName(p, nameCandidate));
-		if(superClass!=null) {
-			cls._extends(superClass);
+		
+		JClass effectiveSuperClass;
+		if(einfo.getExtends() != null) {
+			if(superClassEntity != null) {
+				throw new IllegalArgumentException(String.format("entity class %s has a superclass entity %s in conflict with a declared superclass %s", cls.name(), superClassEntity.name(), einfo.getExtends()));
+			}
+			effectiveSuperClass = cm.ref(einfo.getExtends());
+		} else if(sm.getDefaultExtends() != null && superClassEntity == null) {
+			effectiveSuperClass = cm.ref(sm.getDefaultExtends());
+		} else {
+			effectiveSuperClass = superClassEntity;
 		}
+		
+		if(effectiveSuperClass != null) {
+			cls._extends(effectiveSuperClass);
+		}
+		
 		cls.annotate(Entity.class);
 		TableModel table = einfo.getTable();
 		if(table != null) {
@@ -408,7 +422,7 @@ public class Generator {
 		genJoinedHierarchySubentities(rootTable, pakkage, rootEInfo, rootClass);
 	}
 	
-	private void genJoinedHierarchySubentities(TableModel rootTable, JPackage pakkage, EntityInfo<JoinedSubEntityInfo> parentEntityInfo, JClass superclassEntity) throws JClassAlreadyExistsException {
+	private void genJoinedHierarchySubentities(TableModel rootTable, JPackage pakkage, EntityInfo<JoinedSubEntityInfo> parentEntityInfo, JDefinedClass superclassEntity) throws JClassAlreadyExistsException {
 		for(JoinedSubEntityInfo einfo : parentEntityInfo.getChildren()) {
 			
 			ForeignKeyModel fk = einfo.getJoiningForeignKey();

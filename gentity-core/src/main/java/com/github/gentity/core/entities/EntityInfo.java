@@ -15,6 +15,7 @@
  */
 package com.github.gentity.core.entities;
 
+import com.github.dbsjpagen.config.ConfigurationDto;
 import com.github.gentity.core.fields.FieldColumnSource;
 import com.github.gentity.core.model.TableModel;
 import java.util.ArrayList;
@@ -34,12 +35,12 @@ public abstract class EntityInfo<T extends EntityInfo> extends MappingInfo {
 	private final List<CollectionTableDecl> collectionTables = new ArrayList<>();
 
 
-	public EntityInfo(TableModel table, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, String discriminatorValue) {
-		this(table, table, fieldColumnSource, parentEntityInfo, discriminatorValue);
+	public EntityInfo(TableModel table, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, String discriminatorValue, ConfigurationDto configDto) {
+		this(table, table, fieldColumnSource, parentEntityInfo, discriminatorValue, configDto);
 	}
 	
-	public EntityInfo(TableModel table, TableModel baseTable, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, String discriminatorValue) {
-		super(fieldColumnSource, table);
+	public EntityInfo(TableModel table, TableModel baseTable, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, String discriminatorValue, ConfigurationDto configDto) {
+		super(fieldColumnSource, table, configDto);
 		this.baseTable = baseTable;
 		this.parentEntityInfo = parentEntityInfo;
 		if(parentEntityInfo != null) {
@@ -73,5 +74,5 @@ public abstract class EntityInfo<T extends EntityInfo> extends MappingInfo {
 	public String getDiscriminatorValue() {
 		return discriminatorValue;
 	}
-	
+
 }
