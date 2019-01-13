@@ -16,8 +16,13 @@
 package com.github.gentity.test;
 
 import com.github.gentity.test.test6a_inheritance_basic_tables.Car;
+import com.github.gentity.test.test6a_inheritance_basic_tables.Human;
 import com.github.gentity.test.test6a_inheritance_basic_tables.Person;
+import com.github.gentity.test.test6a_inheritance_basic_tables.Taxpayer;
+import com.github.gentity.test.test6a_inheritance_basic_tables.Thing;
 import com.github.gentity.test.test6a_inheritance_basic_tables.VehicleBase;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 /**
@@ -42,6 +47,9 @@ public class Test6a_inheritance_basic_tables  extends AbstractGentityTest {
 		Person planck = em.createNamedQuery(Person.FIND_PERSON_WITH_NAME, Person.class)
 			.setParameter("name", "Planck")
 			.getSingleResult();
+		assertFalse(planck instanceof Thing);
+		assertTrue(planck instanceof Human);
+		assertTrue(planck instanceof Taxpayer);
 		
 		// make sure that the given instance is an instance of Vehicle -
 		// again, this is a compile time check
@@ -49,6 +57,9 @@ public class Test6a_inheritance_basic_tables  extends AbstractGentityTest {
 			.manufacturer("Ford")
 			.model("Fiesta")
 			.build();
+		assertTrue(vehicle instanceof Thing);
+		assertFalse(vehicle instanceof Human);
+		assertFalse(vehicle instanceof Taxpayer);
 	}
 		
 	
