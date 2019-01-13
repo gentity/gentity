@@ -277,6 +277,18 @@
 							<mappingConfigFile>src/main/resources/test5c-element-collection-embeddable-relations.genconfig</mappingConfigFile>
 						</configuration>
 					</execution>
+					<execution>
+						<id>entities-test6a</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<targetPackageName>com.github.gentity.test.test6a_inheritance_basic_tables</targetPackageName>
+							<inputDbsFile>src/main/resources/test6a-inheritance-basic-tables.dbs</inputDbsFile>
+							<mappingConfigFile>src/main/resources/test6a-inheritance-basic-tables.genconfig</mappingConfigFile>
+						</configuration>
+					</execution>
 					
 					
 					<execution>

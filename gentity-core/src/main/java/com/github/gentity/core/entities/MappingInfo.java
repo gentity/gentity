@@ -15,6 +15,7 @@
  */
 package com.github.gentity.core.entities;
 
+import com.github.dbsjpagen.config.ConfigurationDto;
 import com.github.gentity.core.fields.FieldColumnSource;
 import com.github.gentity.core.model.TableModel;
 
@@ -26,10 +27,15 @@ public abstract class MappingInfo {
 
 	protected final FieldColumnSource fieldColumnSource;
 	protected final TableModel table;
+	
+	// NOTE: this reference binds the info to the mapping configuration file model.
+	// We may want to refactor this in the future..
+	protected final ConfigurationDto configDto;
 
-	public MappingInfo(FieldColumnSource fieldColumnSource, TableModel table) {
+	public MappingInfo(FieldColumnSource fieldColumnSource, TableModel table, ConfigurationDto configDto) {
 		this.fieldColumnSource = fieldColumnSource;
 		this.table = table;
+		this.configDto = configDto;
 	}
 
 	
@@ -44,6 +50,40 @@ public abstract class MappingInfo {
 	 */
 	public TableModel getTable() {
 		return table;
+	}
+	
+	/**
+	 * @return superclass name declared for this class, or {@code null} if none
+	 * was declared.
+	 */
+	public String getExtends() {
+		return configDto != null
+			?	configDto.getExtends()
+			:	null;
+	}
+
+	public String getClassNameSuffix() {
+		return configDto != null
+			?	configDto.getClassNameSuffix()
+			:	null;
+	}
+
+	public String getClassNamePrefix() {
+		return configDto != null
+			?	configDto.getClassNamePrefix()
+			:	null;
+	}
+
+	public String getFieldNameSuffix() {
+		return configDto != null
+			?	configDto.getFieldNameSuffix()
+			:	null;
+	}
+
+	public String getFieldNamePrefix() {
+		return configDto != null
+			?	configDto.getFieldNamePrefix()
+			:	null;
 	}
 	
 }

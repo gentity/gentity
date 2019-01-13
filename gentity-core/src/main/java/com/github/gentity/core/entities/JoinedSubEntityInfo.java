@@ -15,6 +15,7 @@
  */
 package com.github.gentity.core.entities;
 
+import com.github.dbsjpagen.config.ConfigurationDto;
 import com.github.gentity.core.fields.FieldColumnSource;
 import com.github.gentity.core.model.ForeignKeyModel;
 import com.github.gentity.core.model.TableModel;
@@ -26,8 +27,8 @@ import com.github.gentity.core.model.TableModel;
 public class JoinedSubEntityInfo extends EntityInfo<JoinedSubEntityInfo>{
 	private final ForeignKeyModel joiningForeignKey;
 
-	public JoinedSubEntityInfo(TableModel table, TableModel baseTable, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, ForeignKeyModel joiningForeignKey, String discriminatorValue) {
-		super(table, baseTable, fieldColumnSource, parentEntityInfo, discriminatorValue);
+	public JoinedSubEntityInfo(TableModel table, TableModel baseTable, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, ForeignKeyModel joiningForeignKey, String discriminatorValue, ConfigurationDto configDto) {
+		super(table, baseTable, fieldColumnSource, parentEntityInfo, discriminatorValue, configDto);
 		this.joiningForeignKey = joiningForeignKey;
 	}
 	

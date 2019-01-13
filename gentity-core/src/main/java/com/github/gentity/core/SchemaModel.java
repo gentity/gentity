@@ -71,7 +71,13 @@ public interface SchemaModel {
 	SequenceDto getSequence(String sequenceName);
 	
 	String getTargetPackageName();
-
+	
+	/**
+	 * @return The default value for an entity declaration's 'extends' attribute
+	 * (which sets the base class), or {@code null} if none is configured.
+	 */
+	String getDefaultExtends();
+	
 	List<ChildTableRelation> getChildTableRelations();
 
 	List<JoinTableRelation> getJoinTableRelations();
