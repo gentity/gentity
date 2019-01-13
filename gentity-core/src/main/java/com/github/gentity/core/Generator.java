@@ -309,6 +309,19 @@ public class Generator {
 			cls._extends(effectiveSuperClass);
 		}
 		
+		List<String> effectiveSuperInterfaceNames;
+		if(einfo.getImplements() != null) {
+			effectiveSuperInterfaceNames = einfo.getImplements();
+		} else {
+			effectiveSuperInterfaceNames = sm.getDefaultImplements();
+		}
+		
+		if(effectiveSuperInterfaceNames != null) {
+			for(String ifname : effectiveSuperInterfaceNames) {
+				cls._implements(cm.ref(ifname));
+			}
+		}
+		
 		cls.annotate(Entity.class);
 		TableModel table = einfo.getTable();
 		if(table != null) {

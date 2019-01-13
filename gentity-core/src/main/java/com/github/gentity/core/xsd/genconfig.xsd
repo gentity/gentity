@@ -37,11 +37,12 @@ limitations under the License.
 	</xs:complexType>
 
 	<xs:complexType name="Configuration">
-		<xs:sequence>
-			<xs:element name='implements' type='tns:Implements' minOccurs="0" maxOccurs='unbounded'/>
-		</xs:sequence>
-		
 		<xs:attribute name='extends' type='tns:FQCN' use="optional"/>
+		<xs:attribute name='implements' use="optional">
+			<xs:simpleType>
+				<xs:list itemType="tns:FQCN"/>
+			</xs:simpleType>
+		</xs:attribute>
 		<xs:attribute name="classNameSuffix" default="" type="xs:string"/>
 		<xs:attribute name="classNamePrefix" default="" type="xs:string"/>
 		<xs:attribute name="fieldNameSuffix" default="" type="xs:string"/>
