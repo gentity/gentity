@@ -25,6 +25,10 @@ limitations under the License.
 	>
 	<configuration
 		extends='com.github.gentity.test.test6a_inheritance_basic_tables.GeneralBase'
+		implements='
+			com.github.gentity.test.test6a_inheritance_basic_tables.Taxpayer
+			com.github.gentity.test.test6a_inheritance_basic_tables.Human
+		'
 	/>
 	
 	<!--
@@ -35,5 +39,8 @@ limitations under the License.
 	<!--
 	NOTE: For table 'CAR', we override the default extends with a local setting
 	-->
-	<entityTable table='CAR' extends='com.github.gentity.test.test6a_inheritance_basic_tables.VehicleBase'/>
+	<entityTable table='CAR' 
+		extends='com.github.gentity.test.test6a_inheritance_basic_tables.VehicleBase'
+		implements='com.github.gentity.test.test6a_inheritance_basic_tables.Thing'
+	/>
 </mappingConfig>
