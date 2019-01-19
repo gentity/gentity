@@ -26,3 +26,5 @@ hs_err_pid*
 /gentity-test/target/
 /gentity-core/nbproject/
 /target/
+/gentity-lib/nbproject/
+/gentity-lib/target/

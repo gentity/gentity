@@ -11,6 +11,7 @@
 		<module>gentity-test</module>
 		<module>gentity-maven-plugin</module>
 		<module>gentity-core</module>
+		<module>gentity-lib</module>
 	</modules>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
