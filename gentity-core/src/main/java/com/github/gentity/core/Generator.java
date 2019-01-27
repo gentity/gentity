@@ -90,7 +90,6 @@ import com.github.gentity.core.util.Tuple;
 import java.lang.annotation.Annotation;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Optional;
 import javax.persistence.Lob;
 import java.util.function.Function;
 import java.util.function.Supplier;

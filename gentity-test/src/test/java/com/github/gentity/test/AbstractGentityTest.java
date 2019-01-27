@@ -16,6 +16,8 @@
 package com.github.gentity.test;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -106,10 +108,35 @@ public class AbstractGentityTest {
 	}
 
 	protected boolean hasClassDeclaredField(Class clazz, String fieldName) {
+		return hasClassDeclaredField(clazz, null, fieldName);
+	}
+	
+	protected boolean hasClassDeclaredField(Class clazz, Class fieldType, String fieldName) {
 		try {
-			clazz.getDeclaredField(fieldName);
-			return true;
+			Field f = clazz.getDeclaredField(fieldName);
+			if(fieldType != null) {
+				return f.getType().equals(fieldType);
+			} else {
+				return true;
+			}
 		} catch (NoSuchFieldException nsfx) {
+			return false;
+		}
+	}
+	
+
+	protected boolean hasClassDeclaredMethod(Class clazz, String fieldName, Class... paramTypes) {
+		return hasClassDeclaredMethod(clazz, null, fieldName, paramTypes);
+	}
+	
+	protected boolean hasClassDeclaredMethod(Class clazz, Class returnType, String fieldName, Class... paramTypes) {
+		try {
+			Method m = clazz.getDeclaredMethod(fieldName, paramTypes);
+			if(returnType != null) {
+				return m.getReturnType().equals(returnType);
+			}
+			return true;
+		} catch (NoSuchMethodException nsmx) {
 			return false;
 		}
 	}
