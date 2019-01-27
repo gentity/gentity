@@ -161,8 +161,7 @@ class AccessorGenerator {
 	}
 
 	private boolean isGeneratedValueColumnField(JFieldVar field) {
-		return annotationUseFor(field, Id.class)
-			.flatMap(au -> annotationUseFor(field, GeneratedValue.class))
+		return annotationUseFor(field, GeneratedValue.class)
 			.isPresent();
 	}
 	

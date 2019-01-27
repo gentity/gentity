@@ -16,7 +16,7 @@
 package com.github.gentity.test;
 
 import com.github.gentity.test.test0b_basic_table_sequence.Person;
-import org.junit.Assert;
+import static org.junit.Assert.*;
 import org.junit.Test;
 
 /**
@@ -28,6 +28,11 @@ public class Test0b_basic_table_sequence extends AbstractGentityTest {
 	
 	@Test
 	public void test() {
+		// check that id field is handled correctly
+		assertTrue(hasClassDeclaredField(Person.class, long.class, "id"));
+		assertTrue(hasClassDeclaredMethod(Person.class, long.class, "getId"));
+		assertFalse(hasClassDeclaredMethod(Person.class, void.class, "setId", long.class));
+		
 		em.persist(
 			Person.builder()
 			.firstname("Albert")
@@ -52,7 +57,6 @@ public class Test0b_basic_table_sequence extends AbstractGentityTest {
 		Person p = em.createQuery("SELECT p FROM Person p WHERE p.firstname='Max'", Person.class)
 			.getSingleResult();
 		
-		Assert.assertEquals("Planck", p.getSurname());
-			
+		assertEquals("Planck", p.getSurname());
 	}
 }
