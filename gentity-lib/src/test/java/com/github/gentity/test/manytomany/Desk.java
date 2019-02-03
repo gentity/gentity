@@ -15,7 +15,6 @@
  */
 package com.github.gentity.test.manytomany;
 
-import com.github.gentity.test.onetomany.*;
 import com.github.gentity.test.NamedObject;
 import com.github.gentity.ToManySide;
 import java.util.ArrayList;
@@ -29,19 +28,13 @@ import java.util.List;
 public class Desk extends NamedObject {
 	
 	private List<Employee> employees = new ArrayList();
-	static final ToManySide<Desk,Employee> employees$relation = new ToManySide<>(o -> o.employees);
-
-	static
-	{
-		employees$relation.setOther(Employee.desks$relation);
-		Employee.desks$relation.setOther(employees$relation);
-	}
+	static final ToManySide<Desk,List<Employee>,Employee> relationTo$employees = ToManySide.of(o -> o.employees, Employee.relationTo$desks);
 
 	public Desk(String name) {
 		super(name);
 	}
 
 	public List<Employee> getEmployees() {
-		return employees$relation.wrap(employees, this);
+		return relationTo$employees.get(this);
 	}
 }

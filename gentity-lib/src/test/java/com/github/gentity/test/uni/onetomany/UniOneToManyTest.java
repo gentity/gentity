@@ -13,29 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.test.onetomany;
+package com.github.gentity.test.uni.onetomany;
 
-import com.github.gentity.test.NamedObject;
-import com.github.gentity.ToOneSide;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  *
  * @author count
  */
-public class FurniturePiece extends NamedObject {
-	
-	private Room room;
-	static final ToOneSide<FurniturePiece,Room> relationTo$room = ToOneSide.of(m -> m.room, (m,o) -> m.room = o, Room.relationTo$furniture);
-	
-	public FurniturePiece(String name) {
-		super(name);
-	}
-	
-	public Room getRoom() {
-		return relationTo$room.get(this);
-	}
-	
-	public void setRoom(Room room) {
-		relationTo$room.set(this, room);
+public class UniOneToManyTest {
+
+	@Test
+	public void test() {
+		House h = new House("our house");
+		
+		Inhabitant john = new Inhabitant("John");
+		
+		john.setHouse(h);
+		Assert.assertSame(h, john.getHouse());
 	}
 }

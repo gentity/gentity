@@ -22,32 +22,60 @@ import java.util.function.Function;
  *
  * @author count
  */
-public class ToOneSide<T,O> extends RelationSideBase<T, O> implements RelationSide<T, O>{
+public class ToOneSide<T,O> extends RelationSide<T, O>{
 	
 	final Function<T,O> getter;
 	final BiConsumer<T,O> setter;
 
-	public ToOneSide(Function<T, O> getter, BiConsumer<T, O> setter) {
+	private ToOneSide(Function<T, O> getter, BiConsumer<T, O> setter) {
 		this.getter = getter;
 		this.setter = setter;
 	}
 	
+	public static <T,O> ToOneSide<T,O> of(Function<T, O> getter, BiConsumer<T, O> setter, RelationSide<O, T> otherSide) {
+		ToOneSide<T, O> instance = of(getter, setter);
+		instance.connect(otherSide);
+		return instance;
+	}
+	
+	public static <T,O> ToOneSide<T,O> of(Function<T, O> getter, BiConsumer<T, O> setter) {
+		return new ToOneSide<>(getter, setter);
+	}
 	
 	@Override
-	public final void bind(T thisSide, O otherSide) {
+	public final RelationSide<T,O> bind(T thisSide, O otherSide) {
 		setter.accept(thisSide, otherSide);
+		return this;
 	}
 
 	@Override
-	public final void unbind(T thisSide, O otherSide) {
-		if(bound(thisSide, otherSide)) {
-			setter.accept(thisSide, null);
-		}
+	public final RelationSide<T,O> unbind(T thisSide, O otherSide) {
+		setter.accept(thisSide, null);
+		return this;
 	}
 
-	@Override
-	public final boolean bound(T thisSide, O otherSide) {
-		return getter.apply(thisSide) == otherSide;
+	/**
+	 * Getter variant for {@link ToOneSide}, single-valued association
+	 * @param host
+	 * @return 
+	 */
+	public O get(T host) {
+		return getter.apply(host);
 	}
 	
+	/**
+	 * For {@link ToOneSide}, there is a standard setter implementation
+	 * @param host
+	 * @param otherSide 
+	 */
+	public void set(T host, O otherSide) {
+		if(getOther() != null) {
+			getOther()
+			.unbind(getter.apply(host), host)
+			.bind(otherSide, host);
+		}
+		
+		// update this side: rebind
+		setter.accept(host, otherSide);
+	}
 }

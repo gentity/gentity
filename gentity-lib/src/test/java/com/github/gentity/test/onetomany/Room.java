@@ -28,19 +28,13 @@ import java.util.List;
 public class Room extends NamedObject {
 	
 	private List<FurniturePiece> furniture = new ArrayList();
-	static final ToManySide<Room,FurniturePiece> furniture$relation = new ToManySide<>(o -> o.furniture);
-
-	static
-	{
-		furniture$relation.setOther(FurniturePiece.room$relation);
-		FurniturePiece.room$relation.setOther(furniture$relation);
-	}
+	static final ToManySide<Room,List<FurniturePiece>,FurniturePiece> relationTo$furniture = ToManySide.of(o -> o.furniture, FurniturePiece.relationTo$room);
 
 	public Room(String name) {
 		super(name);
 	}
 
 	public List<FurniturePiece> getFurniture() {
-		return furniture$relation.wrap(furniture, this);
+		return relationTo$furniture.get(this);
 	}
 }
