@@ -27,19 +27,13 @@ import java.util.List;
 public class Employee extends NamedObject {
 	
 	private List<Desk> desks = new ArrayList();
-	static final ToManySide<Employee, Desk> desks$relation = new ToManySide<>(o -> o.desks);
-
-	static
-	{
-		desks$relation.setOther(Desk.employees$relation);
-		Desk.employees$relation.setOther(desks$relation);
-	}
+	static final ToManySide<Employee, List<Desk>, Desk> relationTo$desks = ToManySide.of(o -> o.desks, Desk.relationTo$employees);
 
 	public Employee(String name) {
 		super(name);
 	}
 
 	public List<Desk> getDesks() {
-		return desks$relation.wrap(desks, this);
+		return relationTo$desks.get(this);
 	}
 }

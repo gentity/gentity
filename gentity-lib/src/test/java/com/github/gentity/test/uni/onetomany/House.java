@@ -13,23 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity;
+package com.github.gentity.test.uni.onetomany;
+
+import com.github.gentity.test.NamedObject;
 
 /**
- *
+ * The house is the one side of the relation to inhabitants. However, it
+ * has no association with its inhabitants, rendering the relationship
+ * unidirectional.
  * @author count
  */
-public abstract class RelationSideBase<T,O> implements RelationSide<T, O>{
-	RelationSide<O,T> other;
+public class House extends NamedObject{
 	
-	@Override
-	public void setOther(RelationSide<O,T> other) {
-		this.other = other;
-	}
-	
-	@Override
-	public RelationSide<O,T> getOther() {
-		return other;
+	public House(String name) {
+		super(name);
 	}
 	
 }

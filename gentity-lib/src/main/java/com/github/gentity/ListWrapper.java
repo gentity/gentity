@@ -19,6 +19,8 @@ import java.util.AbstractList;
 import java.util.List;
 
 /**
+ * Wraps a given list instance to intercept calls to add() and remove(), so that
+ * the other side of the relation can be updated
  * @param <E>	element type of the list (other side of the relationship)
  * @param <T>	type of enclosing class (this side of the relationship)
  * @author count

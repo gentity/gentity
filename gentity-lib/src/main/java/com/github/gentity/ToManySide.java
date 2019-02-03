@@ -23,36 +23,58 @@ import java.util.function.Function;
  *
  * @author count
  */
-public class ToManySide<T, O> extends RelationSideBase<T, O> implements RelationSide<T, O>{
+public abstract class ToManySide<T, C extends Collection<O>, O> extends RelationSide<T, O>{
 	
-	final Function<T,? extends Collection<O>> collectionProvider;
+	final Function<T,C> collectionProvider;
 
-	public ToManySide(Function<T, ? extends Collection<O>> collectionProvider) {
+	private ToManySide(Function<T, C> collectionProvider) {
 		this.collectionProvider = collectionProvider;
 	}
 	
+	public static <T,O> ToManySide<T, List<O>, O> of(Function<T, List<O>> listProvider, RelationSide<O, T> other) {
+		ToManySide<T, List<O>, O> instance = of(listProvider);
+		instance.connect(other);
+		return instance;
+	}
+	
+	public static <T,O> ToManySide<T, List<O>, O> of(Function<T, List<O>> listProvider) {
+		return new ToManySide<T, List<O>, O>(listProvider) {
+			@Override
+			public List<O> get(T host) {
+				RelationSide<O,T> other = getOther();
+				if(other != null) {
+					return new ListWrapper(collectionProvider.apply(host), host, getOther());
+				} else {
+					return collectionProvider.apply(host);
+				}
+			}
+		};
+	}
+
+	
 	@Override
-	public void bind(T thisSide, O otherSide) {
+	public RelationSide<T,O> bind(T thisSide, O otherSide) {
+		if(thisSide == null) {
+			// We silently ignore binding to null.
+			return this;
+		}
 		collectionProvider
 			.apply(thisSide)
 			.add(otherSide);
+		return this;
 	}
 
 	@Override
-	public void unbind(T thisSide, O otherSide) {
+	public RelationSide<T,O> unbind(T thisSide, O otherSide) {
+		if(thisSide == null) {
+			// We silently ignore unbinding from null.
+			return this;
+		}
 		collectionProvider
 			.apply(thisSide)
 			.remove(otherSide);
+		return this;
 	}
 
-	@Override
-	public boolean bound(T thisSide, O otherSide) {
-		return collectionProvider
-			.apply(thisSide)
-			.contains(otherSide);
-	}
-
-	public List<O> wrap(List<O> list, T host) {
-		return new ListWrapper(list, host, getOther());
-	}
+	public abstract C get(T host);
 }
