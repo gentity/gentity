@@ -46,7 +46,7 @@ import com.github.dbsjpagen.dbsmodel.ForeignKeyDto;
 import com.github.dbsjpagen.dbsmodel.ProjectDto;
 import com.github.dbsjpagen.dbsmodel.SequenceDto;
 import com.github.dbsjpagen.dbsmodel.TableDto;
-import com.github.gentity.core.ChildTableRelation.Directionality;
+import com.github.gentity.core.Directionality;
 import com.github.gentity.core.entities.EntityInfo;
 import com.github.gentity.core.entities.JoinedRootEntityInfo;
 import com.github.gentity.core.entities.JoinedSubEntityInfo;
@@ -688,8 +688,8 @@ public class SchemaModelImpl implements SchemaModel {
 			CollectionTableDecl collectionTable = getCollectionTableDeclaration(t.getName());
 			
 			Directionality defaultDirectionality = collectionTable == null
-				?	ChildTableRelation.Directionality.BIDIRECTIONAL
-				:	ChildTableRelation.Directionality.UNIDIRECTIONAL;
+				?	Directionality.BIDIRECTIONAL
+				:	Directionality.UNIDIRECTIONAL;
 			
 			for(ForeignKeyModel fk : t.getForeignKeys()) {
 				if(otmFkNames.contains(fk.getName()) || mtmFkNames.contains(fk.getName())) {
