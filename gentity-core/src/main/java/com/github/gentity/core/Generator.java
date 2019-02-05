@@ -61,10 +61,11 @@ import javax.persistence.Table;
 import com.github.dbsjpagen.config.ConfigurationDto;
 import com.github.dbsjpagen.config.MappingConfigDto;
 import com.github.dbsjpagen.dbsmodel.ProjectDto;
-import static com.github.gentity.core.ChildTableRelation.Directionality.UNIDIRECTIONAL;
-import static com.github.gentity.core.ChildTableRelation.Kind.ONE_TO_ONE;
-import static com.github.gentity.core.ChildTableRelation.Kind.UNI_ONE_TO_ONE;
-import java.util.EnumSet;
+import com.github.gentity.ToManySide;
+import com.github.gentity.ToOneSide;
+import static com.github.gentity.core.Cardinality.*;
+import static com.github.gentity.core.Directionality.*;
+import static com.github.gentity.core.ChildTableRelation.Kind.*;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.ForeignKey;
@@ -73,7 +74,6 @@ import javax.persistence.InheritanceType;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.PrimaryKeyJoinColumns;
 import static com.github.gentity.core.ChildTableRelation.Kind.MANY_TO_ONE;
-import static com.github.gentity.core.ChildTableRelation.Kind.UNI_MANY_TO_ONE;
 import com.github.gentity.core.entities.JoinedRootEntityInfo;
 import com.github.gentity.core.entities.JoinedSubEntityInfo;
 import com.github.gentity.core.entities.PlainEntityInfo;
@@ -87,6 +87,7 @@ import com.github.gentity.core.model.ForeignKeyModel.Mapping;
 import com.github.gentity.core.model.SequenceModel;
 import com.github.gentity.core.model.TableModel;
 import com.github.gentity.core.util.Tuple;
+import com.sun.codemodel.JInvocation;
 import java.lang.annotation.Annotation;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -105,6 +106,8 @@ import javax.persistence.Enumerated;
  * @author upachler
  */
 public class Generator {
+	
+	private boolean mutualUpdateEnabled = false;
 	
 	private final SchemaModel sm;
 	
@@ -140,7 +143,7 @@ public class Generator {
 		}
 		JPackage p = cm._package(sm.getTargetPackageName());
 		
-		AccessorGenerator accessorGenerator = new AccessorGenerator(cm);
+		AccessorGenerator accessorGenerator = new AccessorGenerator(cm, mutualUpdateEnabled);
 		nameProvider = new NameProvider();
 		
 		try {
@@ -588,26 +591,65 @@ public class Generator {
 		JFieldVar childField = childTableClass.field(JMod.PROTECTED, parentTableEntity, fieldName);
 		
 		// @ManyToOne / @OneToOne
-		if(EnumSet.of(ONE_TO_ONE, UNI_ONE_TO_ONE).contains(otm.getKind())) {
+		if(otm.getKind().getFrom() == ONE) {
 			childField.annotate(OneToOne.class);
 		} else {
-			assert  EnumSet.of(MANY_TO_ONE, UNI_MANY_TO_ONE).contains(otm.getKind());
+			assert otm.getKind().getFrom() == MANY;
 			childField.annotate(ManyToOne.class);
 		}
 		
 		annotateJoinColumns(childField::annotate, () -> childField.annotate(JoinColumns.class).paramArray("value"), fkCols);
 		
 		// parent table side mapping, only for the two bidirectional mappings
+		JFieldVar parentField = null;
 		if(otm.getKind() == ONE_TO_ONE) {
-			JFieldVar parentField = parentTableEntity.field(JMod.PROTECTED, childTableClass, toFieldName(parentTableEntity, otm.getTable().getName()));
+			parentField = parentTableEntity.field(JMod.PROTECTED, childTableClass, toFieldName(parentTableEntity, otm.getTable().getName()));
 			parentField.annotate(OneToOne.class)
 				.param("mappedBy", childField.name());
 		} else if(otm.getKind() == MANY_TO_ONE){
-			JFieldVar field = genCollectionFieldVar(parentTableEntity, childTableClass);
-			field.annotate(OneToMany.class)
+			parentField = genCollectionFieldVar(parentTableEntity, childTableClass);
+			parentField.annotate(OneToMany.class)
 				.param("mappedBy", childField.name());
 		}
 		
+		if(mutualUpdateEnabled) {
+			ChildTableRelation.Kind kind = otm.getKind();
+			genRelationSideField(childTableClass, childField, kind.getTo(), parentTableEntity, parentField);
+			
+			if(kind.getDirectionality() == BIDIRECTIONAL) {
+				genRelationSideField(parentTableEntity, parentField, kind.getFrom(), childTableClass, childField);
+			}
+		}
+
+	}
+	
+	private void genRelationSideField(JDefinedClass entity, JFieldVar field, Cardinality toCardinality, JClass otherEntity, JFieldVar otherField) {
+		JClass relationSideType;
+		JInvocation initializer;
+		if(toCardinality == ONE) {
+			relationSideType = cm.ref(ToOneSide.class).narrow(entity, (JClass)field.type());
+			initializer = cm.ref(ToOneSide.class).staticInvoke("of")
+			.arg(JExpr.direct("o -> o." + field.name()))
+			.arg(JExpr.direct("(o,m) -> o." + field.name() + " = m"));
+		} else {
+			assert toCardinality == MANY;
+			relationSideType = cm.ref(ToManySide.class).narrow(entity, (JClass)field.type(), otherEntity);
+			initializer = cm.ref(ToManySide.class).staticInvoke("of")
+			.arg(JExpr.direct("o -> o." + field.name()));
+		}
+
+		// for bidirectional relations, add argument connecting the
+		// non-owning relation side
+		if(otherField != null) {
+			initializer
+			.arg(otherEntity.staticRef(relationFieldName(otherField)));
+		}
+
+		entity.field(JMod.STATIC|JMod.FINAL, relationSideType, relationFieldName(field), initializer);
+	}
+	
+	private String relationFieldName(JFieldVar field) {
+		return "relationTo$" + field.name();
 	}
 	
 	private void annotateJoinColumns(Function<Class<? extends Annotation>, JAnnotationUse> singularAnnotator, Supplier<JAnnotationArrayMember> pluralAnnotator, List<ForeignKeyModel.Mapping> fkCols){
@@ -653,12 +695,19 @@ public class Generator {
 			.paramArray("inverseJoinColumns");
 		genJoinColumns(inverseJoinColumnsArray, jtr.getInverseForeignKey());
 
-		boolean isBidirectional = jtr.getKind() == JoinTableRelation.Kind.MANY_TO_MANY;
-		if(isBidirectional) {
-			JFieldVar inverseField = genCollectionFieldVar(inverseClass, ownerClass);
+		JFieldVar inverseField = null;
+		if(jtr.getKind().getDirectionality() == BIDIRECTIONAL) {
+			inverseField = genCollectionFieldVar(inverseClass, ownerClass);
 
 			inverseField.annotate(ManyToMany.class)
 				.param("mappedBy", ownerField.name());
+		}
+		
+		if(mutualUpdateEnabled) {
+			genRelationSideField(ownerClass, ownerField, jtr.getKind().getTo(), inverseClass, inverseField);
+			if(jtr.getKind().getDirectionality() == BIDIRECTIONAL) {
+				genRelationSideField(inverseClass, inverseField, jtr.getKind().getFrom(), ownerClass, ownerField);
+			}
 		}
 	}
 	

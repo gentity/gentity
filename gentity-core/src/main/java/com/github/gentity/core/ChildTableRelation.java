@@ -15,8 +15,8 @@
  */
 package com.github.gentity.core;
 
-import com.github.dbsjpagen.dbsmodel.ForeignKeyColumnDto;
-import static com.github.gentity.core.ChildTableRelation.Directionality.BIDIRECTIONAL;
+import static com.github.gentity.core.Directionality.*;
+import static com.github.gentity.core.Cardinality.*;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.ForeignKeyModel;
 import com.github.gentity.core.model.IndexModel;
@@ -35,27 +35,38 @@ public class ChildTableRelation extends Relation{
 	private final String owningEntityName;
 	private final String inverseEntityName;
 	
-	public enum Directionality {
-		UNIDIRECTIONAL,
-		BIDIRECTIONAL
-	}
 	
-	public enum Kind {
-		ONE_TO_ONE(Directionality.BIDIRECTIONAL),
-		MANY_TO_ONE(Directionality.BIDIRECTIONAL),
-		UNI_ONE_TO_ONE(Directionality.UNIDIRECTIONAL),
-		UNI_MANY_TO_ONE(Directionality.UNIDIRECTIONAL)
+	public enum Kind implements RelationKind{
+		ONE_TO_ONE(BIDIRECTIONAL, ONE, ONE),
+		MANY_TO_ONE(BIDIRECTIONAL, MANY, ONE),
+		UNI_ONE_TO_ONE(UNIDIRECTIONAL, ONE, ONE),
+		UNI_MANY_TO_ONE(UNIDIRECTIONAL, MANY, ONE)
 		;
 		
 		final private Directionality directionality;
+		final private Cardinality from;
+		final private Cardinality to;
 
-		private Kind(Directionality directionality) {
+		private Kind(Directionality directionality, Cardinality from, Cardinality to) {
 			this.directionality = directionality;
+			this.from = from;
+			this.to = to;
 		}
 		
 		
+		@Override
 		public Directionality getDirectionality() {
 			return directionality;
+		}
+
+		@Override
+		public Cardinality getFrom() {
+			return from;
+		}
+
+		@Override
+		public Cardinality getTo() {
+			return to;
 		}
 	}
 	

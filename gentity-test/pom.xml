@@ -367,6 +367,11 @@
 			<version>2.4.0</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>gentity-lib</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 	</dependencies>
     <groupId>com.github.gentity</groupId>
 </project>

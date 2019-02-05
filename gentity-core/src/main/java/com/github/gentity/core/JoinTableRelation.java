@@ -15,6 +15,8 @@
  */
 package com.github.gentity.core;
 
+import static com.github.gentity.core.Cardinality.*;
+import static com.github.gentity.core.Directionality.*;
 import com.github.gentity.core.model.ForeignKeyModel;
 import com.github.gentity.core.model.TableModel;
 
@@ -24,10 +26,36 @@ import com.github.gentity.core.model.TableModel;
  */
 public class JoinTableRelation extends Relation {
 	
-	public enum Kind {
-		MANY_TO_MANY,
-		UNI_ONE_TO_MANY,
-		UNI_MANY_TO_MANY
+	public enum Kind implements RelationKind{
+		MANY_TO_MANY(BIDIRECTIONAL, MANY, MANY),
+		UNI_ONE_TO_MANY(UNIDIRECTIONAL, ONE, MANY),
+		UNI_MANY_TO_MANY(UNIDIRECTIONAL, MANY, MANY)
+		;
+		
+		private final Cardinality to;
+		private final Cardinality from;
+		private final Directionality directionality;
+
+		private Kind(Directionality directionality, Cardinality from, Cardinality to) {
+			this.directionality = directionality;
+			this.from = from;
+			this.to = to;
+		}
+		
+		@Override
+		public Directionality getDirectionality() {
+			return directionality;
+		}
+
+		@Override
+		public Cardinality getFrom() {
+			return from;
+		}
+
+		@Override
+		public Cardinality getTo() {
+			return to;
+		}
 	}
 	
 	private final Kind kind;
