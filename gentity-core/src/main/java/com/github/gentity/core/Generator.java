@@ -107,7 +107,7 @@ import javax.persistence.Enumerated;
  */
 public class Generator {
 	
-	private boolean mutualUpdateEnabled = false;
+	private boolean mutualUpdateEnabled = true;
 	
 	private final SchemaModel sm;
 	
