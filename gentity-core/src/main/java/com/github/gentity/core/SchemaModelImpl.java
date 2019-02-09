@@ -31,6 +31,7 @@ import javax.persistence.GenerationType;
 import com.github.dbsjpagen.config.ConfigurationDto;
 import com.github.dbsjpagen.config.EntityTableDto;
 import com.github.dbsjpagen.config.ExclusionDto;
+import com.github.dbsjpagen.config.GlobalConfigurationDto;
 import com.github.dbsjpagen.config.JoinTableDto;
 import com.github.dbsjpagen.config.JoinedEntityTableDto;
 import com.github.dbsjpagen.config.MappingConfigDto;
@@ -46,7 +47,6 @@ import com.github.dbsjpagen.dbsmodel.ForeignKeyDto;
 import com.github.dbsjpagen.dbsmodel.ProjectDto;
 import com.github.dbsjpagen.dbsmodel.SequenceDto;
 import com.github.dbsjpagen.dbsmodel.TableDto;
-import com.github.gentity.core.Directionality;
 import com.github.gentity.core.entities.EntityInfo;
 import com.github.gentity.core.entities.JoinedRootEntityInfo;
 import com.github.gentity.core.entities.JoinedSubEntityInfo;
@@ -405,7 +405,7 @@ public class SchemaModelImpl implements SchemaModel {
 		}
 		
 		if(globalConfiguration == null) {
-			globalConfiguration = Optional.ofNullable(cfg.getConfiguration()).orElse(new ConfigurationDto());
+			globalConfiguration = Optional.ofNullable(cfg.getConfiguration()).orElse(new GlobalConfigurationDto());
 		}
 		
 		return tableConfigurations.getOrDefault(name, globalConfiguration);
