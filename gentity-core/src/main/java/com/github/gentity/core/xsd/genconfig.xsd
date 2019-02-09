@@ -26,7 +26,7 @@ limitations under the License.
 	<xs:complexType name="MappingConfig">
 		<xs:sequence>
 			<xs:element name='exclude' type='tns:Exclusion' minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element name="configuration" type='tns:Configuration' minOccurs="0" maxOccurs="1"/>
+			<xs:element name="configuration" type='tns:GlobalConfiguration' minOccurs="0" maxOccurs="1"/>
 			<xs:element name="joinTable" type='tns:JoinTable' minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element name="entityTable" type='tns:RootEntityTable' minOccurs="0" maxOccurs="unbounded"/>
 			
@@ -47,6 +47,14 @@ limitations under the License.
 		<xs:attribute name="classNamePrefix" default="" type="xs:string"/>
 		<xs:attribute name="fieldNameSuffix" default="" type="xs:string"/>
 		<xs:attribute name="fieldNamePrefix" default="" type="xs:string"/>
+	</xs:complexType>
+	
+	<xs:complexType name="GlobalConfiguration">
+		<xs:complexContent>
+			<xs:extension base="tns:Configuration">
+				<xs:attribute name='automaticBidirectionalUpdate' type='xs:boolean'/>
+			</xs:extension>
+		</xs:complexContent>
 	</xs:complexType>
 	
 	<xs:simpleType name="FQCN">

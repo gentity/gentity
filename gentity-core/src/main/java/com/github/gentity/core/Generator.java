@@ -107,8 +107,6 @@ import javax.persistence.Enumerated;
  */
 public class Generator {
 	
-	private boolean mutualUpdateEnabled = true;
-	
 	private final SchemaModel sm;
 	
 	JCodeModel cm;
@@ -131,11 +129,19 @@ public class Generator {
 	private final Pattern FK_COL_NAME_PATTERN = Pattern.compile("(.*)_(.+)");
 
 	private NameProvider nameProvider;
+	private final MappingConfigDto cfg;
 	
 	public Generator(MappingConfigDto cfg, ProjectDto project) {
 		sm = new SchemaModelImpl(cfg, project);
+		this.cfg = cfg;
 	}
 	
+	private boolean isAutomaticBidirectionalUpdateEnabled() {
+		Boolean enabled = cfg.getConfiguration().isAutomaticBidirectionalUpdate();
+		return enabled != null
+			?	enabled
+			:	true;
+	}
 	
 	JCodeModel generate() {
 		if(cm == null) {
@@ -143,7 +149,7 @@ public class Generator {
 		}
 		JPackage p = cm._package(sm.getTargetPackageName());
 		
-		AccessorGenerator accessorGenerator = new AccessorGenerator(cm, mutualUpdateEnabled);
+		AccessorGenerator accessorGenerator = new AccessorGenerator(cm, isAutomaticBidirectionalUpdateEnabled());
 		nameProvider = new NameProvider();
 		
 		try {
@@ -612,7 +618,7 @@ public class Generator {
 				.param("mappedBy", childField.name());
 		}
 		
-		if(mutualUpdateEnabled) {
+		if(isAutomaticBidirectionalUpdateEnabled()) {
 			ChildTableRelation.Kind kind = otm.getKind();
 			genRelationSideField(childTableClass, childField, kind.getTo(), parentTableEntity, parentField);
 			
@@ -703,7 +709,7 @@ public class Generator {
 				.param("mappedBy", ownerField.name());
 		}
 		
-		if(mutualUpdateEnabled) {
+		if(isAutomaticBidirectionalUpdateEnabled()) {
 			genRelationSideField(ownerClass, ownerField, jtr.getKind().getTo(), inverseClass, inverseField);
 			if(jtr.getKind().getDirectionality() == BIDIRECTIONAL) {
 				genRelationSideField(inverseClass, inverseField, jtr.getKind().getFrom(), ownerClass, ownerField);
