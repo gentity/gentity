@@ -45,17 +45,14 @@ public class Test1f_many_to_many_unidirectional extends AbstractGentityTest{
 		Ghostwriter author1 = Ghostwriter.builder()
 			.id(1L)
 			.name("Maier")
-			.book(Arrays.asList(book1))
 			.build();
 		Ghostwriter author2 = Ghostwriter.builder()
 			.id(2L)
 			.name("Müller")
-			.book(Arrays.asList(book1, book2))
 			.build();
 		Ghostwriter author3 = Ghostwriter.builder()
 			.id(3L)
 			.name("Schulz")
-			.book(Arrays.asList(book2))
 			.build();
 		
 		em.persist(book1);
@@ -64,6 +61,10 @@ public class Test1f_many_to_many_unidirectional extends AbstractGentityTest{
 		em.persist(author1);
 		em.persist(author2);
 		em.persist(author3);
+		
+		author1.getBook().addAll(Arrays.asList(book1));
+		author2.getBook().addAll(Arrays.asList(book1, book2));
+		author3.getBook().addAll(Arrays.asList(book2));
 		
 		assertEquals(
 			new HashSet<>(
