@@ -41,7 +41,6 @@ public class Test1a_many_to_one extends AbstractGentityTest{
 		
 		Company c1 = Company.builder()
 			.name("Acme")
-			.employee(Arrays.asList(e11, e12))
 			.build();
 		e11.setCompany(c1);
 		e12.setCompany(c1);

@@ -52,21 +52,18 @@ public class Test1g_many_to_many_defaulted extends AbstractGentityTest{
 		Author author1 = Author.builder()
 			.id(1L)
 			.name("Maier")
-			.book(Arrays.asList(book1))
 			.build();
 		Author author2 = Author.builder()
 			.id(2L)
 			.name("Müller")
-			.book(Arrays.asList(book1, book2))
 			.build();
 		Author author3 = Author.builder()
 			.id(3L)
 			.name("Schulz")
-			.book(Arrays.asList(book2))
 			.build();
 		
-		book1.setAuthor(Arrays.asList(author1, author2));
-		book2.setAuthor(Arrays.asList(author2, author3));
+		book1.getAuthor().addAll(Arrays.asList(author1, author2));
+		book2.getAuthor().addAll(Arrays.asList(author2, author3));
 		
 		em.persist(book1);
 		em.persist(book2);
