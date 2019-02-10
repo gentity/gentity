@@ -75,6 +75,16 @@
     <class>com.github.gentity.test.test1g_many_to_many_defaulted.Author</class>
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
   </persistence-unit>
+  <persistence-unit name="Test1h_many_to_one_composite_pk" transaction-type="RESOURCE_LOCAL">
+    <class>com.github.gentity.test.test1h_many_to_one_composite_pk.Partyguest</class>
+    <class>com.github.gentity.test.test1h_many_to_one_composite_pk.Cloakroomitem</class>
+    <exclude-unlisted-classes>true</exclude-unlisted-classes>
+  </persistence-unit>
+  <persistence-unit name="Test1i_many_to_many_composite_pk" transaction-type="RESOURCE_LOCAL">
+    <class>com.github.gentity.test.test1i_many_to_many_composite_pk.Partyguest</class>
+    <class>com.github.gentity.test.test1i_many_to_many_composite_pk.Choffeur</class>
+    <exclude-unlisted-classes>true</exclude-unlisted-classes>
+  </persistence-unit>
   <persistence-unit name="Test1" transaction-type="RESOURCE_LOCAL">
     <class>com.github.gentity.test.test1.Customer</class>
     <class>com.github.gentity.test.test1.User</class>

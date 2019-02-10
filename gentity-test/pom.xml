@@ -194,6 +194,30 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>entities-test1h-many-to-one-composite-pk</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputDbsFile>src/main/resources/test1h-many-to-one-composite-pk.dbs</inputDbsFile>
+							<mappingConfigFile>src/main/resources/test1h-many-to-one-composite-pk.genconfig</mappingConfigFile>
+							<targetPackageName>com.github.gentity.test.test1h_many_to_one_composite_pk</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
+						<id>entities-test1i-many-to-many-composite-pk</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputDbsFile>src/main/resources/test1i-many-to-many-composite-pk.dbs</inputDbsFile>
+							<mappingConfigFile>src/main/resources/test1i-many-to-many-composite-pk.genconfig</mappingConfigFile>
+							<targetPackageName>com.github.gentity.test.test1i_many_to_many_composite_pk</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
 						<id>entities-test2</id>
 						<phase>generate-sources</phase>
 						<goals>
