@@ -24,7 +24,7 @@ import com.github.gentity.core.model.TableModel;
  *
  * @author count
  */
-public class JoinedSubEntityInfo extends EntityInfo<JoinedSubEntityInfo>{
+public class JoinedSubEntityInfo extends SubEntityInfo<JoinedSubEntityInfo>{
 	private final ForeignKeyModel joiningForeignKey;
 
 	public JoinedSubEntityInfo(TableModel table, TableModel baseTable, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, ForeignKeyModel joiningForeignKey, String discriminatorValue, ConfigurationDto configDto) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 The Gentity Project. All rights reserved.
+ * Copyright 2018 The Gentity Project. All rights reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,24 @@ package com.github.gentity.core.entities;
 
 import com.github.dbsjpagen.config.ConfigurationDto;
 import com.github.gentity.core.fields.FieldColumnSource;
+import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.TableModel;
 
 /**
- * Information about entities on the root level of the entity class hierarchy.
+ *
  * @author count
  */
-public abstract class RootEntityInfo<T extends EntityInfo> extends EntityInfo<T> {
+public abstract class HierarchyRootEntityInfo<T extends EntityInfo> extends RootEntityInfo<T> {
 	
-	
-	public RootEntityInfo(TableModel table, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, String discriminatorValue, ConfigurationDto configDto) {
+	private final ColumnModel discriminatorColumn;
+
+	public HierarchyRootEntityInfo(TableModel table, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, ColumnModel discriminatorColumn, String discriminatorValue, ConfigurationDto configDto) {
 		super(table, fieldColumnSource, parentEntityInfo, discriminatorValue, configDto);
+		this.discriminatorColumn = discriminatorColumn;
 	}
 	
+	
+	public ColumnModel getDiscriminatorColumn() {
+		return discriminatorColumn;
+	}
 }

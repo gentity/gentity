@@ -23,7 +23,7 @@ import com.github.gentity.core.model.TableModel;
  *
  * @author upachler
  */
-public class PlainEntityInfo extends EntityInfo<EntityInfo>{
+public class PlainEntityInfo extends RootEntityInfo<EntityInfo>{
 	
 	public PlainEntityInfo(TableModel table, FieldColumnSource fieldColumnSource, ConfigurationDto configDto) {
 		super(table, fieldColumnSource, null, null, configDto);
