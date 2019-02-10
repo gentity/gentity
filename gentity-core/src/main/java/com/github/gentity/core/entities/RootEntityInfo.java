@@ -30,4 +30,9 @@ public abstract class RootEntityInfo<T extends EntityInfo> extends EntityInfo<T>
 		super(table, fieldColumnSource, parentEntityInfo, discriminatorValue, configDto);
 	}
 	
+	public String getIdClass() {
+		return configDto != null
+			?	configDto.getIdClass()
+			:	null;
+	}
 }

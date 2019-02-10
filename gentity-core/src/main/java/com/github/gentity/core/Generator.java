@@ -77,8 +77,10 @@ import static com.github.gentity.core.ChildTableRelation.Kind.MANY_TO_ONE;
 import com.github.gentity.core.entities.JoinedRootEntityInfo;
 import com.github.gentity.core.entities.JoinedSubEntityInfo;
 import com.github.gentity.core.entities.PlainEntityInfo;
+import com.github.gentity.core.entities.RootEntityInfo;
 import com.github.gentity.core.entities.SingleTableRootEntityInfo;
 import com.github.gentity.core.entities.SingleTableSubEntityInfo;
+import com.github.gentity.core.entities.SubEntityInfo;
 import com.github.gentity.core.fields.FieldMapping;
 import com.github.gentity.core.fields.PlainTableFieldColumnSource;
 import com.github.gentity.core.model.ColumnModel;
@@ -100,6 +102,7 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Embeddable;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.IdClass;
 
 
 /**
@@ -296,7 +299,21 @@ public class Generator {
 			.anyMatch(au -> au.getAnnotationClass().equals(cm.ref(Entity.class)));
 	}
 	
-	private JDefinedClass genEntityClass(JPackage p, String nameCandidate, JDefinedClass superClassEntity, EntityInfo einfo) throws JClassAlreadyExistsException {
+	private JDefinedClass genRootEntityClass(JPackage p, String nameCandidate, JDefinedClass superClassEntity, RootEntityInfo einfo) throws JClassAlreadyExistsException {
+		JDefinedClass cls = genEntityClassImpl(p, nameCandidate, superClassEntity, einfo);
+		
+		String idClassFQCN = einfo.getIdClass();
+		if(idClassFQCN != null) {
+			cls.annotate(IdClass.class)
+				.param("value", cm.directClass(idClassFQCN));
+		}
+		return cls;
+	}
+	
+	private JDefinedClass genSubEntityClass(JPackage p, String nameCandidate, JDefinedClass superClassEntity, SubEntityInfo einfo) throws JClassAlreadyExistsException {
+		return genEntityClassImpl(p, nameCandidate, superClassEntity, einfo);
+	}
+	private JDefinedClass genEntityClassImpl(JPackage p, String nameCandidate, JDefinedClass superClassEntity, EntityInfo einfo) throws JClassAlreadyExistsException {
 		JClass serializableClass = cm.ref(Serializable.class);
 			
 		JDefinedClass cls = p._class(JMod.PUBLIC, toClassName(p, nameCandidate));
@@ -434,7 +451,7 @@ public class Generator {
 	private void genJoinedHierarchy(JoinedRootEntityInfo rootEInfo, JPackage pakkage) throws JClassAlreadyExistsException {
 		
 		TableModel rootTable = rootEInfo.getTable();
-		JDefinedClass rootClass = genEntityClass(pakkage, rootTable.getName(), null, rootEInfo);
+		JDefinedClass rootClass = genRootEntityClass(pakkage, rootTable.getName(), null, rootEInfo);
 		rootClass.annotate(cm.ref(Inheritance.class))
 			.param("strategy", InheritanceType.JOINED);
 		
@@ -448,7 +465,7 @@ public class Generator {
 			
 			ForeignKeyModel fk = einfo.getJoiningForeignKey();
 			TableModel table = einfo.getTable();
-			JDefinedClass subclassEntity = genEntityClass(pakkage, table.getName(), superclassEntity, einfo);
+			JDefinedClass subclassEntity = genSubEntityClass(pakkage, table.getName(), superclassEntity, einfo);
 			genDiscriminatorValueAnnotation(subclassEntity, einfo.getDiscriminatorValue());
 
 			if(fk.getColumnMappings().size()==1) {
@@ -497,11 +514,11 @@ public class Generator {
 	private void genPlainTable(PlainEntityInfo einfo, JPackage pakkage) throws JClassAlreadyExistsException {
 		TableModel table = einfo.getTable();
 		
-		genEntityClass(pakkage, table.getName(), null, einfo);
+		genRootEntityClass(pakkage, table.getName(), null, einfo);
 	}
 
 	private void genSingleTableHierarchy(SingleTableRootEntityInfo einfo, JPackage pakkage) throws JClassAlreadyExistsException {
-		JDefinedClass rootClass = genEntityClass(pakkage, einfo.getTable().getName(), null, einfo);
+		JDefinedClass rootClass = genRootEntityClass(pakkage, einfo.getTable().getName(), null, einfo);
 		rootClass.annotate(Inheritance.class)
 			.param("strategy", InheritanceType.SINGLE_TABLE);
 		genDiscriminatorColumnAnnotation(rootClass, einfo.getTable(), einfo.getDiscriminatorColumn().getName());
@@ -513,7 +530,7 @@ public class Generator {
 	
 	private void genSingleTableChildEntities(TableModel rootTable, EntityInfo<SingleTableSubEntityInfo> parentEntityInfo, JDefinedClass parentclass, List<SingleTableSubEntityInfo> entities) throws JClassAlreadyExistsException {
 		for(SingleTableSubEntityInfo entity : parentEntityInfo.getChildren()) {
-			JDefinedClass cls = genEntityClass(parentclass.getPackage(), entity.getName(), parentclass, entity);
+			JDefinedClass cls = genSubEntityClass(parentclass.getPackage(), entity.getName(), parentclass, entity);
 			
 			genDiscriminatorValueAnnotation(cls, entity.getDiscriminatorValue());
 			

@@ -155,7 +155,7 @@ public class SchemaModelImpl implements SchemaModel {
 			if(ei instanceof JoinedRootEntityInfo) {
 				visitJoinedSubEntityInfos(((JoinedRootEntityInfo)ei).getChildren(), jsei -> mappedTables.add(jsei.getTable().getName()));
 			}
-		};
+		}
 			
 		// TODO: generate collection tables declared in configuration
 		// NOTE: currently we're generating them while generating entity tables above..
@@ -208,6 +208,20 @@ public class SchemaModelImpl implements SchemaModel {
 		}
 		
 		initDefaultOneToNRelations();
+		
+		// validate root entity infos so that they either have
+		// a) a single primary key or
+		// b) a composite primary key AND an IdClass set.
+		//
+		// NOTE that we could extend b) in the future so that the IdClass is
+		// no longer a requirement, because without one Gentity could generate
+		// an EmbeddedId
+		for(RootEntityInfo ei : getRootEntityDefinitions()) {
+			if(ei.getTable().getPrimaryKey().size() > 1 && ei.getIdClass() == null) {
+				throw new RuntimeException(String.format("No idClass set for table '%s' which has a composite primary key", ei.getTable().getName()));
+			}
+		}
+		
 	}
 	
 	private EntityInfo findRootOrJoinedEntityOfTable(TableModel table) {
@@ -228,7 +242,7 @@ public class SchemaModelImpl implements SchemaModel {
 		return null;
 	}
 	
-	void visitJoinedSubEntityInfos(List<JoinedSubEntityInfo> entityInfos, Consumer<JoinedSubEntityInfo> consumer) {
+	private void visitJoinedSubEntityInfos(List<JoinedSubEntityInfo> entityInfos, Consumer<JoinedSubEntityInfo> consumer) {
 		entityInfos.forEach(jsei -> consumer.accept(jsei));
 		entityInfos.forEach(jsei -> visitJoinedSubEntityInfos(jsei.getChildren(), consumer));
 	}
