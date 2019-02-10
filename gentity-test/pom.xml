@@ -89,6 +89,18 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>entities-test0g_basic_table_composite_pk</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputDbsFile>src/main/resources/test0g_basic_table_composite_pk.dbs</inputDbsFile>
+							<mappingConfigFile>src/main/resources/test0g_basic_table_composite_pk.genconfig</mappingConfigFile>
+							<targetPackageName>com.github.gentity.test.test0g_basic_table_composite_pk</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
 						<id>entities-test1</id>
 						<phase>generate-sources</phase>
 						<goals>

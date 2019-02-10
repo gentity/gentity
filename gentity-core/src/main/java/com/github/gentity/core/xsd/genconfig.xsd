@@ -47,6 +47,7 @@ limitations under the License.
 		<xs:attribute name="classNamePrefix" default="" type="xs:string"/>
 		<xs:attribute name="fieldNameSuffix" default="" type="xs:string"/>
 		<xs:attribute name="fieldNamePrefix" default="" type="xs:string"/>
+		<xs:attribute name="idClass" type="tns:FQCN"/>
 	</xs:complexType>
 	
 	<xs:complexType name="GlobalConfiguration">
