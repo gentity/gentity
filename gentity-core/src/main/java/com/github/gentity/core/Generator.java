@@ -91,6 +91,7 @@ import com.sun.codemodel.JInvocation;
 import java.lang.annotation.Annotation;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import javax.persistence.Lob;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -137,10 +138,9 @@ public class Generator {
 	}
 	
 	private boolean isAutomaticBidirectionalUpdateEnabled() {
-		Boolean enabled = cfg.getConfiguration().isAutomaticBidirectionalUpdate();
-		return enabled != null
-			?	enabled
-			:	true;
+		return Optional.ofNullable(cfg.getConfiguration())
+			.map(c -> c.isAutomaticBidirectionalUpdate())
+			.orElse(true);
 	}
 	
 	JCodeModel generate() {
