@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.gentity</groupId>
 	<artifactId>gentity</artifactId>
-	<version>0.13-SNAPSHOT</version>
+	<version>0.13</version>
 	<packaging>pom</packaging>
 	<name>gentity</name>
 	<description>JPA Entity class generator from DBSchema (*.dbs) database models (see https://www.dbschema.com)</description>
@@ -50,7 +50,7 @@
 		<connection>scm:git:https://github.com/gentity/gentity.git</connection>
 		<developerConnection>scm:git:https://github.com/gentity/gentity.git</developerConnection>
 		<url>https://github.com/gentity/gentity</url>
-	  <tag>HEAD</tag>
+	  <tag>v0.13</tag>
   </scm>
 	<url>https://github.com/gentity/gentity</url>
 	<developers>
