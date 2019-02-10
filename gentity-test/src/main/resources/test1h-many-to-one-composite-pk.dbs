@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="Test1h_many_to_one_composite_pk" id="Project_9b4a70" template="Default" database="HSql" >
+	<schema name="TEST1H_MANY_TO_ONE_COMPOSITE_PK" schemaname="TEST1H_MANY_TO_ONE_COMPOSITE_PK" >
+		<table name="CLOAKROOMITEM" >
+			<column name="NAME" type="varchar" length="100" jt="12" mandatory="y" />
+			<column name="OWNER_FIRSTNAME" type="varchar" length="100" jt="12" />
+			<column name="OWNER_SURNAME" type="varchar" length="100" jt="12" />
+			<index name="PK_CLOAKROOMITEM_NAME" unique="PRIMARY_KEY" >
+				<column name="NAME" />
+			</index>
+			<fk name="FK_CLOAKROOMITEM_PARTYGUEST" to_schema="TEST1H_MANY_TO_ONE_COMPOSITE_PK" to_table="PARTYGUEST" >
+				<fk_column name="OWNER_FIRSTNAME" pk="FIRSTNAME" />
+				<fk_column name="OWNER_SURNAME" pk="SURNAME" />
+			</fk>
+		</table>
+		<table name="PARTYGUEST" >
+			<column name="FIRSTNAME" type="varchar" length="100" jt="12" mandatory="y" />
+			<column name="SURNAME" type="varchar" length="100" jt="12" mandatory="y" />
+			<column name="PRIMARYINVITEE" type="boolean" jt="16" mandatory="y" >
+				<comment><![CDATA[was invited directly (primary) or brought along by some other guest (non-primary)]]></comment>
+			</column>
+			<index name="PK_PARTYGUEST_FIRSTNAME" unique="PRIMARY_KEY" >
+				<column name="FIRSTNAME" />
+				<column name="SURNAME" />
+			</index>
+		</table>
+	</schema>
+	<layout name="Default Layout" id="Layout_5bc8f0" show_relation="columns" >
+		<entity schema="TEST1H_MANY_TO_ONE_COMPOSITE_PK" name="PARTYGUEST" color="C1D8EE" x="48" y="48" />
+		<entity schema="TEST1H_MANY_TO_ONE_COMPOSITE_PK" name="CLOAKROOMITEM" color="C1D8EE" x="352" y="48" />
+	</layout>
+</project>

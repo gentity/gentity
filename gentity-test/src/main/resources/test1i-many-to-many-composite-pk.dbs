@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="Test1i_many_to_many_composite_pk" id="Project_9b4a70" template="Default" database="HSql" >
+	<schema name="TEST1I_MANY_TO_MANY_COMPOSITE_PK" schemaname="TEST1I_MANY_TO_MANY_COMPOSITE_PK" >
+		<table name="CHOFFEUR" >
+			<column name="NAME" type="varchar" length="100" jt="12" mandatory="y" />
+			<column name="LICENSE_NUMBER" type="varchar" length="100" jt="12" mandatory="y" />
+			<index name="PK_CHOFFEUR_NAME" unique="PRIMARY_KEY" >
+				<column name="NAME" />
+			</index>
+		</table>
+		<table name="PARTYGUEST" >
+			<column name="FIRSTNAME" type="varchar" length="100" jt="12" mandatory="y" />
+			<column name="SURNAME" type="varchar" length="100" jt="12" mandatory="y" />
+			<column name="PRIMARYINVITEE" type="boolean" jt="16" mandatory="y" >
+				<comment><![CDATA[was invited directly (primary) or brought along by some other guest (non-primary)]]></comment>
+			</column>
+			<index name="PK_PARTYGUEST_FIRSTNAME" unique="PRIMARY_KEY" >
+				<column name="FIRSTNAME" />
+				<column name="SURNAME" />
+			</index>
+		</table>
+		<table name="PARTYGUEST_CHOFFEUR" >
+			<column name="CHOFFEUR_NAME" type="varchar" length="100" jt="12" mandatory="y" />
+			<column name="PARTYGUEST_FIRSTNAME" type="varchar" length="100" jt="12" mandatory="y" />
+			<column name="PARTYGUEST_SURNAME" type="varchar" length="100" jt="12" mandatory="y" />
+			<fk name="FK_PARTYGUEST_CHOFFEUR_PARTYGUEST" to_schema="TEST1I_MANY_TO_MANY_COMPOSITE_PK" to_table="PARTYGUEST" delete_action="setNull" update_action="setNull" >
+				<fk_column name="PARTYGUEST_FIRSTNAME" pk="FIRSTNAME" />
+				<fk_column name="PARTYGUEST_SURNAME" pk="SURNAME" />
+			</fk>
+			<fk name="FK_PARTYGUEST_CHOFFEUR_CHOFFEUR" to_schema="TEST1I_MANY_TO_MANY_COMPOSITE_PK" to_table="CHOFFEUR" >
+				<fk_column name="CHOFFEUR_NAME" pk="NAME" />
+			</fk>
+		</table>
+	</schema>
+	<layout name="Default Layout" id="Layout_5bc8f0" show_relation="columns" >
+		<entity schema="TEST1I_MANY_TO_MANY_COMPOSITE_PK" name="PARTYGUEST_CHOFFEUR" color="3986C1" x="352" y="48" />
+		<entity schema="TEST1I_MANY_TO_MANY_COMPOSITE_PK" name="PARTYGUEST" color="3986C1" x="912" y="48" />
+		<entity schema="TEST1I_MANY_TO_MANY_COMPOSITE_PK" name="CHOFFEUR" color="3986C1" x="48" y="48" />
+	</layout>
+</project>
