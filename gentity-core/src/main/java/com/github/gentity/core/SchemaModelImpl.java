@@ -51,6 +51,7 @@ import com.github.gentity.core.entities.EntityInfo;
 import com.github.gentity.core.entities.JoinedRootEntityInfo;
 import com.github.gentity.core.entities.JoinedSubEntityInfo;
 import com.github.gentity.core.entities.PlainEntityInfo;
+import com.github.gentity.core.entities.HierarchyRootEntityInfo;
 import com.github.gentity.core.entities.RootEntityInfo;
 import com.github.gentity.core.entities.SingleTableRootEntityInfo;
 import com.github.gentity.core.entities.SingleTableSubEntityInfo;
@@ -89,7 +90,7 @@ public class SchemaModelImpl implements SchemaModel {
 	private Map<String, JoinTableRelation> manyToManyRelationsJoinTables;
 	private Map<String, CollectionTableDecl> collectionTableDeclarations = new HashMap<>();
 	private HashMap<SingleTableEntityDto, RootEntityTableDto> singleTableRootMap;
-	private final List<EntityInfo> entityInfos = new ArrayList<>();
+	private final List<RootEntityInfo> entityInfos = new ArrayList<>();
 	private final DatabaseModel databaseSchemaModel;
 	
 	public SchemaModelImpl(MappingConfigDto cfg, ProjectDto project) {
@@ -121,7 +122,7 @@ public class SchemaModelImpl implements SchemaModel {
 			if(exclusions.isTableExcluded(et.getTable())) {
 				throw new RuntimeException("configuration found for excluded table '"+et.getTable()+"'");
 			}
-			EntityInfo ei;
+			RootEntityInfo ei;
 			if(et.getJoinedHierarchy()!= null) {
 				ei = buildJoinedHierarchyEntityInfos(et, databaseSchemaModel);
 			} else if(et.getSingleTableHierarchy() != null) {
@@ -213,7 +214,7 @@ public class SchemaModelImpl implements SchemaModel {
 		return findRootOrJoinedEntityOfTableImpl(table, entityInfos);
 	}
 	
-	private EntityInfo findRootOrJoinedEntityOfTableImpl(TableModel table, List<EntityInfo> eis) {
+	private EntityInfo findRootOrJoinedEntityOfTableImpl(TableModel table, List<RootEntityInfo> eis) {
 		for(EntityInfo ei : eis) {
 			if(ei.getBaseTable() == table) {
 				return ei;
@@ -757,9 +758,9 @@ public class SchemaModelImpl implements SchemaModel {
 	}
 
 	@Override
-	public List<EntityInfo> getRootEntityDefinitions() {
+	public List<RootEntityInfo> getRootEntityDefinitions() {
 		return entityInfos.stream()
-			.filter(ei -> (ei instanceof RootEntityInfo) || (ei instanceof PlainEntityInfo))
+			.filter(ei -> (ei instanceof HierarchyRootEntityInfo) || (ei instanceof PlainEntityInfo))
 			.collect(Collectors.toList());
 	}
 	

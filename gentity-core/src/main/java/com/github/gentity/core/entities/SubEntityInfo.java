@@ -20,14 +20,12 @@ import com.github.gentity.core.fields.FieldColumnSource;
 import com.github.gentity.core.model.TableModel;
 
 /**
- * Information about entities on the root level of the entity class hierarchy.
+ *
  * @author count
  */
-public abstract class RootEntityInfo<T extends EntityInfo> extends EntityInfo<T> {
-	
-	
-	public RootEntityInfo(TableModel table, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, String discriminatorValue, ConfigurationDto configDto) {
-		super(table, fieldColumnSource, parentEntityInfo, discriminatorValue, configDto);
+public class SubEntityInfo<T extends SubEntityInfo> extends EntityInfo<T>{
+	public SubEntityInfo(TableModel table, TableModel baseTable, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, String discriminatorValue, ConfigurationDto configDto) {
+		super(table, baseTable, fieldColumnSource, parentEntityInfo, discriminatorValue, configDto);
 	}
-	
+
 }

@@ -23,7 +23,7 @@ import com.github.gentity.core.model.TableModel;
  *
  * @author count
  */
-public class SingleTableSubEntityInfo extends EntityInfo<SingleTableSubEntityInfo> {
+public class SingleTableSubEntityInfo extends SubEntityInfo<SingleTableSubEntityInfo> {
 	private final String name;
 
 	public SingleTableSubEntityInfo(String name, TableModel baseTable, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, String discriminatorValue, ConfigurationDto configDto) {

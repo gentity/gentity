@@ -24,7 +24,7 @@ import com.github.gentity.core.model.TableModel;
  *
  * @author count
  */
-public class SingleTableRootEntityInfo extends RootEntityInfo<SingleTableSubEntityInfo>{
+public class SingleTableRootEntityInfo extends HierarchyRootEntityInfo<SingleTableSubEntityInfo>{
 
 	public SingleTableRootEntityInfo(TableModel table, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, ColumnModel discriminatorColumn, String discriminatorValue, ConfigurationDto configDto) {
 		super(table, fieldColumnSource, parentEntityInfo, discriminatorColumn, discriminatorValue, configDto);

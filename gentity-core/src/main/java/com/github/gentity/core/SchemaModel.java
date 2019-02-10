@@ -22,8 +22,7 @@ import com.github.dbsjpagen.config.RootEntityTableDto;
 import com.github.dbsjpagen.config.SingleTableEntityDto;
 import com.github.dbsjpagen.dbsmodel.ColumnDto;
 import com.github.dbsjpagen.dbsmodel.SequenceDto;
-import com.github.dbsjpagen.dbsmodel.TableDto;
-import com.github.gentity.core.entities.EntityInfo;
+import com.github.gentity.core.entities.RootEntityInfo;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.ForeignKeyModel;
 import com.github.gentity.core.model.TableModel;
@@ -62,7 +61,7 @@ public interface SchemaModel {
 	// ----
 	RootEntityTableDto findParentRootEntityTable(SingleTableEntityDto singleTableEntity);
 	
-	List<EntityInfo> getRootEntityDefinitions();
+	List<RootEntityInfo> getRootEntityDefinitions();
 	
 	TableModel findTable(String name);
 	
