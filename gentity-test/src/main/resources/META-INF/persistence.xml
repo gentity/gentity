@@ -128,6 +128,10 @@
     <class>com.github.gentity.test.test5c_element_collection_embeddable_relations.PizzaOrder</class>
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
   </persistence-unit>
+  <persistence-unit name="Test5d_element_collection_embeddable_composite_pk" transaction-type="RESOURCE_LOCAL">
+    <class>com.github.gentity.test.test5d_element_collection_embeddable_composite_pk.Partyguest</class>
+    <exclude-unlisted-classes>true</exclude-unlisted-classes>
+  </persistence-unit>
   <persistence-unit name="Test6a_inheritance_basic_tables" transaction-type="RESOURCE_LOCAL">
     <class>com.github.gentity.test.test6a_inheritance_basic_tables.Person</class>
     <class>com.github.gentity.test.test6a_inheritance_basic_tables.Car</class>

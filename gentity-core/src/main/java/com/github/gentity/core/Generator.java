@@ -17,7 +17,6 @@ package com.github.gentity.core;
 
 import com.github.gentity.core.entities.CollectionTableDecl;
 import com.github.gentity.core.entities.EntityInfo;
-import com.github.dbsjpagen.config.CollectionTableDto;
 import com.github.gentity.core.fields.FieldColumnSource;
 import com.sun.codemodel.JAnnotationArrayMember;
 import com.sun.codemodel.JAnnotationUse;
@@ -94,9 +93,12 @@ import java.lang.annotation.Annotation;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.function.Consumer;
 import javax.persistence.Lob;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.persistence.CollectionTable;
 import javax.persistence.ElementCollection;
 import javax.persistence.Embeddable;
@@ -124,7 +126,7 @@ public class Generator {
 			return JExpr._new(cm._ref(ArrayList.class));
 		}
 		@Override
-		public JClass getCollectionType(JDefinedClass elementType) {
+		public JClass getCollectionType(JType elementType) {
 			return cm.ref(List.class)
 				.narrow(elementType);
 		}
@@ -172,19 +174,7 @@ public class Generator {
 			}
 			
 			// generate element collection embeddables
-			sm.collectionTableTravesalOf(
-					rt -> findEntity(rt.getTable(), null),
-					jt -> findEntity(jt.getTable(), null),
-					st -> findEntity(sm.findParentRootEntityTable(st).getTable(), st.getName())
-				)
-				.traverse(ctx -> {
-					try {
-						JDefinedClass entityClass = ctx.getParentContext();
-						genEmbeddable(entityClass, ctx.getElement());
-					} catch (JClassAlreadyExistsException ex) {
-						throw new RuntimeException(ex);
-					}
-				});
+			genCollectionTableEmbeddables(sm.getRootEntityDefinitions());
 			
 			// for all entity-mapped tables, find entities where we need to
 			// map sequences
@@ -233,9 +223,8 @@ public class Generator {
 					FieldColumnSource src = t.y();
 					JDefinedClass cls = t.x();
 
-					src.getFieldMappings().stream()
-						.filter((m) -> (!sm.isColumnIgnored(m.getTable().getName(), m.getColumn().getName())))
-						.forEachOrdered((m) -> genColumn(cls, m));
+					filterBasicMappings(src.getFieldMappings())
+						.forEach((m) -> genColumn(cls, m));
 				});
 			
 			// add one-to-many relations
@@ -285,6 +274,30 @@ public class Generator {
 		return cm;
 	}
 	
+	private List<FieldMapping> filterBasicMappings(List<FieldMapping> mappings) {
+		return mappings.stream()
+			.filter((m) -> (!sm.isColumnIgnored(m.getTable().getName(), m.getColumn().getName())))
+			.collect(Collectors.toList());
+	}
+	
+	private void genCollectionTableEmbeddables(List<? extends EntityInfo> einfos) {
+		for(EntityInfo<?> ei : einfos) {
+			List<CollectionTableDecl> ctables = ei.getCollectionTables();
+			
+			if(!ctables.isEmpty()) {
+				JDefinedClass cls = findEntity(ei);
+				for(CollectionTableDecl c : ctables) {
+					try {
+						genEmbeddable(cls, c);
+					} catch (JClassAlreadyExistsException ex) {
+						throw new RuntimeException(ex);
+					}
+				}
+			}
+			genCollectionTableEmbeddables(ei.getChildren());
+		}
+	}
+	
 	boolean isClassHierarchyRoot(JDefinedClass cls) {
 		// a class is a hierarchy root if its superclass..
 		
@@ -313,6 +326,7 @@ public class Generator {
 	private JDefinedClass genSubEntityClass(JPackage p, String nameCandidate, JDefinedClass superClassEntity, SubEntityInfo einfo) throws JClassAlreadyExistsException {
 		return genEntityClassImpl(p, nameCandidate, superClassEntity, einfo);
 	}
+	
 	private JDefinedClass genEntityClassImpl(JPackage p, String nameCandidate, JDefinedClass superClassEntity, EntityInfo einfo) throws JClassAlreadyExistsException {
 		JClass serializableClass = cm.ref(Serializable.class);
 			
@@ -360,24 +374,44 @@ public class Generator {
 		return cls;
 	}
 	
-	private JDefinedClass genEmbeddableClass(String nameCandidate, TableModel table, String foreignKeyName, JDefinedClass enclosingEntityClass) throws JClassAlreadyExistsException {
+	private void genElementCollection(String embeddableNameCandidate, TableModel table, ForeignKeyModel foreignKeyName, JDefinedClass enclosingEntityClass) throws JClassAlreadyExistsException {
 		JPackage p = cm._package(sm.getTargetPackageName());
 		JClass serializableClass = cm.ref(Serializable.class);
-			
-		JDefinedClass cls = p._class(JMod.PUBLIC, toClassName(p, nameCandidate));
-		cls.annotate(Embeddable.class);
-		tablesToEmbeddables.put(table.getName(), cls);
 		
-		cls._implements(serializableClass);
+		List<FieldMapping> mappings = filterBasicMappings(new PlainTableFieldColumnSource(table).getFieldMappings());
+		JType type;
+		String fieldNameCandidate = null;
+		boolean isSingleValueColumn = mappings.size() == 1;
+		EnumType etype = null;
+		if(isSingleValueColumn) {
+			FieldMapping m = mappings.get(0);
+			type = mapColumnType(m.getTable(), m.getColumn());
+			if(m.getEnumType() != null) {
+				etype = mapEnumType(type, m);
+				type = cm.ref(m.getEnumType());
+			}
+			fieldNameCandidate = m.getFieldName();
+		} else {
+			JDefinedClass cls = p._class(JMod.PUBLIC, toClassName(p, embeddableNameCandidate));
+			cls.annotate(Embeddable.class);
+			tablesToEmbeddables.put(table.getName(), cls);
 		
-		JFieldVar field = genCollectionFieldVar(enclosingEntityClass, cls);
+			cls._implements(serializableClass);
+			type = cls;
+			fieldNameCandidate = cls.name();
+		}
+		
+		JFieldVar field = genCollectionFieldVar(enclosingEntityClass, type, fieldNameCandidate);
 		field.annotate(cm.ref(ElementCollection.class));
 		JAnnotationUse ct = field.annotate(cm.ref(CollectionTable.class));
 		ct.param("name", table.getName());
+		if(isSingleValueColumn) {
+			FieldMapping m = mappings.get(0);
+			annotateBasicField(enclosingEntityClass, m, type, etype, field);
+		}
 		
-		List<ForeignKeyModel.Mapping> fkCols = table.findForeignKey(foreignKeyName).getColumnMappings();
+		List<ForeignKeyModel.Mapping> fkCols = foreignKeyName.getColumnMappings();
 		annotateJoinColumns(() -> ct.paramArray("joinColumns"), fkCols);
-		return cls;
 	}
 	
 	
@@ -391,28 +425,42 @@ public class Generator {
 	}
 	
 	private void genColumn(JDefinedClass cls, FieldMapping m) {
-		TableModel table = m.getTable();
-		ColumnModel column = m.getColumn();
 		String fieldNameCanditate = m.getFieldName();
 		
-		JType colType = mapColumnType(table, column);
-		
+		JType colType = mapColumnType(m.getTable(), m.getColumn());
 		EnumType etype = null;
+		if(m.getEnumType() != null) {
+			etype = mapEnumType(colType, m);
+			colType = cm.ref(m.getEnumType());
+		}
+
+		String fieldName = toFieldName(cls, fieldNameCanditate);
+		JFieldVar field = cls.field(JMod.PROTECTED, colType, fieldName);
+		
+		annotateBasicField(cls, m, colType, etype, field);
+	}
+	
+	private EnumType mapEnumType(JType colType, FieldMapping m) {
 		if(m.getEnumType() != null) {
 			
 			if(colType == cm._ref(java.lang.String.class)) {
-				etype = EnumType.STRING;
+				return EnumType.STRING;
 			} else if(colType == cm.INT || colType == cm.LONG || colType == cm.BYTE || colType == cm.SHORT) {
-				etype = EnumType.ORDINAL;
+				return EnumType.ORDINAL;
 			} else {
 				throw new RuntimeException(String.format("column %s field definition with enumType of %s must be mappable to a Java String or integral type", m.getColumn(), m.getEnumType()));
 			}
 			
-			colType = cm.ref(m.getEnumType());
+		} else {
+			return null;
 		}
-		String fieldName = toFieldName(cls, fieldNameCanditate);
-		JFieldVar field = cls.field(JMod.PROTECTED, colType, fieldName);
 		
+	}
+	
+	private void annotateBasicField(JDefinedClass cls, FieldMapping m, JType colType, EnumType etype, JFieldVar field) {
+		TableModel table = m.getTable();
+		ColumnModel column = m.getColumn();
+	
 		if(etype != null) {
 			field.annotate(Enumerated.class)
 				.param("value", etype);
@@ -553,20 +601,34 @@ public class Generator {
 		return LIST_ENTITY_REF_FACTORY;
 	}
 	
-	private void genEmbeddable(JDefinedClass entityClass, CollectionTableDto collectionTable) throws JClassAlreadyExistsException {
-		TableModel table = sm.toTable(collectionTable.getTable());
-		genEmbeddableClass(table.getName(), table, collectionTable.getForeignKey(), entityClass);
+	private void genEmbeddable(JDefinedClass entityClass, CollectionTableDecl collectionTable) throws JClassAlreadyExistsException {
+		TableModel table = collectionTable.getTable();
+		genElementCollection(table.getName(), table, collectionTable.getForeignKey(), entityClass);
 	}
 	
 	private JFieldVar genCollectionFieldVar(JDefinedClass cls, JDefinedClass elementType) {
+		return genCollectionFieldVar(cls, elementType, null);
+	}
+	private JFieldVar genCollectionFieldVar(JDefinedClass cls, JType elementType, String nameCandidate) {
 		EntityRefFactory factory = findEntityRefFactory(cls);
 		JClass fieldType = factory.getCollectionType(elementType);
 		
+		if(nameCandidate == null) {
+			nameCandidate = elementType.name();
+		}
 		JFieldVar field = cls
-			.field(JMod.PROTECTED, fieldType, toFieldName(cls, elementType.name()));
+			.field(JMod.PROTECTED, fieldType, toFieldName(cls, nameCandidate));
 
 		field.init(factory.createInitExpression());
 		return field;
+	}
+	
+	private JDefinedClass findEntity(EntityInfo einfo) {
+		return entities.entrySet().stream()
+			.filter(e -> e.getValue() == einfo)
+			.findFirst()
+			.get()
+			.getKey();
 	}
 	
 	private JDefinedClass findEntity(String tableName, String entityName) {

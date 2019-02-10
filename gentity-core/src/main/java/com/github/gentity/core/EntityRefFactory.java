@@ -16,8 +16,8 @@
 package com.github.gentity.core;
 
 import com.sun.codemodel.JClass;
-import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpression;
+import com.sun.codemodel.JType;
 
 /**
  *
@@ -27,5 +27,5 @@ public interface EntityRefFactory {
 
 	public JExpression createInitExpression();
 
-	public JClass getCollectionType(JDefinedClass elementType);
+	public JClass getCollectionType(JType elementType);
 }

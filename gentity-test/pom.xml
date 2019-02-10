@@ -20,6 +20,7 @@
 				<artifactId>gentity-maven-plugin</artifactId>
 				<version>${project.version}</version>
 				<executions>
+<!-- -->
 					<execution>
 						<id>entities-test0a-basic-table</id>
 						<phase>generate-sources</phase>
@@ -289,6 +290,7 @@
 							<mappingConfigFile>src/main/resources/test5a-element-collection-embeddable.genconfig</mappingConfigFile>
 						</configuration>
 					</execution>
+<!-- -->
 					<execution>
 						<id>entities-test5b</id>
 						<phase>generate-sources</phase>
@@ -311,6 +313,18 @@
 							<targetPackageName>com.github.gentity.test.test5c_element_collection_embeddable_relations</targetPackageName>
 							<inputDbsFile>src/main/resources/test5c-element-collection-embeddable-relations.dbs</inputDbsFile>
 							<mappingConfigFile>src/main/resources/test5c-element-collection-embeddable-relations.genconfig</mappingConfigFile>
+						</configuration>
+					</execution>
+					<execution>
+						<id>entities-test5d</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<targetPackageName>com.github.gentity.test.test5d_element_collection_embeddable_composite_pk</targetPackageName>
+							<inputDbsFile>src/main/resources/test5d-element-collection-embeddable-composite-pk.dbs</inputDbsFile>
+							<mappingConfigFile>src/main/resources/test5d-element-collection-embeddable-composite-pk.genconfig</mappingConfigFile>
 						</configuration>
 					</execution>
 					<execution>
@@ -363,6 +377,7 @@
 							<inputDbsFile>src/main/resources/demo-addressbook-2.dbs</inputDbsFile>
 						</configuration>
 					</execution>
+ <!-- -->
 				</executions>
 			</plugin>
 			<plugin>
