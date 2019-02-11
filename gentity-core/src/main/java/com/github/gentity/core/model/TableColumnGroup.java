@@ -17,12 +17,13 @@ package com.github.gentity.core.model;
 
 import com.github.gentity.core.model.util.ArrayListTableColumnGroup;
 import java.util.Collection;
+import java.util.List;
 
 /**
  *
  * @author count
  */
-public interface TableColumnGroup<T extends ColumnModel> extends Collection<T>{
+public interface TableColumnGroup<T extends ColumnModel> extends List<T>{
 	public default T findColumn(String name) {
 		return stream()
 			.filter(c -> name.equals(c.getName()))

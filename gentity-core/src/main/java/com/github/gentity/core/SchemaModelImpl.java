@@ -61,9 +61,12 @@ import com.github.gentity.core.fields.SingleTableRootFieldColumnSource;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.DatabaseModel;
 import com.github.gentity.core.model.ForeignKeyModel;
+import com.github.gentity.core.model.TableColumnGroup;
 import com.github.gentity.core.model.TableModel;
 import com.github.gentity.core.model.dbs.DbsModelReader;
 import com.github.gentity.core.model.dbs.Exclusions;
+import java.util.Arrays;
+import java.util.Collections;
 import javax.persistence.ForeignKey;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -137,10 +140,7 @@ public class SchemaModelImpl implements SchemaModel {
 		
 		
 		joinTableRelations = cfg.getJoinTable().stream()
-			.map(jt -> {
-				JoinTableRelation.Kind kind = jt.isUnidirectional() ? JoinTableRelation.Kind.UNI_MANY_TO_MANY : JoinTableRelation.Kind.MANY_TO_MANY;
-				return toJoinTableRelation(kind, jt);
-			})
+			.map(this::toJoinTableRelation)
 			.collect(Collectors.toCollection(ArrayList::new));
 		initDeclaredOneToNRelations();
 		
@@ -182,10 +182,10 @@ public class SchemaModelImpl implements SchemaModel {
 			.filter(table -> table.getForeignKeys().size()==2 && foreignKeysCoverAllColumns(table))
 			.collect(Collectors.toSet());
 		defaultJoinTables.forEach(table -> {
-			ForeignKeyModel foreignKey1 = table.getForeignKeys().get(0);
-			ForeignKeyModel foreignKey2 = table.getForeignKeys().get(1);
+			List<ForeignKeyModel> fks = table.getForeignKeys();
+			fks = sortedFks(table, fks.get(0), fks.get(1));
 			
-			joinTableRelations.add(new JoinTableRelation(JoinTableRelation.Kind.MANY_TO_MANY, table, foreignKey1, null, foreignKey2, null));
+			joinTableRelations.add(new JoinTableRelation(JoinTableRelation.Kind.MANY_TO_MANY, table, fks.get(0), null, fks.get(1), null));
 		});
 		tablesToMap.removeAll(defaultJoinTables);
 		
@@ -222,6 +222,21 @@ public class SchemaModelImpl implements SchemaModel {
 			}
 		}
 		
+	}
+	
+	List<ForeignKeyModel> sortedFks(TableModel table, ForeignKeyModel... fks) {
+		List<ForeignKeyModel> fkList = new ArrayList(Arrays.asList(fks));
+		Collections.sort(fkList, (fk1,fk2) -> lowestColumnIndex(table, fk1.getColumns()) - lowestColumnIndex(table, fk2.getColumns()));
+		return fkList;
+	}
+	
+	private int lowestColumnIndex(TableModel table, TableColumnGroup<ColumnModel> tcg) {
+		TableColumnGroup<ColumnModel> cols = table.getColumns();
+		return tcg.stream()
+			.map(cols::indexOf)
+			.min(Integer::compare)
+			.get()
+			;
 	}
 	
 	private EntityInfo findRootOrJoinedEntityOfTable(TableModel table) {
@@ -577,12 +592,17 @@ public class SchemaModelImpl implements SchemaModel {
 			.anyMatch(col -> isColumnIgnored(tableName, col.getName()));
 	}
 	
-	private JoinTableRelation toJoinTableRelation(JoinTableRelation.Kind kind, JoinTableDto manyToMany) {
+	private JoinTableRelation toJoinTableRelation(JoinTableDto manyToMany) {
+		JoinTableRelation.Kind kind = manyToMany.isUnidirectional() ? JoinTableRelation.Kind.UNI_MANY_TO_MANY : JoinTableRelation.Kind.MANY_TO_MANY;
 		TableModel table = Optional.ofNullable(databaseSchemaModel.getTable(manyToMany.getTable()))
 			.orElseThrow(()->new RuntimeException("table not found in relation: '" + manyToMany.getTable() + "'"));
 		
-		String ownerFkName =  manyToMany.getOwnerRelation().getForeignKey();
-		String ownerEntityName = manyToMany.getOwnerRelation().getOwningEntity();
+		String ownerFkName = null;
+		String ownerEntityName = null;
+		if(manyToMany.getOwnerRelation() != null) {
+			ownerFkName =  manyToMany.getOwnerRelation().getForeignKey();
+			ownerEntityName = manyToMany.getOwnerRelation().getOwningEntity();
+		}
 		
 		String inverseFkName = null;
 		String inverseEntityName = null;
@@ -591,28 +611,46 @@ public class SchemaModelImpl implements SchemaModel {
 			inverseEntityName =  manyToMany.getInverseRelation().getInverseEntity();
 		}
 		
-		ForeignKeyModel ownerFk = toTableForeignKey(table.getName(), ownerFkName);
+		ForeignKeyModel ownerFk = null;
+		ForeignKeyModel inverseFk = null;
+		if(ownerFkName != null) {
+			ownerFk = toTableForeignKey(table.getName(), ownerFkName);
+		}
+		if(inverseFkName != null) {
+			inverseFk = toTableForeignKey(table.getName(), inverseFkName);
+		}
 		
 		// NOTE: We know that there must be exactly two relations in such a table
 		// that are relevant to us. For the common case that there are exactly
 		// two foreign keys in such a table, users can omit specifying the
 		// inverse side, because we can pick that ourselves.
-		if(inverseFkName == null) {
+		if(inverseFk == null || ownerFk == null) {
 			if(table.getForeignKeys().size() != 2) {
 				throw new RuntimeException(String.format("cannot determine inverse side foreign key for table %s: either specify explicitely or make sure that there are exactly two foreign keys specified in this table", table.getName()));
 			}
-			// find the other foreign key name
-			inverseFkName = table.getForeignKeys().stream()
-				.filter(fk -> !fk.getName().equals(ownerFk.getName()))
-				.map(fk -> fk.getName())
-				.findAny()
-				.get();
+			if(ownerFk == null && inverseFk == null) {
+				List<ForeignKeyModel> fks = table.getForeignKeys();
+				fks = sortedFks(table, fks.get(0), fks.get(1));
+				ownerFk = fks.get(0);
+				inverseFk = fks.get(1);
+			} else if(inverseFk == null) {
+				inverseFk = findOtherFk(table, ownerFk);
+			} else if(ownerFk == null) {
+				ownerFk = findOtherFk(table, inverseFk);
+			}
 		}
 		
-		ForeignKeyModel inverseFk = toTableForeignKey(table.getName(), inverseFkName);
+		assert ownerFk != null && inverseFk != null;
+		
 		return new JoinTableRelation(kind, table, ownerFk, ownerEntityName, inverseFk, inverseEntityName);
 	}
 	
+	private ForeignKeyModel findOtherFk(TableModel table, ForeignKeyModel existingFk) {
+		return table.getForeignKeys().stream()
+			.filter(fk -> !fk.getName().equals(existingFk.getName()))
+			.findAny()
+			.get();
+	}
 	
 	@Override
 	public List<ChildTableRelation> getChildTableRelations() {
