@@ -92,7 +92,7 @@ limitations under the License.
 		<xs:complexContent>
 			<xs:extension base="tns:TableConfiguration">
 				<xs:sequence>
-					<xs:element name='ownerRelation' type='tns:JoinTableOwnerRelation' minOccurs='1' maxOccurs='1'/>
+					<xs:element name='ownerRelation' type='tns:JoinTableOwnerRelation' minOccurs='0' maxOccurs='1'/>
 					<xs:element name='inverseRelation' type='tns:JoinTableInverseRelation' minOccurs='0' maxOccurs='1'/>
 				</xs:sequence>
 				<xs:attribute name='unidirectional' type="xs:boolean" default="false"/>
