@@ -66,6 +66,16 @@ public abstract class RelationSide<T,O> {
 	public abstract RelationSide<T,O> bind(T thisSide, O otherSide);
 	
 	/**
+	 * Checks if the instance of this side of the relation is already bound
+	 * to the other side. Note that this call may be expensive because it may
+	 * involve searching for the entity in an underlying collection.
+	 * @param thisSide	instance of this side of the relation
+	 * @param otherSide	instance of the other side of the relation that should be checked if bound
+	 * @return true of this side is bound to the other side, false otherwise
+	 */
+	public abstract boolean isBound(T thisSide, O otherSide);
+	
+	/**
 	 * Removes the binding between the instance of this side of the relation and 
 	 * the instance of the other side of the relation. 
 	 * This updates the member variable of thisSide backing the

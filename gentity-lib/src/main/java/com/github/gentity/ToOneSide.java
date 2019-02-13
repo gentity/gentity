@@ -54,6 +54,12 @@ public class ToOneSide<T,O> extends RelationSide<T, O>{
 		return this;
 	}
 
+	@Override
+	public boolean isBound(T thisSide, O otherSide) {
+		return getter.apply(thisSide) == otherSide;
+	}
+
+	
 	/**
 	 * Getter variant for {@link ToOneSide}, single-valued association
 	 * @param host
@@ -69,12 +75,24 @@ public class ToOneSide<T,O> extends RelationSide<T, O>{
 	 * @param otherSide 
 	 */
 	public void set(T host, O otherSide) {
+		// update binding of other side, if there is another side..
 		if(getOther() != null) {
 			O current = getter.apply(host);
-			if(current != null) {
-				getOther().unbind(current, host);
+			// only update if binding state actually changes. This check is
+			// very easy on a ToOneSide because it only involves
+			// a reference comparison. Because it is typical setter semantics,
+			// double-setting is simply ignored. 
+			// This is very different on a ToManySide, which has no setter,
+			// but Collection.add() semantics instead; especially for List<>, 
+			// double-adds won't work properly.
+			if(current != otherSide) {
+				// for binding to non-null, unbind other side first before
+				// re-binding
+				if(current != null) {
+					getOther().unbind(current, host);
+				}
+				getOther().bind(otherSide, host);
 			}
-			getOther().bind(otherSide, host);
 		}
 		
 		// update this side: rebind

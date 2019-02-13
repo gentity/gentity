@@ -65,6 +65,17 @@ public abstract class ToManySide<T, C extends Collection<O>, O> extends Relation
 	}
 
 	@Override
+	public boolean isBound(T thisSide, O otherSide) {
+		if(thisSide == null) {
+			// null is not bound to anything
+			return false;
+		}
+		return collectionProvider
+			.apply(thisSide)
+			.contains(otherSide);
+	}
+
+	@Override
 	public RelationSide<T,O> unbind(T thisSide, O otherSide) {
 		if(thisSide == null) {
 			// We silently ignore unbinding from null.
