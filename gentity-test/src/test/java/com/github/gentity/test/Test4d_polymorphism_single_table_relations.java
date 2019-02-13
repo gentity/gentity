@@ -58,12 +58,9 @@ public class Test4d_polymorphism_single_table_relations extends AbstractGentityT
 			.build();
 		
 		dog1.setLivesInKennel(kennel);
-		kennel.getDog().add(dog1);
 		dog2.setLivesInKennel(kennel);
-		kennel.getDog().add(dog2);
 		
 		dog2.getDogAccessories().add(kennel);
-		kennel.setOwnedByDogLifeform(dog2);
 		
 		
 		

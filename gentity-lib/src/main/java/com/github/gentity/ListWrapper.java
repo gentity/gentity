@@ -67,6 +67,14 @@ class ListWrapper<E,T> extends AbstractList<E> {
 
 	@Override
 	public void add(int index, E element) {
+		// we ask the other side if the element is bound. The reason we're not
+		// calling this.isBound() is because we KNOW that isBound() is expensive
+		// for us (this.isBound() calls a Collection.contains()) - but for the
+		// other side there is a chance that it is a ToOneSide, for which
+		// isBound() is really cheap (a refernce comparison)
+		if(otherSide.isBound(element, host)) {
+			throw new IllegalStateException(String.format("cannot add object %s to collection in object %s, because it is already in that collection", element, host));
+		}
 		checkNotNull(element);
 		delegate.add(index, element);
 		otherSide.bind(element, host);
