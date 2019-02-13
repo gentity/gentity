@@ -70,9 +70,11 @@ public class ToOneSide<T,O> extends RelationSide<T, O>{
 	 */
 	public void set(T host, O otherSide) {
 		if(getOther() != null) {
-			getOther()
-			.unbind(getter.apply(host), host)
-			.bind(otherSide, host);
+			O current = getter.apply(host);
+			if(current != null) {
+				getOther().unbind(current, host);
+			}
+			getOther().bind(otherSide, host);
 		}
 		
 		// update this side: rebind
