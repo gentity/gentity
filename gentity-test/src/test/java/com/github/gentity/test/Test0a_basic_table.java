@@ -29,9 +29,9 @@ public class Test0a_basic_table extends AbstractGentityTest {
 	@Test
 	public void test() {
 
-		assertTrue(hasClassDeclaredField(Person.class, long.class, "id"));
-		assertTrue(hasClassDeclaredMethod(Person.class, long.class, "getId"));
-		assertTrue(hasClassDeclaredMethod(Person.class, void.class, "setId", long.class));
+		assertTrue(hasClassDeclaredField(Person.class, Long.class, "id"));
+		assertTrue(hasClassDeclaredMethod(Person.class, Long.class, "getId"));
+		assertTrue(hasClassDeclaredMethod(Person.class, void.class, "setId", Long.class));
 
 		em.persist(
 			Person.builder()

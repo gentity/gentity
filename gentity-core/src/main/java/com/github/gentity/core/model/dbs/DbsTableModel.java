@@ -75,13 +75,12 @@ public class DbsTableModel implements TableModel {
 			.orElse(null);
 	}
 
+	public void setDbsColumnModels(List<DbsColumnModel> columns) {
+		this.columns = columns;
+	}
+	
 	@Override
 	public TableColumnGroup getColumns() {
-		if(columns == null) {
-			columns = dbsTable.getColumn().stream()
-				.map(dc -> new DbsColumnModel(this, dc))
-				.collect(Collectors.toList());
-		}
 		return new ArrayListTableColumnGroup(columns);
 	}
 
