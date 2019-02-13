@@ -72,23 +72,23 @@ public class DbsModelReader {
 					// see that foreign key as excluded
 					continue;
 				}
-				DbsTableModel targetTable = tables.get(fkDto.getToTable());
-				List<ForeignKeyModel.Mapping> mappings = 
-					fkDto.getFkColumn().stream()
-					.map(fkCol -> toMapping(fkDto, fkCol, table, targetTable))
-					.collect(Collectors.toList())
-					;
-				DbsForeignKeyModel fk = new DbsForeignKeyModel(fkDto, mappings, table, targetTable);
-				List<ColumnModel> excludedFkCols = fk.getColumns().stream()
+				List<ForeignKeyColumnDto> excludedFkCols = fkDto.getFkColumn().stream()
 					.filter(fcol -> exclusions.isTableColumnExcluded(table.getName(), fcol.getName()))
 					.collect(Collectors.toList());
 				if(excludedFkCols.isEmpty()) {
+					DbsTableModel targetTable = tables.get(fkDto.getToTable());
+					List<ForeignKeyModel.Mapping> mappings = 
+						fkDto.getFkColumn().stream()
+						.map(fkCol -> toMapping(fkDto, fkCol, table, targetTable))
+						.collect(Collectors.toList())
+						;
+					DbsForeignKeyModel fk = new DbsForeignKeyModel(fkDto, mappings, table, targetTable);
 					table.getForeignKeysImpl().add(fk);
-				} else if(excludedFkCols.size() != fk.getColumnMappings().size()) {
+				} else if(excludedFkCols.size() != fkDto.getFkColumn().size()) {
 					// either all or no columns in a foreign key may be excluded.
 					// partial exclusions cannot be accepted and lead to an error
-					String colnames = fk.getColumns().stream().map(c -> c.getName()).collect(Collectors.joining(","));
-					String msg = String.format("columns of foreign key %s are partially excluded (columns: %s)", fk.getName(), colnames);
+					String colnames = fkDto.getFkColumn().stream().map(c -> c.getName()).collect(Collectors.joining(","));
+					String msg = String.format("columns of foreign key %s are partially excluded (columns: %s)", fkDto.getName(), colnames);
 					throw new RuntimeException(msg);
 				}
 			}
@@ -106,7 +106,7 @@ public class DbsModelReader {
 				.filter(c -> !exclusions.isTableColumnExcluded(tableDto.getName(), c.getName()))
 				.map(c -> new DbsColumnModel(table, c))
 				.collect(Collectors.toCollection(ArrayListTableColumnGroup::new));
-		
+		table.setDbsColumnModels(cmodels);
 		
 		for(IndexDto idx : tableDto.getIndex()) {
 			

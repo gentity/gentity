@@ -33,9 +33,9 @@ public class Test0c_basic_table_autoincrement extends AbstractGentityTest {
 		logger.severe("test-severe");
 		logger.fine("test-fine");
 		
-		assertTrue(hasClassDeclaredField(Person.class, long.class, "id"));
-		assertTrue(hasClassDeclaredMethod(Person.class, long.class, "getId"));
-		assertFalse(hasClassDeclaredMethod(Person.class, void.class, "setId", long.class));
+		assertTrue(hasClassDeclaredField(Person.class, Long.class, "id"));
+		assertTrue(hasClassDeclaredMethod(Person.class, Long.class, "getId"));
+		assertFalse(hasClassDeclaredMethod(Person.class, void.class, "setId", Long.class));
 
 		em.persist(
 			Person.builder()

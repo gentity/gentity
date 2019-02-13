@@ -29,9 +29,9 @@ public class Test0b_basic_table_sequence extends AbstractGentityTest {
 	@Test
 	public void test() {
 		// check that id field is handled correctly
-		assertTrue(hasClassDeclaredField(Person.class, long.class, "id"));
-		assertTrue(hasClassDeclaredMethod(Person.class, long.class, "getId"));
-		assertFalse(hasClassDeclaredMethod(Person.class, void.class, "setId", long.class));
+		assertTrue(hasClassDeclaredField(Person.class, Long.class, "id"));
+		assertTrue(hasClassDeclaredMethod(Person.class, Long.class, "getId"));
+		assertFalse(hasClassDeclaredMethod(Person.class, void.class, "setId", Long.class));
 		
 		em.persist(
 			Person.builder()
