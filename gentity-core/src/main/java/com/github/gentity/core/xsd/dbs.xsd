@@ -105,64 +105,11 @@ limitations under the License.
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
-  <xs:complexType name="Entity" mixed="true">
-    <xs:sequence>
-      <xs:element type="Callout" name="callout" minOccurs="0"/>
-    </xs:sequence>
-    <xs:attribute type="xs:string" name="schema" use="optional"/>
-    <xs:attribute type="xs:string" name="name" use="optional"/>
-    <xs:attribute type="xs:string" name="color" use="optional"/>
-    <xs:attribute type="xs:short" name="x" use="optional"/>
-    <xs:attribute type="xs:short" name="y" use="optional"/>
-  </xs:complexType>
-  <xs:complexType name="Callout" mixed="true">
-    <xs:sequence>
-      <xs:element type="xs:string" name="comment" minOccurs="0"/>
-    </xs:sequence>
-    <xs:attribute type="xs:short" name="x" use="optional"/>
-    <xs:attribute type="xs:short" name="y" use="optional"/>
-    <xs:attribute type="xs:string" name="pointer" use="optional"/>
-  </xs:complexType>
-  <xs:complexType name="BrowseTable">
-    <xs:simpleContent>
-      <xs:extension base="xs:string">
-        <xs:attribute type="xs:string" name="schema" use="optional"/>
-        <xs:attribute type="xs:string" name="entity" use="optional"/>
-        <xs:attribute type="xs:byte" name="x" use="optional"/>
-        <xs:attribute type="xs:byte" name="y" use="optional"/>
-        <xs:attribute type="xs:short" name="width" use="optional"/>
-        <xs:attribute type="xs:short" name="height" use="optional"/>
-      </xs:extension>
-    </xs:simpleContent>
-  </xs:complexType>
-  <xs:complexType name="Browser">
-    <xs:sequence>
-      <xs:element type="BrowseTable" name="browse_table"/>
-    </xs:sequence>
-    <xs:attribute type="xs:string" name="id" use="optional"/>
-    <xs:attribute type="xs:string" name="name" use="optional"/>
-    <xs:attribute type="xs:string" name="confirm_updates" use="optional"/>
-  </xs:complexType>
   <xs:complexType name="Layout">
     <xs:sequence>
-      <xs:element type="xs:string" name="comment" minOccurs="0"/>
-      <xs:element type="Entity" name="entity" maxOccurs="unbounded" minOccurs="0"/>
-      <xs:element type="Callout" name="callout" maxOccurs="unbounded" minOccurs="0"/>
-      <xs:element type="Browser" name="browser" maxOccurs="unbounded" minOccurs="0"/>
-      <xs:element type="Group" name="group" minOccurs="0"/>
-      <xs:element type="Script" name="script" minOccurs="0"/>
+      <xs:any minOccurs="0" maxOccurs="unbounded" processContents="skip"/>
     </xs:sequence>
-    <xs:attribute type="xs:string" name="name" use="optional"/>
-    <xs:attribute type="xs:string" name="id" use="optional"/>
-    <xs:attribute type="xs:string" name="show_relation" use="optional"/>
-  </xs:complexType>
-  <xs:complexType name="Group">
-    <xs:sequence>
-      <xs:element type="xs:string" name="comment"/>
-      <xs:element type="Entity" name="entity" maxOccurs="unbounded" minOccurs="0"/>
-    </xs:sequence>
-    <xs:attribute type="xs:string" name="name"/>
-    <xs:attribute type="xs:string" name="color"/>
+    <xs:anyAttribute processContents="skip"/>
   </xs:complexType>
   <xs:complexType name="Script">
     <xs:sequence>
