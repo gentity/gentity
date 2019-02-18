@@ -33,6 +33,8 @@ import com.github.dbsjpagen.config.EntityTableDto;
 import com.github.dbsjpagen.config.ExclusionDto;
 import com.github.dbsjpagen.config.GlobalConfigurationDto;
 import com.github.dbsjpagen.config.JoinTableDto;
+import com.github.dbsjpagen.config.JoinTableInverseRelationDto;
+import com.github.dbsjpagen.config.JoinTableOwnerRelationDto;
 import com.github.dbsjpagen.config.JoinedEntityTableDto;
 import com.github.dbsjpagen.config.MappingConfigDto;
 import com.github.dbsjpagen.config.RootEntityTableDto;
@@ -597,19 +599,22 @@ public class SchemaModelImpl implements SchemaModel {
 		TableModel table = Optional.ofNullable(databaseSchemaModel.getTable(manyToMany.getTable()))
 			.orElseThrow(()->new RuntimeException("table not found in relation: '" + manyToMany.getTable() + "'"));
 		
-		String ownerFkName = null;
-		String ownerEntityName = null;
-		if(manyToMany.getOwnerRelation() != null) {
-			ownerFkName =  manyToMany.getOwnerRelation().getForeignKey();
-			ownerEntityName = manyToMany.getOwnerRelation().getOwningEntity();
-		}
+		Optional<JoinTableOwnerRelationDto> ownerRelation = Optional.ofNullable(manyToMany.getOwnerRelation());
+		String ownerFkName = ownerRelation
+			.map(r -> r.getForeignKey())
+			.orElse(null);
+		String ownerEntityName = ownerRelation
+			.map(r -> r.getOwningEntity())
+			.orElse(null);
 		
-		String inverseFkName = null;
-		String inverseEntityName = null;
-		if(manyToMany.getInverseRelation() != null) {
-			inverseFkName =  manyToMany.getInverseRelation().getForeignKey();
-			inverseEntityName =  manyToMany.getInverseRelation().getInverseEntity();
-		}
+		Optional<JoinTableInverseRelationDto> inverseRelation = Optional.ofNullable(manyToMany.getInverseRelation());
+		String inverseFkName = inverseRelation
+			.map(r -> r.getForeignKey())
+			.orElse(null);
+		
+		String inverseEntityName = inverseRelation
+			.map(r -> r.getInverseEntity())
+			.orElse(null);
 		
 		ForeignKeyModel ownerFk = null;
 		ForeignKeyModel inverseFk = null;
