@@ -23,7 +23,6 @@
 <!-- -->
 					<execution>
 						<id>entities-test0a-basic-table</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -34,7 +33,6 @@
 					</execution>
 					<execution>
 						<id>entities-test0b-basic-table-sequence</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -45,7 +43,6 @@
 					</execution>
 					<execution>
 						<id>entities-test0c-basic-table-autoincrement</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -56,7 +53,6 @@
 					</execution>
 					<execution>
 						<id>entities-test0d-basic-table-blob</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -67,7 +63,6 @@
 					</execution>
 					<execution>
 						<id>entities-test0e-basic-table-field</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -79,7 +74,6 @@
 					</execution>
 					<execution>
 						<id>entities-test0f-basic-table-enumerated</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -91,7 +85,6 @@
 					</execution>
 					<execution>
 						<id>entities-test0g_basic_table_composite_pk</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -103,7 +96,6 @@
 					</execution>
 					<execution>
 						<id>entities-test1</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -114,7 +106,6 @@
 					</execution>
 					<execution>
 						<id>entities-test1a-many-to-one</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -125,7 +116,6 @@
 					</execution>
 					<execution>
 						<id>entities-test1b-one-to-one</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -136,7 +126,6 @@
 					</execution>
 					<execution>
 						<id>entities-test1c-many-to-many</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -148,7 +137,6 @@
 					</execution>
 					<execution>
 						<id>entities-test1d-many-to-one-unidirectional-child</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -160,7 +148,6 @@
 					</execution>
 					<execution>
 						<id>entities-test1e-one-to-one-unidirectional-child</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -172,7 +159,6 @@
 					</execution>
 					<execution>
 						<id>entities-test1f-many-to-many</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -184,7 +170,6 @@
 					</execution>
 					<execution>
 						<id>entities-test1g-many-to-many-defaulted</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -196,7 +181,6 @@
 					</execution>
 					<execution>
 						<id>entities-test1h-many-to-one-composite-pk</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -208,7 +192,6 @@
 					</execution>
 					<execution>
 						<id>entities-test1i-many-to-many-composite-pk</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -220,7 +203,6 @@
 					</execution>
 					<execution>
 						<id>entities-test2</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -232,7 +214,6 @@
 					</execution>
 					<execution>
 						<id>entities-test3</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -244,7 +225,6 @@
 					</execution>
 					<execution>
 						<id>entities-test4a</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -256,7 +236,6 @@
 					</execution>
 					<execution>
 						<id>entities-test4b</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -268,7 +247,6 @@
 					</execution>
 					<execution>
 						<id>entities-test4d</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -280,7 +258,6 @@
 					</execution>
 					<execution>
 						<id>entities-test5a</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -293,7 +270,6 @@
 <!-- -->
 					<execution>
 						<id>entities-test5b</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -305,7 +281,6 @@
 					</execution>
 					<execution>
 						<id>entities-test5c</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -317,7 +292,6 @@
 					</execution>
 					<execution>
 						<id>entities-test5d</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -329,7 +303,6 @@
 					</execution>
 					<execution>
 						<id>entities-test6a</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -343,7 +316,6 @@
 					
 					<execution>
 						<id>entities-demo-gallery</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -356,7 +328,6 @@
 					
 					<execution>
 						<id>entities-demo-addressbook-1</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -368,7 +339,6 @@
 					
 					<execution>
 						<id>entities-demo-addressbook-2</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
