@@ -23,12 +23,13 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import com.github.gentity.core.FileShell;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
 
 /**
  *
  * @author upachler
  */
-@Mojo( name = "generate")
+@Mojo( name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
 public class GentityMojo extends AbstractMojo{
 	
 	/**
