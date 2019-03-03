@@ -13,6 +13,40 @@ defines:
 * Bidirectional and unidirectional relationships are supported
 * Non-Entity collections (@ElementCollection / @Embeddable)
 
+## Quick Start
+
+Add this to your `pom.xml`'s `<build>`/`<plugins>` section:
+
+```xml
+<plugin>
+    <groupId>com.github.gentity</groupId>
+    <artifactId>gentity-maven-plugin</artifactId>
+    <version>0.17</version>  <!-- replace with newest release version -->
+    <executions>
+        <execution>
+            <goals>
+                <goal>generate</goal>
+            </goals>
+            <configuration>
+                <inputDbsFile>my-db-model.dbs</inputDbsFile>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+```
+
+You'll also need the gentity library (`gentity-lib`):
+
+```xml
+<dependency>
+    <groupId>com.github.gentity</groupId>
+    <artifactId>gentity-lib</artifactId>
+    <version>0.17</version>  <!-- must match the gentity plugin version -->
+</dependency>
+```
+
+Note that you'll also need your ORM's libraries (EclipseLink, Hibernate, etc.), or at least the JPA API:
+
 ## TODO
 
 * Support for unidirectional OneToMany (this has issues attached, as standard
