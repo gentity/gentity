@@ -28,6 +28,7 @@ import javax.xml.validation.SchemaFactory;
 import com.github.dbsjpagen.config.MappingConfigDto;
 import com.github.dbsjpagen.dbsmodel.ProjectDto;
 import com.github.gentity.core.xsd.R;
+import javax.xml.bind.ValidationEventHandler;
 import org.xml.sax.SAXException;
 
 /**
@@ -41,6 +42,10 @@ public class FileShell {
 	public void setTargetPackageName(String targetPackageName) {
 		this.targetPackageName = targetPackageName;
 	}
+	
+	private ValidationEventHandler validationEventHandler = event -> {
+		throw new RuntimeException(event.getMessage(), event.getLinkedException());
+	};
 	
 	public void generate(File inputFile, File configFile, File outputFolder) throws IOException {
 
@@ -61,6 +66,7 @@ public class FileShell {
 				Unmarshaller unmarshaller = JAXBContext.newInstance(com.github.dbsjpagen.config.ObjectFactory.class)
 					.createUnmarshaller();
 				unmarshaller.setSchema(genconfigSchema);
+				unmarshaller.setEventHandler(validationEventHandler);
 				JAXBElement<MappingConfigDto> configElement = (JAXBElement<MappingConfigDto>)unmarshaller
 					.unmarshal(configFile);
 				config = configElement.getValue();
@@ -84,6 +90,7 @@ public class FileShell {
 			Unmarshaller unmarshaller = JAXBContext.newInstance(com.github.dbsjpagen.dbsmodel.ObjectFactory.class)
 				.createUnmarshaller();
 			unmarshaller.setSchema(dbsSchema);
+			unmarshaller.setEventHandler(validationEventHandler);
 			JAXBElement<ProjectDto> schemaElement = (JAXBElement<ProjectDto>)unmarshaller
 				.unmarshal(inputFile);
 			project = schemaElement.getValue();
