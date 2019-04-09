@@ -62,8 +62,8 @@ public class ToOneSide<T,O> extends RelationSide<T, O>{
 	
 	/**
 	 * Getter variant for {@link ToOneSide}, single-valued association
-	 * @param host
-	 * @return 
+	 * @param host	The object hosting this side of the relation
+	 * @return The target of the relation
 	 */
 	public O get(T host) {
 		return getter.apply(host);
@@ -71,8 +71,8 @@ public class ToOneSide<T,O> extends RelationSide<T, O>{
 	
 	/**
 	 * For {@link ToOneSide}, there is a standard setter implementation
-	 * @param host
-	 * @param otherSide 
+	 * @param host	The object hosting this side of the relation
+	 * @param otherSide The object that we're setting a s new target of the relation
 	 */
 	public void set(T host, O otherSide) {
 		// update binding of other side, if there is another side..
