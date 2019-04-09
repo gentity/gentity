@@ -80,7 +80,7 @@ public class ToOneSide<T,O> extends RelationSide<T, O>{
 			O current = getter.apply(host);
 			// only update if binding state actually changes. This check is
 			// very easy on a ToOneSide because it only involves
-			// a reference comparison. Because it is typical setter semantics,
+			// a reference comparison. Because it is typical setter semantics,_|
 			// double-setting is simply ignored. 
 			// This is very different on a ToManySide, which has no setter,
 			// but Collection.add() semantics instead; especially for List<>, 
@@ -91,7 +91,9 @@ public class ToOneSide<T,O> extends RelationSide<T, O>{
 				if(current != null) {
 					getOther().unbind(current, host);
 				}
-				getOther().bind(otherSide, host);
+				if(otherSide != null) {
+					getOther().bind(otherSide, host);
+				}
 			}
 		}
 		

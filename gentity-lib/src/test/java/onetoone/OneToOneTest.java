@@ -37,5 +37,10 @@ public class OneToOneTest {
 		assertSame(kennel, dog.getKennel());
 		assertSame(dog, kennel.getDog());
 		
+		kennel.setDog(null);
+		
+		assertNull(dog.getKennel());
+		assertNull(kennel.getDog());
+		
 	}
 }
