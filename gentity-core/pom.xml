@@ -96,7 +96,27 @@
 								<argument>${basedir}/src/main/java/com/github/gentity/core/xsd/bindings.xjb</argument>
 								<argument>${basedir}/src/main/java/com/github/gentity/core/xsd/dbs.xsd</argument>
 								<argument>${basedir}/src/main/java/com/github/gentity/core/xsd/genconfig.xsd</argument>
-					
+								
+								<!--
+								THIS OPTION TURNS OFF PACKAGE ANNOTATIONS:
+								By default, xjc generates package-info.java files where packages get an
+								@XmlSchema annotation. This annotation defines the namespace for
+								all classes in that package.
+								
+								The JAXB Unmarshaller reads this annotation get the namespace of a
+								JAXB entity class if it can't find a namespace on the class itself.
+								
+								However, since Java 9, reading package annotations appears to be broken,
+								at least when attempting to read them from a Maven plugin.
+								See this post for details:
+								
+								https://stackoverflow.com/questions/52157040/jaxb-package-info-ignored-when-using-java-10
+								
+								To remedy this, we turn package annotations off, putting all the
+								information into the JAXB entity classes themselves:
+								-->
+								<argument>-npa</argument>
+								
 							</arguments>
 							<dependencies>
 								<dependency>
