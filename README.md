@@ -1,5 +1,12 @@
 # gentity [![Build Status](https://travis-ci.org/gentity/gentity.svg?branch=master)](https://travis-ci.org/gentity/gentity) ![Maven metadata URI](https://img.shields.io/maven-metadata/v/http/central.maven.org/maven2/com/github/gentity/gentity-maven-plugin/maven-metadata.xml.svg)
-JPA Entity class generator from DBSchema (*.dbs) database models (see https://www.dbschema.com)
+
+JPA Entity class generator from DBSchema (*.dbs) database models (see https://www.dbschema.com). 
+
+The Workflow:
+1. Create/modify database model in modeller took (DbSchema)
+2. Run gentity from Maven or directly from command line to generate entity classes
+
+So, Gentity doesn't need a running database; entity classes are generated directly from the modeller file.
 
 ## Features
 * Automatic entity generation from table schema

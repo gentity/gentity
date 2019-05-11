@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+        <action>
+            <actionName>CUSTOM-generate-sources</actionName>
+            <displayName>generate-sources</displayName>
+            <goals>
+                <goal>clean</goal>
+                <goal>generate-sources</goal>
+                <goal>--debug</goal>
+            </goals>
+        </action>
+        <action>
+            <actionName>CUSTOM-generate-sources debug</actionName>
+            <displayName>generate-sources debug</displayName>
+            <goals>
+                <goal>clean</goal>
+                <goal>generate-sources</goal>
+            </goals>
+            <properties>
+                <jpda.listen>maven</jpda.listen>
+            </properties>
+        </action>
+    </actions>
