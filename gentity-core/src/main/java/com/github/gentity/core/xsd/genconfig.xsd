@@ -100,17 +100,76 @@ limitations under the License.
 	</xs:complexType>
 
 	<xs:complexType name="Configuration">
-		<xs:attribute name='extends' type='tns:FQCN' use="optional"/>
+		<xs:attribute name='extends' type='tns:FQCN' use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					A generated entity class will extend the given Java class, which 
+					must be defined externally. Entity classes that are subclasses
+					in an inheritance hierarchy ignore this attribute.
+					A fully qualified Java type name is required.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
 		<xs:attribute name='implements' use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					A generated entity class will implement the given Java interface, which 
+					must be defined externally.
+					A fully qualified Java type name is required.
+				</xs:documentation>
+			</xs:annotation>
 			<xs:simpleType>
 				<xs:list itemType="tns:FQCN"/>
 			</xs:simpleType>
 		</xs:attribute>
-		<xs:attribute name="classNameSuffix" default="" type="xs:string"/>
-		<xs:attribute name="classNamePrefix" default="" type="xs:string"/>
-		<xs:attribute name="fieldNameSuffix" default="" type="xs:string"/>
-		<xs:attribute name="fieldNamePrefix" default="" type="xs:string"/>
-		<xs:attribute name="idClass" type="tns:FQCN"/>
+		<xs:attribute name="classNameSuffix" default="" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>
+					The specified suffix will be appended to the generated
+					Java entity class name. For an entity table 'customer',
+					a class name suffix of 'Entity' will lead to the java
+					class name 'CustomerEntity'.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="classNamePrefix" default="" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>
+					The specified prefix will be prepended to the generated
+					Java entity class name. For an entity table 'person',
+					a class name prefix of 'Acme' will lead to the java
+					class name 'AcmePerson'.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>			
+		<xs:attribute name="fieldNameSuffix" default="" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>
+					The specified suffix will be appended to the generated
+					Java field name. For column named 'phone' and a field name
+					suffix of '_field', the generated field name is 'phone_field'.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="fieldNamePrefix" default="" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>
+					The specified prefix will be prepended to the generated
+					Java field name. For column named 'phone' and a field name
+					prefix of 'f_', the generated field name is 'f_phone'.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="idClass" type="tns:FQCN">
+			<xs:annotation>
+				<xs:documentation>
+					If specified, the generated entity class will receive an
+					@IdClass annotation including the given Java class name,
+					which muast be fully qualified.
+					The class must be defined externally.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
 	</xs:complexType>
 	
 	<xs:complexType name="GlobalConfiguration">
@@ -300,10 +359,28 @@ limitations under the License.
 	<xs:complexType name="RootEntityTable">
 		<xs:complexContent>
 			<xs:extension base="tns:EntityTable">
-				<xs:sequence>
+				<xs:sequence minOccurs='0'>
 					<xs:choice>
-						<xs:element name='joinedHierarchy' type='tns:JoinedHierarchy' minOccurs='1' maxOccurs='1'/>
-						<xs:element name='singleTableHierarchy' type='tns:SingleTableHierarchy' minOccurs='0' maxOccurs='1'/>
+						<xs:element name='joinedHierarchy' type='tns:JoinedHierarchy' minOccurs='1' maxOccurs='1'>
+							<xs:annotation>
+								<xs:documentation>
+									If specified, the entity table and its corresponding
+									generated entity class is the root
+									of an entity class hierarchy, using the
+									'JOINED' JPA inheritance strategy.
+								</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name='singleTableHierarchy' type='tns:SingleTableHierarchy' minOccurs='1' maxOccurs='1'>
+							<xs:annotation>
+								<xs:documentation>
+									If specified, the entity table and its corresponding
+									generated entity class is the root
+									of an entity class hierarchy, using the
+									'SINGLE_TABLE' JPA inheritance strategy.
+								</xs:documentation>
+							</xs:annotation>
+						</xs:element>
 					</xs:choice>
 				</xs:sequence>
 			</xs:extension>
@@ -318,7 +395,14 @@ limitations under the License.
 		<xs:complexContent>
 			<xs:extension base="tns:EntityTable">
 				<xs:sequence>
-					<xs:element name="entityTable" type="tns:JoinedEntityTable" minOccurs='0' maxOccurs='unbounded'/>
+					<xs:element name="entityTable" type="tns:JoinedEntityTable" minOccurs='0' maxOccurs='unbounded'>
+						<xs:annotation>
+							<xs:documentation>
+								Specifies that the entity table represents a 
+								subclass entity of the enclosing table's entity.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
 				</xs:sequence>
 				<xs:attribute name="foreignKey" use="required" type="xs:string"/>
 				<xs:attribute name='discriminator' type='xs:string' use="required"/>
@@ -403,7 +487,14 @@ limitations under the License.
 		<xs:complexContent>
 			<xs:extension base="tns:Hierarchy">
 				<xs:sequence>
-					<xs:element name="entityTable" type="tns:JoinedEntityTable" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="entityTable" type="tns:JoinedEntityTable" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>
+								Specifies that the entity table represents a 
+								subclass entity of the enclosing table's entity.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>
@@ -412,7 +503,13 @@ limitations under the License.
 		<xs:complexContent>
 			<xs:extension base="tns:Hierarchy">
 				<xs:sequence>
-					<xs:element name="entity" type="tns:SingleTableEntity" minOccurs='0' maxOccurs='unbounded'/>
+					<xs:element name="entity" type="tns:SingleTableEntity" minOccurs='0' maxOccurs='unbounded'>
+						<xs:annotation>
+							<xs:documentation>
+								Declares a subclass entity.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>
@@ -424,7 +521,13 @@ limitations under the License.
 					<xs:element name="collectionTable" type="tns:CollectionTable"  minOccurs='0' maxOccurs='unbounded'/>
 					<xs:element name="oneToOne" type="tns:XToOneRelation" minOccurs='0' maxOccurs='unbounded'/>
 					<xs:element name="manyToOne" type="tns:XToOneRelation" minOccurs='0' maxOccurs='unbounded'/>
-					<xs:element name="entity" type="tns:SingleTableEntity" minOccurs="0" maxOccurs='unbounded'/>
+					<xs:element name="entity" type="tns:SingleTableEntity" minOccurs="0" maxOccurs='unbounded'>
+						<xs:annotation>
+							<xs:documentation>
+								Declares a subclass entity.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
 				</xs:sequence>
 				<xs:attribute name="name" type="xs:string" use='required'/>
 				<xs:attribute name="discriminator" type="xs:string" use='required'/>
