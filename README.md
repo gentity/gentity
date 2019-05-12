@@ -12,13 +12,12 @@ So, Gentity doesn't need a running database; entity classes are generated direct
 * Automatic entity generation from table schema
 * Automatically derives:
   - Entity fields from column definitions
-  - OneToMany / OneToOne relations from foreign key and index definitions
-* Direct automatic entity generation by using a mapping definition file, which
-defines:
-  - Join tables to create @ManyToMany relationships
-  - Inheritance hierarchies (supported strategies are JOINED and SINGLE_TABLE)
+  - OneToMany / OneToOne / ManyToMany relations from foreign key and index definitions
+  - Non-Entity collections (@ElementCollection / @Embeddable)
+* Additional mapping definition file, to
+  - Override derived definitions from database modeller file
+  - Define inheritance hierarchies (supported strategies are JOINED and SINGLE_TABLE)
 * Bidirectional and unidirectional relationships are supported
-* Non-Entity collections (@ElementCollection / @Embeddable)
 
 ## Quick Start
 
