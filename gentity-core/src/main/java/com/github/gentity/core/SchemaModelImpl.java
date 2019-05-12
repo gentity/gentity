@@ -32,11 +32,11 @@ import com.github.dbsjpagen.config.ConfigurationDto;
 import com.github.dbsjpagen.config.EntityTableDto;
 import com.github.dbsjpagen.config.ExclusionDto;
 import com.github.dbsjpagen.config.GlobalConfigurationDto;
+import com.github.dbsjpagen.config.InverseTargetRelationDto;
 import com.github.dbsjpagen.config.JoinTableDto;
-import com.github.dbsjpagen.config.JoinTableInverseRelationDto;
-import com.github.dbsjpagen.config.JoinTableOwnerRelationDto;
 import com.github.dbsjpagen.config.JoinedEntityTableDto;
 import com.github.dbsjpagen.config.MappingConfigDto;
+import com.github.dbsjpagen.config.OwnerTargetRelationDto;
 import com.github.dbsjpagen.config.RootEntityTableDto;
 import com.github.dbsjpagen.config.SingleTableEntityDto;
 import com.github.dbsjpagen.config.SingleTableHierarchyDto;
@@ -589,17 +589,12 @@ public class SchemaModelImpl implements SchemaModel {
 			.anyMatch(col -> isColumnExcluded(tableName, col.getName()));
 	}
 	
-	private boolean containsIgnoredTableColumns(String tableName, ForeignKeyModel fk) {
-		return fk.getColumns().stream()
-			.anyMatch(col -> isColumnIgnored(tableName, col.getName()));
-	}
-	
 	private JoinTableRelation toJoinTableRelation(JoinTableDto manyToMany) {
 		JoinTableRelation.Kind kind = manyToMany.isUnidirectional() ? JoinTableRelation.Kind.UNI_MANY_TO_MANY : JoinTableRelation.Kind.MANY_TO_MANY;
 		TableModel table = Optional.ofNullable(databaseSchemaModel.getTable(manyToMany.getTable()))
 			.orElseThrow(()->new RuntimeException("table not found in relation: '" + manyToMany.getTable() + "'"));
 		
-		Optional<JoinTableOwnerRelationDto> ownerRelation = Optional.ofNullable(manyToMany.getOwnerRelation());
+		Optional<OwnerTargetRelationDto> ownerRelation = Optional.ofNullable(manyToMany.getOwnerRelation());
 		String ownerFkName = ownerRelation
 			.map(r -> r.getForeignKey())
 			.orElse(null);
@@ -607,7 +602,7 @@ public class SchemaModelImpl implements SchemaModel {
 			.map(r -> r.getOwningEntity())
 			.orElse(null);
 		
-		Optional<JoinTableInverseRelationDto> inverseRelation = Optional.ofNullable(manyToMany.getInverseRelation());
+		Optional<InverseTargetRelationDto> inverseRelation = Optional.ofNullable(manyToMany.getInverseRelation());
 		String inverseFkName = inverseRelation
 			.map(r -> r.getForeignKey())
 			.orElse(null);

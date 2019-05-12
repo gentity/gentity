@@ -43,7 +43,16 @@ limitations under the License.
 	
 	<xs:complexType name="MappingConfig">
 		<xs:sequence>
-			<xs:element name='exclude' type='tns:Exclusion' minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name='exclude' type='tns:Exclusion' minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>
+						Defines tables and/or specific columns to exclude from
+						entity generation. Gentity will pretend that the database
+						structures declared here will not exist in the database
+						schema, and therefore not generate any code for them.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 			<xs:element name="configuration" type='tns:GlobalConfiguration' minOccurs="0" maxOccurs="1">
 				<xs:annotation>
 					<xs:documentation>
@@ -253,7 +262,13 @@ limitations under the License.
 						</xs:annotation>
 					</xs:element>
 				</xs:sequence>
-				<xs:attribute name='table' type="xs:string"/>
+				<xs:attribute name='table' type="xs:string">
+					<xs:annotation>
+						<xs:documentation>
+							The name of the table targeted by this declaration.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
@@ -262,14 +277,14 @@ limitations under the License.
 		<xs:complexContent>
 			<xs:extension base="tns:TableConfiguration">
 				<xs:sequence>
-					<xs:element name='ownerRelation' type='tns:JoinTableOwnerRelation' minOccurs='0' maxOccurs='1'>
+					<xs:element name='ownerRelation' type='tns:OwnerTargetRelation' minOccurs='0' maxOccurs='1'>
 						<xs:annotation>
 							<xs:documentation>
 								Defines the owner relation of this join table. Defaults apply if unspecified.
 							</xs:documentation>
 						</xs:annotation>
 					</xs:element>
-					<xs:element name='inverseRelation' type='tns:JoinTableInverseRelation' minOccurs='0' maxOccurs='1'>
+					<xs:element name='inverseRelation' type='tns:InverseTargetRelation' minOccurs='0' maxOccurs='1'>
 						<xs:annotation>
 							<xs:documentation>
 								Defines the inverse relation of this join table. Defaults apply if unspecified.
@@ -404,7 +419,14 @@ limitations under the License.
 						</xs:annotation>
 					</xs:element>
 				</xs:sequence>
-				<xs:attribute name="foreignKey" use="required" type="xs:string"/>
+				<xs:attribute name="foreignKey" use="required" type="xs:string">
+					<xs:annotation>
+						<xs:documentation>
+							The name of the foreign key used to join this entity table
+							to the parent entity table.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<xs:attribute name='discriminator' type='xs:string' use="required">
 					<xs:annotation>
 						<xs:documentation>
@@ -417,14 +439,10 @@ limitations under the License.
 		</xs:complexContent>
 	</xs:complexType>
 	
-	<xs:complexType name="Relationship">
-		<xs:attribute name='table' type='xs:string' />
-	</xs:complexType>
-	
 	<xs:complexType name="Relation">
 		<xs:attribute name="foreignKey" type="xs:string"/>
 	</xs:complexType>
-	<xs:complexType name="JoinTableOwnerRelation">
+	<xs:complexType name="OwnerTargetRelation">
 		<xs:complexContent>
 			<xs:extension base="tns:Relation">
 				<xs:attribute name="owningEntity" type="xs:string">
@@ -446,7 +464,7 @@ limitations under the License.
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
-	<xs:complexType name="JoinTableInverseRelation">
+	<xs:complexType name="InverseTargetRelation">
 		<xs:complexContent>
 			<xs:extension base="tns:Relation">
 				<xs:attribute name="inverseEntity" type="xs:string">
@@ -471,10 +489,16 @@ limitations under the License.
 	
 	<xs:complexType name="XToOneRelation">
 		<xs:complexContent>
-			<xs:extension base="tns:Relation">
+			<xs:extension base="tns:InverseTargetRelation">
 				<!-- FIXME: We'll need to turn the default to false -->
-				<xs:attribute name="bidirectional" type="xs:boolean" default="true"/>
-				<xs:attribute name="inverseEntity" type="xs:string"/>
+				<xs:attribute name="bidirectional" type="xs:boolean" default="true">
+					<xs:annotation>
+						<xs:documentation>
+							Specifies if the association is bidirectional or
+							unidirectional.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
@@ -507,9 +531,6 @@ limitations under the License.
 				</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
-	</xs:complexType>
-	<xs:complexType name="DiscriminatorDecl">
-		<xs:attribute name="column" type="xs:string"/>
 	</xs:complexType>
 	<xs:complexType  name="JoinedHierarchy">
 		<xs:complexContent>
@@ -554,7 +575,13 @@ limitations under the License.
 						</xs:annotation>
 					</xs:element>
 				</xs:sequence>
-				<xs:attribute name="name" type="xs:string" use='required'/>
+				<xs:attribute name="name" type="xs:string" use='required'>
+					<xs:annotation>
+						<xs:documentation>
+							Name of the generated entity subclass.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<xs:attribute name="discriminator" type="xs:string" use='required'>
 					<xs:annotation>
 						<xs:documentation>
