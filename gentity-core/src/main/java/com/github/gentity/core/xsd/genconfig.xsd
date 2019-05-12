@@ -405,7 +405,14 @@ limitations under the License.
 					</xs:element>
 				</xs:sequence>
 				<xs:attribute name="foreignKey" use="required" type="xs:string"/>
-				<xs:attribute name='discriminator' type='xs:string' use="required"/>
+				<xs:attribute name='discriminator' type='xs:string' use="required">
+					<xs:annotation>
+						<xs:documentation>
+							The discriminator value used to identify a specific entity
+							type (for @DiscriminatorValue).
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
@@ -474,11 +481,25 @@ limitations under the License.
 	<xs:complexType name="Hierarchy">
 		<xs:sequence>
 			<xs:element name="discriminateBy" type="tns:DiscriminatorDecl" minOccurs="1" maxOccurs="1"/>
-			<xs:element name="root" type='tns:Root' minOccurs='1'/>
+			<xs:element name="root" type='tns:Root' minOccurs='1'>
+				<xs:annotation>
+					<xs:documentation>
+						Specifies required settings for the root entity class,
+						like its discriminator.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="Root">
-		<xs:attribute name='discriminator' type='xs:string'/>
+		<xs:attribute name='discriminator' type='xs:string'>
+			<xs:annotation>
+				<xs:documentation>
+					The discriminator value used to identify a specific entity
+					type (for @DiscriminatorValue).
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
 	</xs:complexType>
 	<xs:complexType name="DiscriminatorDecl">
 		<xs:attribute name="column" type="xs:string"/>
@@ -516,11 +537,8 @@ limitations under the License.
 	</xs:complexType>
 	<xs:complexType name="SingleTableEntity">
 		<xs:complexContent>
-			<xs:extension base="tns:TableConfiguration">
+			<xs:extension base="tns:EntityTable">
 				<xs:sequence>
-					<xs:element name="collectionTable" type="tns:CollectionTable"  minOccurs='0' maxOccurs='unbounded'/>
-					<xs:element name="oneToOne" type="tns:XToOneRelation" minOccurs='0' maxOccurs='unbounded'/>
-					<xs:element name="manyToOne" type="tns:XToOneRelation" minOccurs='0' maxOccurs='unbounded'/>
 					<xs:element name="entity" type="tns:SingleTableEntity" minOccurs="0" maxOccurs='unbounded'>
 						<xs:annotation>
 							<xs:documentation>
@@ -530,7 +548,14 @@ limitations under the License.
 					</xs:element>
 				</xs:sequence>
 				<xs:attribute name="name" type="xs:string" use='required'/>
-				<xs:attribute name="discriminator" type="xs:string" use='required'/>
+				<xs:attribute name="discriminator" type="xs:string" use='required'>
+					<xs:annotation>
+						<xs:documentation>
+							The discriminator value used to identify a specific entity
+							type (for @DiscriminatorValue).
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
