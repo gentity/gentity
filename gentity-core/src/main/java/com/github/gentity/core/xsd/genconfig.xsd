@@ -325,13 +325,6 @@ limitations under the License.
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
-	<xs:complexType name="Extends">
-		<xs:attribute name='class' type="xs:string"/>
-	</xs:complexType>
-	
-	<xs:complexType name="Implements">
-		<xs:attribute name='class' type="xs:string"/>
-	</xs:complexType>
 	
 	<xs:complexType name="Relationship">
 		<xs:attribute name='table' type='xs:string' />
