@@ -279,13 +279,13 @@ public class SchemaModelImpl implements SchemaModel {
 			.filter(t -> t.getName().equals(rt.getTable()))
 			.findAny()
 			.orElseThrow(() -> new RuntimeException("root table '"+rt.getTable() + "' not found"));
-		String dcolName = rt.getJoinedHierarchy().getDiscriminateBy().getColumn();
+		String dcolName = rt.getJoinedHierarchy().getRootEntity().getDiscriminatorColumn();
 		ColumnModel dcol = rootTable.getColumns().findColumn(dcolName);
 		if(dcol == null) {
 			throw new RuntimeException("cannot find discriminator column '" + dcolName + "' declared for table '" + rootTable.getName() + "'");
 		}
 		
-		String dval = rt.getJoinedHierarchy().getRoot().getDiscriminator();
+		String dval = rt.getJoinedHierarchy().getRootEntity().getDiscriminator();
 		JoinedRootEntityInfo rootEInfo = new JoinedRootEntityInfo(rootTable, new PlainTableFieldColumnSource(rootTable, rt), null, dcol, dval, rt);
 		buildCollectionTableDecls(rootEInfo, rt.getCollectionTable(), dm);
 		
@@ -330,12 +330,12 @@ public class SchemaModelImpl implements SchemaModel {
 	private SingleTableRootEntityInfo buildSingleTableHierarchy(RootEntityTableDto rootEntity, DatabaseModel dm) {
 		SingleTableHierarchyDto h = rootEntity.getSingleTableHierarchy();
 		TableModel rootTable = dm.getTable(rootEntity.getTable());
-		String dcolName = h.getDiscriminateBy().getColumn();
+		String dcolName = h.getRootEntity().getDiscriminatorColumn();
 		ColumnModel dcol = rootTable.getColumns().findColumn(dcolName);
 		if(dcol == null) {
 			throw new RuntimeException("could not find discriminator column '" + dcolName + "' in table '" + rootTable.getName() + "'");
 		}
-		String dval = h.getRoot().getDiscriminator();
+		String dval = h.getRootEntity().getDiscriminator();
 		checkEachFieldOnlyOnce(rootTable, h.getEntity());
 		SingleTableRootEntityInfo einfo = new SingleTableRootEntityInfo(rootTable, new SingleTableRootFieldColumnSource(rootTable, rootEntity), null, dcol, dval, rootEntity);
 		
@@ -484,14 +484,14 @@ public class SchemaModelImpl implements SchemaModel {
 		
 		return cfg.getEntityTable().stream()
 			.filter(j -> j.getJoinedHierarchy()!=null)
-			.filter(j -> j.getJoinedHierarchy().getDiscriminateBy().getColumn().equals(columnName))
+			.filter(j -> j.getJoinedHierarchy().getRootEntity().getDiscriminatorColumn().equals(columnName))
 			.anyMatch(j -> 
 				j.getTable().equals(table.getName())
 			)
 			||
 			cfg.getEntityTable().stream()
 			.filter(h -> h.getSingleTableHierarchy()!= null)
-			.filter(s -> s.getSingleTableHierarchy().getDiscriminateBy().getColumn().equals(columnName))
+			.filter(s -> s.getSingleTableHierarchy().getRootEntity().getDiscriminatorColumn().equals(columnName))
 			.anyMatch(h -> 
 				h.getTable().equals(table.getName())
 			);
