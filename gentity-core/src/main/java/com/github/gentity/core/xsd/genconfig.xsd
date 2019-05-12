@@ -480,8 +480,7 @@ limitations under the License.
 	</xs:complexType>
 	<xs:complexType name="Hierarchy">
 		<xs:sequence>
-			<xs:element name="discriminateBy" type="tns:DiscriminatorDecl" minOccurs="1" maxOccurs="1"/>
-			<xs:element name="root" type='tns:Root' minOccurs='1'>
+			<xs:element name="rootEntity" type='tns:RootEntity' minOccurs='1'>
 				<xs:annotation>
 					<xs:documentation>
 						Specifies required settings for the root entity class,
@@ -491,12 +490,20 @@ limitations under the License.
 			</xs:element>
 		</xs:sequence>
 	</xs:complexType>
-	<xs:complexType name="Root">
-		<xs:attribute name='discriminator' type='xs:string'>
+	<xs:complexType name="RootEntity">
+		<xs:attribute name='discriminator' type='xs:string' use='required'>
 			<xs:annotation>
 				<xs:documentation>
 					The discriminator value used to identify a specific entity
 					type (for @DiscriminatorValue).
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name='discriminatorColumn' type='xs:string' use='required'>
+			<xs:annotation>
+				<xs:documentation>
+					The name of the column in the root entity table used to store 
+					the discriminator value.
 				</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>

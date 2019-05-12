@@ -31,8 +31,7 @@ limitations under the License.
 	
 	<entityTable table='ROLE'>
 		<joinedHierarchy>
-			<discriminateBy column="DTYPE"/>
-			<root discriminator="ROLE"/>
+			<rootEntity discriminator="ROLE" discriminatorColumn="DTYPE"/>
 			<entityTable table="ROLE_USER_ADMIN" discriminator="ADMIN"  foreignKey="FK_ROLE_GROUP_ADMIN_ROLE">
 				<manyToOne foreignKey="FK_ROLE_USER_ADMIN_GROUP" bidirectional="false"/>
 			</entityTable>
@@ -47,8 +46,7 @@ limitations under the License.
 		<embeddedTable table='PICTURE_KEYWORD' foreignKey='FK_PICTURE_KEYWORD_PICTURE'/>
 		 -->
 		<singleTableHierarchy>
-			<discriminateBy column="DTYPE"/>
-			<root discriminator="PICT"/>
+			<rootEntity discriminator="PICT" discriminatorColumn="DTYPE"/>
 			<entity name='UserIcon' discriminator='UICN'>
 				<field column="ICON_PUBLIC"/>
 				

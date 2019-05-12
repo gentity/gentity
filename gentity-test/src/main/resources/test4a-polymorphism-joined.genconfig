@@ -25,8 +25,7 @@ limitations under the License.
 	
 	<entityTable table="LIFEFORM">
 		<joinedHierarchy>
-			<discriminateBy column='KIND'/>
-			<root discriminator='LF'/>
+			<rootEntity discriminatorColumn='KIND' discriminator='LF'/>
 			<entityTable table="MAMMAL" discriminator="MA" foreignKey="FK_MAMMAL_LIFEFORM"/>
 			<entityTable table="INSECT" discriminator="IN" foreignKey="FK_INSECT_LIFEFORM"/>
 		</joinedHierarchy>
