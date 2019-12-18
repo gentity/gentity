@@ -29,31 +29,32 @@ public class Test1a_many_to_one extends AbstractGentityTest{
 	
 	@Test
 	public void test() {
-		
-		Employee e11 = Employee.builder()
+		// I create a company with one employee and associate them...
+		Employee e = Employee.builder()
 			.firstname("John")
 			.surname("Doe")
 			.build();
-		Employee e12 = Employee.builder()
-			.firstname("Mick")
-			.surname("Miller")
-			.build();
 		
-		Company c1 = Company.builder()
+		Company c = Company.builder()
 			.name("Acme")
 			.build();
-		e11.setCompany(c1);
-		e12.setCompany(c1);
-		em.persist(e11);
-		em.persist(e12);
-		em.persist(c1);
+		e.setCompany(c);
 		
-		Company c = em.createQuery("SELECT DISTINCT c FROM Company c JOIN c.employee e WHERE e.firstname = 'John'", Company.class)
-			.getSingleResult();
+		em.persist(e);
+		em.persist(c);
 		
-		boolean mickWorksHere = c.getEmployee().stream()
-			.anyMatch(e -> e.getFirstname().equals("Mick"));
+		// (0) make sure objects are in the database
+		em.flush();
+
+		// (1) I remove (DELETE) the employee
+		em.remove(e);
 		
-		Assert.assertTrue(mickWorksHere);
+		// (2) I change the association on the removed entity
+		e.setCompany(null);
+		
+		// (3) The call to flush fails, complaining about a failed 
+		// NOT NULL contstraint
+		em.flush();
+		
 	}
 }
