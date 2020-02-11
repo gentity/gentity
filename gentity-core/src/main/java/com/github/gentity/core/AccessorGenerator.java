@@ -112,7 +112,7 @@ class AccessorGenerator {
 		JDefinedClass builderClass = genBuilderClass(cls);
 		
 		for(JFieldVar field : cls.fields().values()) {
-			if(isStaticField(field)) {
+			if(excludeFieldFromAccessors(field)) {
 				continue;
 			}
 			FieldKind fkind = determineFieldKind(field);
@@ -165,7 +165,7 @@ class AccessorGenerator {
 		}
 		
 		for(JFieldVar field : cls.fields().values()) {
-			if(!isStaticField(field) && !isGeneratedValueColumnField(field)) {
+			if(!excludeFieldFromAccessors(field) && !isGeneratedValueColumnField(field)) {
 				genBuilderMethod(builderClass, field);
 			}
 		}
@@ -264,7 +264,7 @@ class AccessorGenerator {
 			.isPresent();
 	}
 	
-	private boolean isStaticField(JFieldVar field) {
-		return 0 != (field.mods().getValue() & JMod.STATIC);
+	private boolean excludeFieldFromAccessors(JFieldVar field) {
+		return 0 != (field.mods().getValue() & (JMod.STATIC | JMod.TRANSIENT));
 	}
 }

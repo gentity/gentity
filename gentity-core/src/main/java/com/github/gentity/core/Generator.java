@@ -89,22 +89,22 @@ import com.github.gentity.core.model.SequenceModel;
 import com.github.gentity.core.model.TableModel;
 import com.github.gentity.core.util.Tuple;
 import com.sun.codemodel.JInvocation;
+import com.sun.codemodel.JMethod;
 import java.lang.annotation.Annotation;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.function.Consumer;
 import javax.persistence.Lob;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.persistence.CollectionTable;
 import javax.persistence.ElementCollection;
 import javax.persistence.Embeddable;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.IdClass;
+import javax.persistence.PrePersist;
+import javax.persistence.PreRemove;
 
 
 /**
@@ -711,15 +711,36 @@ public class Generator {
 	private void genRelationSideField(JDefinedClass entity, JFieldVar field, Cardinality toCardinality, JClass otherEntity, JFieldVar otherField) {
 		JClass relationSideType;
 		JInvocation initializer;
+		
+		// a single '$removed' boolean field needs to exist for each entity
+		// with relation fields, including a @PreRemove and @PrePersist annotated method tracking
+		// remove/persist/merge operations performed on this entity
+		final String REMOVED_FIELD_NAME = "$removed";
+		if(!entity.fields().containsKey(REMOVED_FIELD_NAME)) {
+			JFieldVar removedF = entity.field(JMod.PRIVATE|JMod.TRANSIENT, boolean.class, REMOVED_FIELD_NAME);
+			
+			JMethod onPreRemoveM = entity.method(JMod.PRIVATE, void.class, "$onPreRemove");
+			onPreRemoveM.annotate(PreRemove.class);
+			onPreRemoveM.body()
+				.assign(removedF, JExpr.TRUE);
+			
+			JMethod onPrePersistM = entity.method(JMod.PRIVATE, void.class, "$onPrePersist");
+			onPrePersistM.annotate(PrePersist.class);
+			onPrePersistM.body()
+				.assign(removedF, JExpr.FALSE);
+		}
+		
 		if(toCardinality == ONE) {
 			relationSideType = cm.ref(ToOneSide.class).narrow(entity, (JClass)field.type());
 			initializer = cm.ref(ToOneSide.class).staticInvoke("of")
+			.arg(JExpr.direct("o -> o." + REMOVED_FIELD_NAME))
 			.arg(JExpr.direct("o -> o." + field.name()))
 			.arg(JExpr.direct("(o,m) -> o." + field.name() + " = m"));
 		} else {
 			assert toCardinality == MANY;
 			relationSideType = cm.ref(ToManySide.class).narrow(entity, (JClass)field.type(), otherEntity);
 			initializer = cm.ref(ToManySide.class).staticInvoke("of")
+			.arg(JExpr.direct("o -> o." + REMOVED_FIELD_NAME))
 			.arg(JExpr.direct("o -> o." + field.name()));
 		}
 

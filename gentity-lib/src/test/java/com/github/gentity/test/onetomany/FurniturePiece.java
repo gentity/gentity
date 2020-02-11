@@ -17,6 +17,7 @@ package com.github.gentity.test.onetomany;
 
 import com.github.gentity.test.NamedObject;
 import com.github.gentity.ToOneSide;
+import javax.persistence.PreRemove;
 
 /**
  *
@@ -25,8 +26,14 @@ import com.github.gentity.ToOneSide;
 public class FurniturePiece extends NamedObject {
 	
 	private Room room;
-	static final ToOneSide<FurniturePiece,Room> relationTo$room = ToOneSide.of(m -> m.room, (m,o) -> m.room = o, Room.relationTo$furniture);
+	static final ToOneSide<FurniturePiece,Room> relationTo$room = ToOneSide.of(m -> m.$removed, m -> m.room, (m,o) -> m.room = o, Room.relationTo$furniture);
 	
+	private transient boolean $removed;
+	@PreRemove
+	private void $onPrepersist() {
+		$removed = true;
+	}
+
 	public FurniturePiece(String name) {
 		super(name);
 	}
