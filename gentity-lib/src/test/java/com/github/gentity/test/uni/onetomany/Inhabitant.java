@@ -17,6 +17,7 @@ package com.github.gentity.test.uni.onetomany;
 
 import com.github.gentity.ToOneSide;
 import com.github.gentity.test.NamedObject;
+import javax.persistence.PreRemove;
 
 /**
  * Multiple inhabitants may live in a House. An Inhabitant knows which house he/she
@@ -28,7 +29,13 @@ import com.github.gentity.test.NamedObject;
 public class Inhabitant extends NamedObject{
 	
 	House house;
-	static final ToOneSide<Inhabitant,House> relationTo$house = ToOneSide.of(o -> o.house, (o,m) -> o.house = m);
+	static final ToOneSide<Inhabitant,House> relationTo$house = ToOneSide.of(o -> o.$removed, o -> o.house, (o,m) -> o.house = m);
+
+	private transient boolean $removed;
+	@PreRemove
+	private void $onPrepersist() {
+		$removed = true;
+	}
 
 	public Inhabitant(String name) {
 		super(name);

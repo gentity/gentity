@@ -19,6 +19,7 @@ import com.github.gentity.test.NamedObject;
 import com.github.gentity.ToManySide;
 import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.PreRemove;
 
 /**
  * Owning side of a many-to-many relation. The owning side initializes the
@@ -28,7 +29,13 @@ import java.util.List;
 public class Desk extends NamedObject {
 	
 	private List<Employee> employees = new ArrayList();
-	static final ToManySide<Desk,List<Employee>,Employee> relationTo$employees = ToManySide.of(o -> o.employees, Employee.relationTo$desks);
+	static final ToManySide<Desk,List<Employee>,Employee> relationTo$employees = ToManySide.of(o -> o.$removed, o -> o.employees, Employee.relationTo$desks);
+
+	private transient boolean $removed;
+	@PreRemove
+	private void $onPrepersist() {
+		$removed = true;
+	}
 
 	public Desk(String name) {
 		super(name);
