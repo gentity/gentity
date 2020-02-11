@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="test1j" id="Project_41d8eca" template="Default" database="HSql" >
+	<schema name="TEST1J" schemaname="TEST1J" >
+		<table name="COMPANY" >
+			<column name="ID" type="bigint" jt="-5" mandatory="y" autoincrement="y" />
+			<column name="NAME" type="varchar" length="100" jt="12" mandatory="y" />
+			<index name="PK_COMPANY_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+		</table>
+		<table name="EMPLOYEE" >
+			<column name="ID" type="bigint" jt="-5" mandatory="y" autoincrement="y" />
+			<column name="FIRSTNAME" type="varchar" length="100" jt="12" />
+			<column name="SURNAME" type="varchar" length="100" jt="12" />
+			<column name="COMPANY_ID" type="bigint" jt="-5" mandatory="y" />
+			<index name="PK_EMPLOYEE_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+			<index name="IDX_EMPLOYEE_COMPANY_ID" unique="NORMAL" >
+				<column name="COMPANY_ID" />
+			</index>
+			<fk name="FK_EMPLOYEE_COMPANY" to_schema="TEST1J" to_table="COMPANY" delete_action="cascade" update_action="restrict" >
+				<fk_column name="COMPANY_ID" pk="ID" />
+			</fk>
+		</table>
+	</schema>
+	<layout name="Default Layout" id="Layout_33dd8c5" show_relation="columns" >
+		<entity schema="TEST1J" name="EMPLOYEE" color="c8daf5" x="405" y="45" />
+		<entity schema="TEST1J" name="COMPANY" color="c8daf5" x="45" y="45" />
+	</layout>
+</project>
