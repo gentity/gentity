@@ -202,6 +202,16 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>entities-test1j_many_to_one_bid_update_delete</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputDbsFile>src/main/resources/test1j_many_to_one_bid_update_delete.dbs</inputDbsFile>
+							<targetPackageName>com.github.gentity.test.test1j_many_to_one_bid_update_delete</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
 						<id>entities-test2</id>
 						<goals>
 							<goal>generate</goal>
