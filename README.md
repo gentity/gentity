@@ -6,7 +6,7 @@ The Workflow:
 1. Create/modify database model in modeller took (DbSchema)
 2. Run gentity from Maven or directly from command line to generate entity classes
 
-So, Gentity doesn't need a running database; entity classes are generated directly from the modeller file.
+So, Gentity doesn't need a running database; entity classes are generated directly from the modeller file. Perfect for build automation!
 
 ## Features
 * Automatic entity generation from table schema
@@ -20,6 +20,11 @@ So, Gentity doesn't need a running database; entity classes are generated direct
 * Bidirectional and unidirectional relationships are supported
 * Mutual update of bidirectional relations (when one side is updated, the other is updated automagically)
 * External (non-generated) superclasses and superinterfaces for generated entities
+
+## Documentation
+
+* [The Wiki](https://github.com/gentity/gentity/wiki) contains an in-depth discussion on usage and concepts
+* Keep on reading below for a quick start!
 
 ## Quick Start
 
