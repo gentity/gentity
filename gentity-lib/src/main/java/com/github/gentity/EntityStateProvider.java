@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 The Gentity Project.
+ * Copyright 2020 The Gentity Project.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,32 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package onetoone;
-
-import com.github.gentity.ToOneSide;
-import javax.persistence.PreRemove;
+package com.github.gentity;
 
 /**
  *
- * @author upachler
+ * @author count
  */
-public class Kennel {
-	private Dog dog;
-	static final ToOneSide<Kennel,Dog> relationTo$dog = ToOneSide.of(m -> m.$removed, m -> m.dog, (m,o) -> m.dog = o, Dog.relationTo$kennel);
+public interface EntityStateProvider<T> {
 	
-	private transient boolean $removed;
-	@PreRemove
-	private void $onPrepersist() {
-		$removed = true;
-	}
-
-	public Dog getDog() {
-		return relationTo$dog.get(this);
-	}
-
-	
-	public void setDog(Dog dog) {
-		relationTo$dog.set(this, dog);
-	}
-	
+	boolean isRemoved(T t);
 }

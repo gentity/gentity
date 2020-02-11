@@ -16,6 +16,7 @@
 package onetoone;
 
 import com.github.gentity.ToOneSide;
+import javax.persistence.PreRemove;
 
 /**
  *
@@ -23,7 +24,13 @@ import com.github.gentity.ToOneSide;
  */
 public class Dog {
 	private Kennel kennel;
-	static final ToOneSide<Dog,Kennel> relationTo$kennel = ToOneSide.of(m -> m.kennel, (m,o) -> m.kennel = o, Kennel.relationTo$dog);
+	static final ToOneSide<Dog,Kennel> relationTo$kennel = ToOneSide.of(m -> m.$removed, m -> m.kennel, (m,o) -> m.kennel = o, Kennel.relationTo$dog);
+
+	private transient boolean $removed;
+	@PreRemove
+	private void $onPrepersist() {
+		$removed = true;
+	}
 
 	public Kennel getKennel() {
 		return relationTo$kennel.get(this);

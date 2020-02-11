@@ -19,6 +19,7 @@ import com.github.gentity.ToManySide;
 import com.github.gentity.test.NamedObject;
 import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.PreRemove;
 
 /**
  *
@@ -27,7 +28,13 @@ import java.util.List;
 public class Employee extends NamedObject {
 	
 	private List<Desk> desks = new ArrayList();
-	static final ToManySide<Employee, List<Desk>, Desk> relationTo$desks = ToManySide.of(o -> o.desks, Desk.relationTo$employees);
+	static final ToManySide<Employee, List<Desk>, Desk> relationTo$desks = ToManySide.of(o -> o.$removed, o -> o.desks, Desk.relationTo$employees);
+
+	private transient boolean $removed;
+	@PreRemove
+	private void $onPrepersist() {
+		$removed = true;
+	}
 
 	public Employee(String name) {
 		super(name);
