@@ -45,7 +45,6 @@ public class DbsModelReaderFactory implements ModelReaderFactory {
 
 	synchronized Unmarshaller createUnmarshaller() throws JAXBException {
 		if(jaxbContext == null) {
-			Schema dbsSchema;
 			try {
 				dbsSchema = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
 					.newSchema(R.class.getResource("dbs.xsd"));
