@@ -34,6 +34,7 @@ import com.github.gentity.core.model.TableColumnGroup;
 import com.github.gentity.core.model.TableModel;
 import com.github.gentity.core.model.util.ArrayListIndexModel;
 import com.github.gentity.core.model.util.ArrayListTableColumnGroup;
+import com.github.gentity.core.util.UnmarshallerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -52,7 +53,7 @@ import javax.xml.transform.stream.StreamSource;
  */
 public class DbsModelReader implements ModelReader {
 
-	private final DbsModelReaderFactory factory;
+	private final UnmarshallerFactory factory;
 	private final String fileName;
 	private final InputStreamSupplier streamSupplier;
 	
@@ -60,7 +61,7 @@ public class DbsModelReader implements ModelReader {
 	private SchemaDto dbSchema;
 	private Exclusions exclusions;
 
-	public DbsModelReader(DbsModelReaderFactory factory, String fileName, InputStreamSupplier streamSupplier) {
+	public DbsModelReader(UnmarshallerFactory factory, String fileName, InputStreamSupplier streamSupplier) {
 		this.factory = factory;
 		this.fileName = fileName;
 		this.streamSupplier = streamSupplier;

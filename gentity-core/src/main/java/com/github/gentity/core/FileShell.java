@@ -28,6 +28,7 @@ import javax.xml.validation.SchemaFactory;
 import com.github.gentity.core.config.dto.MappingConfigDto;
 import com.github.gentity.core.model.ModelReader;
 import com.github.gentity.core.model.ModelReaderFactory;
+import com.github.gentity.core.util.UnmarshallerFactory;
 import com.github.gentity.core.xsd.R;
 import java.io.FileInputStream;
 import java.util.ServiceLoader;
@@ -41,32 +42,18 @@ import org.xml.sax.SAXException;
 public class FileShell {
 	
 	private String targetPackageName;
+	private static final UnmarshallerFactory uFactory = new UnmarshallerFactory(R.class.getResource("genconfig.xsd"), com.github.gentity.core.config.dto.ObjectFactory.class);
 
 	public void setTargetPackageName(String targetPackageName) {
 		this.targetPackageName = targetPackageName;
 	}
 	
-	private ValidationEventHandler validationEventHandler = event -> {
-		throw new RuntimeException(event.getMessage(), event.getLinkedException());
-	};
-	
 	public void generate(File inputFile, File configFile, File outputFolder) throws IOException {
 
-		Schema genconfigSchema;
-		try {
-			genconfigSchema = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
-				.newSchema(R.class.getResource("genconfig.xsd"));
-		} catch (SAXException ex) {
-			throw new RuntimeException(ex);
-		}
-		
 		MappingConfigDto config = new MappingConfigDto();
 		if(configFile != null) {
 			try {
-				Unmarshaller unmarshaller = JAXBContext.newInstance(com.github.gentity.core.config.dto.ObjectFactory.class)
-					.createUnmarshaller();
-				unmarshaller.setSchema(genconfigSchema);
-				unmarshaller.setEventHandler(validationEventHandler);
+				Unmarshaller unmarshaller = uFactory.createUnmarshaller();
 				JAXBElement<MappingConfigDto> configElement = (JAXBElement<MappingConfigDto>)unmarshaller
 					.unmarshal(configFile);
 				config = configElement.getValue();
