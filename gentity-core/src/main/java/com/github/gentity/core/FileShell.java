@@ -26,8 +26,11 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import com.github.gentity.core.config.dto.MappingConfigDto;
-import com.github.gentity.core.model.dbs.dto.ProjectDto;
+import com.github.gentity.core.model.ModelReader;
+import com.github.gentity.core.model.ModelReaderFactory;
 import com.github.gentity.core.xsd.R;
+import java.io.FileInputStream;
+import java.util.ServiceLoader;
 import javax.xml.bind.ValidationEventHandler;
 import org.xml.sax.SAXException;
 
@@ -49,11 +52,8 @@ public class FileShell {
 	
 	public void generate(File inputFile, File configFile, File outputFolder) throws IOException {
 
-		Schema dbsSchema;
 		Schema genconfigSchema;
 		try {
-			dbsSchema = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
-				.newSchema(R.class.getResource("dbs.xsd"));
 			genconfigSchema = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
 				.newSchema(R.class.getResource("genconfig.xsd"));
 		} catch (SAXException ex) {
@@ -85,21 +85,23 @@ public class FileShell {
 			config.setTargetPackageName(targetPackageName);
 		}
 		
-		ProjectDto project;
-		try {
-			Unmarshaller unmarshaller = JAXBContext.newInstance(com.github.gentity.core.model.dbs.dto.ObjectFactory.class)
-				.createUnmarshaller();
-			unmarshaller.setSchema(dbsSchema);
-			unmarshaller.setEventHandler(validationEventHandler);
-			JAXBElement<ProjectDto> schemaElement = (JAXBElement<ProjectDto>)unmarshaller
-				.unmarshal(inputFile);
-			project = schemaElement.getValue();
-		} catch (JAXBException ex) {
-			checkForIOException(ex);
-			throw new RuntimeException(ex);
-		}
+		ModelReaderFactory modelReaderFactory = null;
 		
-		Generator gen = new Generator(config, project);
+		Iterable<ModelReaderFactory> factories;
+		factories = ServiceLoader.load(ModelReaderFactory.class);
+		
+		for(ModelReaderFactory f : factories) {
+			if(f.supportsReading(inputFile.getName(), () -> new FileInputStream(inputFile))) {
+				modelReaderFactory = f;
+				break;
+			}
+		}
+		if(modelReaderFactory == null) {
+			throw new RuntimeException("The format of the provided file '" + inputFile.getName() + "' is not supported");
+		}
+		ModelReader reader = modelReaderFactory.createModelReader(inputFile.getName(), () -> new FileInputStream(inputFile));
+		
+		Generator gen = new Generator(config, reader);
 		
 		JCodeModel cm = gen.generate();
 		

@@ -59,7 +59,6 @@ import javax.persistence.SequenceGenerators;
 import javax.persistence.Table;
 import com.github.gentity.core.config.dto.ConfigurationDto;
 import com.github.gentity.core.config.dto.MappingConfigDto;
-import com.github.gentity.core.model.dbs.dto.ProjectDto;
 import com.github.gentity.ToManySide;
 import com.github.gentity.ToOneSide;
 import static com.github.gentity.core.Cardinality.*;
@@ -85,11 +84,13 @@ import com.github.gentity.core.fields.PlainTableFieldColumnSource;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.ForeignKeyModel;
 import com.github.gentity.core.model.ForeignKeyModel.Mapping;
+import com.github.gentity.core.model.ModelReader;
 import com.github.gentity.core.model.SequenceModel;
 import com.github.gentity.core.model.TableModel;
 import com.github.gentity.core.util.Tuple;
 import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -137,8 +138,8 @@ public class Generator {
 	private NameProvider nameProvider;
 	private final MappingConfigDto cfg;
 	
-	public Generator(MappingConfigDto cfg, ProjectDto project) {
-		sm = new SchemaModelImpl(cfg, project);
+	public Generator(MappingConfigDto cfg, ModelReader reader) throws IOException {
+		sm = new SchemaModelImpl(cfg, reader);
 		this.cfg = cfg;
 	}
 	

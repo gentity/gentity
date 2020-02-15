@@ -23,35 +23,47 @@ import com.github.gentity.core.model.dbs.dto.IndexDto;
 import com.github.gentity.core.model.dbs.dto.IndexUniqueDto;
 import com.github.gentity.core.model.dbs.dto.ProjectDto;
 import com.github.gentity.core.model.dbs.dto.SchemaDto;
-import com.github.gentity.core.model.dbs.dto.SequenceDto;
 import com.github.gentity.core.model.dbs.dto.TableDto;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.DatabaseModel;
 import com.github.gentity.core.model.ForeignKeyModel;
+import com.github.gentity.core.model.InputStreamSupplier;
+import com.github.gentity.core.model.ModelReader;
 import com.github.gentity.core.model.SequenceModel;
 import com.github.gentity.core.model.TableColumnGroup;
 import com.github.gentity.core.model.TableModel;
 import com.github.gentity.core.model.util.ArrayListIndexModel;
 import com.github.gentity.core.model.util.ArrayListTableColumnGroup;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
 
 /**
  *
  * @author count
  */
-public class DbsModelReader {
+public class DbsModelReader implements ModelReader {
 
-	private final ProjectDto dbSchemaProject;
-	private final SchemaDto dbSchema;
-	private final Exclusions exclusions;
+	private final DbsModelReaderFactory factory;
+	private final String fileName;
+	private final InputStreamSupplier streamSupplier;
+	
+	private ProjectDto dbSchemaProject;
+	private SchemaDto dbSchema;
+	private Exclusions exclusions;
 
-	public DbsModelReader(ProjectDto dbSchemaProject, Exclusions exclusions) {
-		this.dbSchemaProject = dbSchemaProject;
-		this.dbSchema = dbSchemaProject.getSchema();
-		this.exclusions = exclusions;
+	public DbsModelReader(DbsModelReaderFactory factory, String fileName, InputStreamSupplier streamSupplier) {
+		this.factory = factory;
+		this.fileName = fileName;
+		this.streamSupplier = streamSupplier;
 	}
 	
 	private ForeignKeyModel.Mapping toMapping(ForeignKeyDto fk, ForeignKeyColumnDto fkCol, TableModel childTable, TableModel parentTable) {
@@ -59,7 +71,26 @@ public class DbsModelReader {
 		ColumnModel parentColumn = parentTable.getColumns().findColumn(fkCol.getPk());
 		return new ForeignKeyModel.Mapping(childColumn, parentColumn);
 	}
-	public DatabaseModel read() {
+	public DatabaseModel read(Exclusions exclusions) throws IOException {
+		
+		try (InputStream inputStream = streamSupplier.get()) {
+			Unmarshaller unmarshaller = factory.createUnmarshaller();
+			
+			Source src = new StreamSource(inputStream);
+			src.setSystemId(fileName);
+			JAXBElement<ProjectDto> schemaElement = (JAXBElement<ProjectDto>)unmarshaller
+				.unmarshal(src);
+			
+			dbSchemaProject = schemaElement.getValue();
+			dbSchema = dbSchemaProject.getSchema();
+		} catch (JAXBException ex) {
+			throw new IOException(ex);
+		}
+		
+		this.dbSchemaProject = dbSchemaProject;
+		this.dbSchema = dbSchemaProject.getSchema();
+		
+		this.exclusions = exclusions;
 		Map<String, DbsTableModel> tables = dbSchema.getTable().stream()
 				.filter(t -> !exclusions.isTableExcluded(t.getName()))
 				.map(this::toTable)

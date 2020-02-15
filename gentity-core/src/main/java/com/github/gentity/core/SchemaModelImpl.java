@@ -46,8 +46,6 @@ import com.github.gentity.core.config.dto.XToOneRelationDto;
 import com.github.gentity.core.model.dbs.dto.ColumnDto;
 import com.github.gentity.core.model.dbs.dto.ForeignKeyColumnDto;
 import com.github.gentity.core.model.dbs.dto.ForeignKeyDto;
-import com.github.gentity.core.model.dbs.dto.ProjectDto;
-import com.github.gentity.core.model.dbs.dto.SequenceDto;
 import com.github.gentity.core.model.dbs.dto.TableDto;
 import com.github.gentity.core.entities.EntityInfo;
 import com.github.gentity.core.entities.JoinedRootEntityInfo;
@@ -63,9 +61,10 @@ import com.github.gentity.core.fields.SingleTableRootFieldColumnSource;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.DatabaseModel;
 import com.github.gentity.core.model.ForeignKeyModel;
+import com.github.gentity.core.model.ModelReader;
 import com.github.gentity.core.model.TableColumnGroup;
 import com.github.gentity.core.model.TableModel;
-import com.github.gentity.core.model.dbs.DbsModelReader;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import javax.persistence.ForeignKey;
@@ -80,7 +79,6 @@ import java.util.function.Function;
 public class SchemaModelImpl implements SchemaModel {
 	
 	private final MappingConfigDto cfg;
-	private final ProjectDto project;
 	
 	
 	private Set<String> excludedTables;
@@ -88,7 +86,6 @@ public class SchemaModelImpl implements SchemaModel {
 	private Map<String, ConfigurationDto> tableConfigurations;
 	private ConfigurationDto globalConfiguration;
 	private Map<String, TableDto> tables;
-	private Map<String, SequenceDto> sequences;
 	private List<ChildTableRelation> childTableRelations;
 	private List<JoinTableRelation> joinTableRelations;
 	private Map<String, JoinTableRelation> manyToManyRelationsJoinTables;
@@ -97,9 +94,8 @@ public class SchemaModelImpl implements SchemaModel {
 	private final List<RootEntityInfo> entityInfos = new ArrayList<>();
 	private final DatabaseModel databaseModel;
 	
-	public SchemaModelImpl(MappingConfigDto cfg, ProjectDto project) {
+	public SchemaModelImpl(MappingConfigDto cfg, ModelReader reader) throws IOException {
 		this.cfg = cfg;
-		this.project = project;
 		
 		
 		Set<String> mappedTables = new HashSet<>();
@@ -119,7 +115,7 @@ public class SchemaModelImpl implements SchemaModel {
 		
 		// TODO: abstract DbsModelReader out so that we finally are independent of the
 		// DBS format
-		databaseModel = new DbsModelReader(project, exclusions).read();
+		databaseModel = reader.read(exclusions);
 		
 		// generate entity infos first that are declared in the mapping configuration file
 		for(RootEntityTableDto et : cfg.getEntityTable()) {
@@ -549,15 +545,6 @@ public class SchemaModelImpl implements SchemaModel {
 			}
 		}
 		return singleTableRootMap.get(singleTableEntity);
-	}
-	
-	@Override
-	public SequenceDto getSequence(String sequenceName) {
-		if(sequences == null) {
-			sequences = project.getSchema().getSequence().stream()
-				.collect(Collectors.toMap(SequenceDto::getName, s->s));
-		}
-		return sequences.get(sequenceName);
 	}
 	
 	@Override

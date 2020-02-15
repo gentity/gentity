@@ -67,8 +67,6 @@ public interface SchemaModel {
 	
 	TableModel toTable(String name);
 	
-	SequenceDto getSequence(String sequenceName);
-	
 	String getTargetPackageName();
 	
 	/**
