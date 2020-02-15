@@ -16,7 +16,7 @@
 package com.github.gentity.core.model.dbs;
 
 import com.github.gentity.core.Exclusions;
-import com.github.dbsjpagen.dbsmodel.ProjectDto;
+import com.github.gentity.core.model.dbs.dto.ProjectDto;
 import com.github.gentity.core.model.DatabaseModel;
 import com.github.gentity.core.model.SequenceModel;
 import com.github.gentity.core.model.TableModel;

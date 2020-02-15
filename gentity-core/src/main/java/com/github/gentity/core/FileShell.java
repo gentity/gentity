@@ -25,8 +25,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-import com.github.dbsjpagen.config.MappingConfigDto;
-import com.github.dbsjpagen.dbsmodel.ProjectDto;
+import com.github.gentity.core.config.dto.MappingConfigDto;
+import com.github.gentity.core.model.dbs.dto.ProjectDto;
 import com.github.gentity.core.xsd.R;
 import javax.xml.bind.ValidationEventHandler;
 import org.xml.sax.SAXException;
@@ -63,7 +63,7 @@ public class FileShell {
 		MappingConfigDto config = new MappingConfigDto();
 		if(configFile != null) {
 			try {
-				Unmarshaller unmarshaller = JAXBContext.newInstance(com.github.dbsjpagen.config.ObjectFactory.class)
+				Unmarshaller unmarshaller = JAXBContext.newInstance(com.github.gentity.core.config.dto.ObjectFactory.class)
 					.createUnmarshaller();
 				unmarshaller.setSchema(genconfigSchema);
 				unmarshaller.setEventHandler(validationEventHandler);
@@ -87,7 +87,7 @@ public class FileShell {
 		
 		ProjectDto project;
 		try {
-			Unmarshaller unmarshaller = JAXBContext.newInstance(com.github.dbsjpagen.dbsmodel.ObjectFactory.class)
+			Unmarshaller unmarshaller = JAXBContext.newInstance(com.github.gentity.core.model.dbs.dto.ObjectFactory.class)
 				.createUnmarshaller();
 			unmarshaller.setSchema(dbsSchema);
 			unmarshaller.setEventHandler(validationEventHandler);

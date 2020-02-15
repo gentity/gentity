@@ -15,9 +15,9 @@
  */
 package com.github.gentity.core.fields;
 
-import com.github.dbsjpagen.config.RootEntityTableDto;
-import com.github.dbsjpagen.config.SingleTableEntityDto;
-import com.github.dbsjpagen.config.TableFieldDto;
+import com.github.gentity.core.config.dto.RootEntityTableDto;
+import com.github.gentity.core.config.dto.SingleTableEntityDto;
+import com.github.gentity.core.config.dto.TableFieldDto;
 import com.github.gentity.core.model.TableModel;
 import java.util.HashSet;
 import java.util.List;

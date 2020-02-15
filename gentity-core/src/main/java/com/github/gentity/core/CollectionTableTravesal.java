@@ -15,11 +15,11 @@
  */
 package com.github.gentity.core;
 
-import com.github.dbsjpagen.config.CollectionTableDto;
-import com.github.dbsjpagen.config.JoinedEntityTableDto;
-import com.github.dbsjpagen.config.MappingConfigDto;
-import com.github.dbsjpagen.config.RootEntityTableDto;
-import com.github.dbsjpagen.config.SingleTableEntityDto;
+import com.github.gentity.core.config.dto.CollectionTableDto;
+import com.github.gentity.core.config.dto.JoinedEntityTableDto;
+import com.github.gentity.core.config.dto.MappingConfigDto;
+import com.github.gentity.core.config.dto.RootEntityTableDto;
+import com.github.gentity.core.config.dto.SingleTableEntityDto;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;

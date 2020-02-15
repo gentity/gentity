@@ -15,7 +15,7 @@
  */
 package com.github.gentity.core.model.dbs;
 
-import com.github.dbsjpagen.dbsmodel.IndexDto;
+import com.github.gentity.core.model.dbs.dto.IndexDto;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.PrimaryKeyModel;
 import java.util.ArrayList;

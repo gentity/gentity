@@ -15,7 +15,7 @@
  */
 package com.github.gentity.core.model.dbs;
 
-import com.github.dbsjpagen.dbsmodel.SequenceDto;
+import com.github.gentity.core.model.dbs.dto.SequenceDto;
 import com.github.gentity.core.model.SequenceModel;
 
 /**

@@ -15,7 +15,7 @@
  */
 package com.github.gentity.core;
 
-import com.github.dbsjpagen.dbsmodel.ColumnDto;
+import com.github.gentity.core.model.dbs.dto.ColumnDto;
 
 /**
  *

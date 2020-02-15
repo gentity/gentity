@@ -15,7 +15,7 @@
  */
 package com.github.gentity.core.entities;
 
-import com.github.dbsjpagen.config.ConfigurationDto;
+import com.github.gentity.core.config.dto.ConfigurationDto;
 import com.github.gentity.core.fields.FieldColumnSource;
 import com.github.gentity.core.model.TableModel;
 import java.util.List;

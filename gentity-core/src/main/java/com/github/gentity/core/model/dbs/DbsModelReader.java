@@ -16,15 +16,15 @@
 package com.github.gentity.core.model.dbs;
 
 import com.github.gentity.core.Exclusions;
-import com.github.dbsjpagen.dbsmodel.ColumnDto;
-import com.github.dbsjpagen.dbsmodel.ForeignKeyColumnDto;
-import com.github.dbsjpagen.dbsmodel.ForeignKeyDto;
-import com.github.dbsjpagen.dbsmodel.IndexDto;
-import com.github.dbsjpagen.dbsmodel.IndexUniqueDto;
-import com.github.dbsjpagen.dbsmodel.ProjectDto;
-import com.github.dbsjpagen.dbsmodel.SchemaDto;
-import com.github.dbsjpagen.dbsmodel.SequenceDto;
-import com.github.dbsjpagen.dbsmodel.TableDto;
+import com.github.gentity.core.model.dbs.dto.ColumnDto;
+import com.github.gentity.core.model.dbs.dto.ForeignKeyColumnDto;
+import com.github.gentity.core.model.dbs.dto.ForeignKeyDto;
+import com.github.gentity.core.model.dbs.dto.IndexDto;
+import com.github.gentity.core.model.dbs.dto.IndexUniqueDto;
+import com.github.gentity.core.model.dbs.dto.ProjectDto;
+import com.github.gentity.core.model.dbs.dto.SchemaDto;
+import com.github.gentity.core.model.dbs.dto.SequenceDto;
+import com.github.gentity.core.model.dbs.dto.TableDto;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.DatabaseModel;
 import com.github.gentity.core.model.ForeignKeyModel;

@@ -15,7 +15,7 @@
  */
 package com.github.gentity.core.model.dbs;
 
-import com.github.dbsjpagen.dbsmodel.TableDto;
+import com.github.gentity.core.model.dbs.dto.TableDto;
 import com.github.gentity.core.model.ForeignKeyModel;
 import com.github.gentity.core.model.IndexModel;
 import com.github.gentity.core.model.PrimaryKeyModel;
