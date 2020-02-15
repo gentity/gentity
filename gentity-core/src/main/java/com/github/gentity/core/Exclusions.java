@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.model.dbs;
+package com.github.gentity.core;
 
 import java.util.HashSet;
 import java.util.Set;

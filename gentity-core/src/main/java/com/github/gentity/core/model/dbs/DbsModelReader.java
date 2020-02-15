@@ -15,6 +15,7 @@
  */
 package com.github.gentity.core.model.dbs;
 
+import com.github.gentity.core.Exclusions;
 import com.github.dbsjpagen.dbsmodel.ColumnDto;
 import com.github.dbsjpagen.dbsmodel.ForeignKeyColumnDto;
 import com.github.dbsjpagen.dbsmodel.ForeignKeyDto;

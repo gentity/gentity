@@ -66,7 +66,6 @@ import com.github.gentity.core.model.ForeignKeyModel;
 import com.github.gentity.core.model.TableColumnGroup;
 import com.github.gentity.core.model.TableModel;
 import com.github.gentity.core.model.dbs.DbsModelReader;
-import com.github.gentity.core.model.dbs.Exclusions;
 import java.util.Arrays;
 import java.util.Collections;
 import javax.persistence.ForeignKey;
