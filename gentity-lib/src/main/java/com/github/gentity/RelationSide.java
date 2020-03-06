@@ -18,7 +18,10 @@ package com.github.gentity;
 /**
  * Models one side of a relation.A {@link RelationSide} implementation wraps
  the member variable that holds the association and abstracts the operations
- required bind/unbind the other side of the relation
+ required bind/unbind the other side of the relation.
+ * 
+ * Note that bind/unbind is not executed if the given entity is removed. In this
+ * case, calls to {@link #bind()} and {@link #unbind()} are silently ignored.
  * 
  * @author count
  * @param <T>	Entity type of this side of the relation
@@ -26,6 +29,11 @@ package com.github.gentity;
  */
 public abstract class RelationSide<T,O> {
 	private RelationSide<O,T> other = null;
+	private final EntityStateProvider stateProvider;
+
+	protected RelationSide(EntityStateProvider stateProvider) {
+		this.stateProvider = stateProvider;
+	}
 	
 	/**
 	 * Get other side of the relationship, if it is bidirectional. If the relationship
@@ -86,4 +94,13 @@ public abstract class RelationSide<T,O> {
 	 */
 	public abstract RelationSide<T,O> unbind(T thisSide, O otherSide);
 	
+	/**
+	 * Checks if binding this side is currently enabled. 
+	 * @param thisSide
+	 * @return always false if {@code thisSide} is {@code null}, otherwise
+	 *	returns true if the provided entity instance is not in the removed state
+	 */
+	protected boolean bindOpEnabled(T thisSide) {
+		return thisSide != null && !stateProvider.isRemoved(thisSide);
+	}
 }

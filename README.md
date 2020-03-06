@@ -6,19 +6,25 @@ The Workflow:
 1. Create/modify database model in modeller took (DbSchema)
 2. Run gentity from Maven or directly from command line to generate entity classes
 
-So, Gentity doesn't need a running database; entity classes are generated directly from the modeller file.
+So, Gentity doesn't need a running database; entity classes are generated directly from the modeller file. Perfect for build automation!
 
 ## Features
 * Automatic entity generation from table schema
 * Automatically derives:
   - Entity fields from column definitions
-  - OneToMany / OneToOne relations from foreign key and index definitions
-* Direct automatic entity generation by using a mapping definition file, which
-defines:
-  - Join tables to create @ManyToMany relationships
-  - Inheritance hierarchies (supported strategies are JOINED and SINGLE_TABLE)
+  - OneToMany / OneToOne / ManyToMany relations from foreign key and index definitions
+  - Non-Entity collections (@ElementCollection / @Embeddable)
+* Additional mapping definition file, to
+  - Override derived definitions from database modeller file
+  - Define inheritance hierarchies (supported strategies are JOINED and SINGLE_TABLE)
 * Bidirectional and unidirectional relationships are supported
-* Non-Entity collections (@ElementCollection / @Embeddable)
+* Mutual update of bidirectional relations (when one side is updated, the other is updated automagically)
+* External (non-generated) superclasses and superinterfaces for generated entities
+
+## Documentation
+
+* [The Wiki](https://github.com/gentity/gentity/wiki) contains an in-depth discussion on usage and concepts
+* Keep on reading below for a quick start!
 
 ## Quick Start
 
@@ -60,12 +66,10 @@ Note that you'll also need your ORM's libraries (EclipseLink, Hibernate, etc.), 
   JPA defaulting requires a join table - however, JPA 2.2 also supports them
   without one, but that has implications)
 * Per Class inheritance
-* External (non-generated) superclasses for generated entities
 * Provide better error output, especially for the mapping config file explaining
   where in the file to look for errors. See this post on how to do this for
   our deserialized mapping config info:
   https://stackoverflow.com/questions/7079796/jaxb-location-in-file-for-unmarshalled-objects
-* Mutual update of bidirectional relations (when one side is updated, the other is updated automagically)
 
 Maven Central shield image from [shields.io](https://shields.io/)
 

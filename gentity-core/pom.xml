@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.github.gentity</groupId>
 		<artifactId>gentity</artifactId>
-		<version>0.17-SNAPSHOT</version>
+		<version>0.19-SNAPSHOT</version>
 	</parent>
 	<artifactId>gentity-core</artifactId>
 	<packaging>jar</packaging>
@@ -22,28 +22,119 @@
 			</resource>
 		</resources>
 		<plugins>
+			<!-- Note that there is an issue with jaxb2-maven-plugin on JDK 9+:
+			https://github.com/mojohaus/jaxb2-maven-plugin/issues/43
+			 
+			Initially, a solution proposed in the thread by edwardxia on Jan 24th 2019
+			appeared to fix this issue, however, that solution did not load the
+			binding files. That problem may be related to another issue that I 
+			discovered with the gentity plugin: Because gentity-core's JAXB 
+			Umarshaller is unable to read the package annotations of the generated
+			JAXB classes (even though that annotation was present), the genconfig
+			files wouldn't load correctly on JDK 11.
+				
+			For this reason, we currently don't use the jaxb2-maven-plugin.
+			--> 
+			<!--
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>jaxb2-maven-plugin</artifactId>
+					<version>2.3.1</version>
+					<executions>
+						<execution>
+							<id>xjc</id>
+							<goals>
+								<goal>xjc</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<xjbSources>
+							<xjbSource>src/main/java/com/github/gentity/core/xsd/bindings.xjb</xjbSource>
+						</xjbSources>
+						<sources>
+							<source>src/main/java/com/github/gentity/core/xsd/dbs.xsd</source>
+							<source>src/main/java/com/github/gentity/core/xsd/genconfig.xsd</source>
+						</sources>
+					</configuration>
+				</plugin>
+			-->
+
+			<!-- 
+			We use this very thin wrapper around XJC to work around the build
+			issues on JDK 11 (see above).
+			-->
 			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>jaxb2-maven-plugin</artifactId>
-				<version>2.3.1</version>
+				<groupId>com.github.davidmoten</groupId>
+				<artifactId>jax-maven-plugin</artifactId>
+				<version>0.1.5</version>
 				<executions>
 					<execution>
 						<id>xjc</id>
+						<!-- generate sources from the java.util.logging DTD -->
+						<phase>generate-sources</phase>
 						<goals>
 							<goal>xjc</goal>
 						</goals>
+						<configuration>
+							<systemProperties>
+								<enableExternalEntityProcessing>true</enableExternalEntityProcessing>
+							</systemProperties>
+							<jvmArguments>
+								<jvmArgument>-Xms32m</jvmArgument>
+							</jvmArguments>
+							<arguments>
+								<!-- These are the arguments you would normally 
+								have put with a call to xjc -->
+								<argument>-xmlschema</argument>
+								<argument>-extension</argument>
+								<argument>-encoding</argument>
+								<argument>UTF-8</argument>
+								<argument>-d</argument>
+								<argument>${project.build.directory}/generated-sources/jaxb</argument>
+								<argument>-b</argument>
+								<argument>${basedir}/src/main/java/com/github/gentity/core/xsd/bindings.xjb</argument>
+								<argument>${basedir}/src/main/java/com/github/gentity/core/xsd/dbs.xsd</argument>
+								<argument>${basedir}/src/main/java/com/github/gentity/core/xsd/genconfig.xsd</argument>
+								
+								<!--
+								THIS OPTION TURNS OFF PACKAGE ANNOTATIONS:
+								By default, xjc generates package-info.java files where packages get an
+								@XmlSchema annotation. This annotation defines the namespace for
+								all classes in that package.
+								
+								The JAXB Unmarshaller reads this annotation get the namespace of a
+								JAXB entity class if it can't find a namespace on the class itself.
+								
+								However, since Java 9, reading package annotations appears to be broken,
+								at least when attempting to read them from a Maven plugin.
+								See this post for details:
+								
+								https://stackoverflow.com/questions/52157040/jaxb-package-info-ignored-when-using-java-10
+								
+								To remedy this, we turn package annotations off, putting all the
+								information into the JAXB entity classes themselves:
+								-->
+								<argument>-npa</argument>
+								
+							</arguments>
+							<dependencies>
+								<dependency>
+									<groupId>org.glassfish.jaxb</groupId>
+									<artifactId>jaxb-xjc</artifactId>
+									<version>2.3.2</version>
+								</dependency>
+								<dependency>
+									<groupId>com.sun.activation</groupId>
+									<artifactId>jakarta.activation</artifactId>
+									<version>1.2.1</version>
+								</dependency>
+							</dependencies>
+						</configuration>
 					</execution>
 				</executions>
-				<configuration>
-					<xjbSources>
-						<xjbSource>src/main/java/com/github/gentity/core/xsd/bindings.xjb</xjbSource>
-					</xjbSources>
-					<sources>
-						<source>src/main/java/com/github/gentity/core/xsd/dbs.xsd</source>
-						<source>src/main/java/com/github/gentity/core/xsd/genconfig.xsd</source>
-					</sources>
-				</configuration>
 			</plugin>
+
 		</plugins>
 	</build>
 	<dependencies>
@@ -69,11 +160,21 @@
 			<version>1.3</version>
 			<scope>test</scope>
 		</dependency>
-	 <dependency>
-	  <groupId>${project.groupId}</groupId>
-	  <artifactId>gentity-lib</artifactId>
-	  <version>${project.version}</version>
-	 </dependency>
+		<dependency>
+			<groupId>org.glassfish.jaxb</groupId>
+			<artifactId>jaxb-runtime</artifactId>
+			<version>2.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>gentity-lib</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.xml.bind</groupId>
+			<artifactId>jakarta.xml.bind-api</artifactId>
+			<version>2.3.2</version>
+		</dependency>
 	</dependencies>
-    <groupId>com.github.gentity</groupId>
+	<groupId>com.github.gentity</groupId>
 </project>

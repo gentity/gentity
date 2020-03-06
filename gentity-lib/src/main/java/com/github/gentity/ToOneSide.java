@@ -27,30 +27,35 @@ public class ToOneSide<T,O> extends RelationSide<T, O>{
 	final Function<T,O> getter;
 	final BiConsumer<T,O> setter;
 
-	private ToOneSide(Function<T, O> getter, BiConsumer<T, O> setter) {
+	private ToOneSide(EntityStateProvider<T> esp, Function<T, O> getter, BiConsumer<T, O> setter) {
+		super(esp);
 		this.getter = getter;
 		this.setter = setter;
 	}
 	
-	public static <T,O> ToOneSide<T,O> of(Function<T, O> getter, BiConsumer<T, O> setter, RelationSide<O, T> otherSide) {
-		ToOneSide<T, O> instance = of(getter, setter);
+	public static <T,O> ToOneSide<T,O> of(EntityStateProvider<T> esp, Function<T, O> getter, BiConsumer<T, O> setter, RelationSide<O, T> otherSide) {
+		ToOneSide<T, O> instance = of(esp, getter, setter);
 		instance.connect(otherSide);
 		return instance;
 	}
 	
-	public static <T,O> ToOneSide<T,O> of(Function<T, O> getter, BiConsumer<T, O> setter) {
-		return new ToOneSide<>(getter, setter);
+	public static <T,O> ToOneSide<T,O> of(EntityStateProvider<T> esp, Function<T, O> getter, BiConsumer<T, O> setter) {
+		return new ToOneSide<>(esp, getter, setter);
 	}
 	
 	@Override
 	public final RelationSide<T,O> bind(T thisSide, O otherSide) {
-		setter.accept(thisSide, otherSide);
+		if(bindOpEnabled(thisSide)) {
+			setter.accept(thisSide, otherSide);
+		}
 		return this;
 	}
 
 	@Override
 	public final RelationSide<T,O> unbind(T thisSide, O otherSide) {
-		setter.accept(thisSide, null);
+		if(bindOpEnabled(thisSide)) {
+			setter.accept(thisSide, null);
+		}
 		return this;
 	}
 
@@ -62,8 +67,8 @@ public class ToOneSide<T,O> extends RelationSide<T, O>{
 	
 	/**
 	 * Getter variant for {@link ToOneSide}, single-valued association
-	 * @param host
-	 * @return 
+	 * @param host	The object hosting this side of the relation
+	 * @return The target of the relation
 	 */
 	public O get(T host) {
 		return getter.apply(host);
@@ -71,8 +76,8 @@ public class ToOneSide<T,O> extends RelationSide<T, O>{
 	
 	/**
 	 * For {@link ToOneSide}, there is a standard setter implementation
-	 * @param host
-	 * @param otherSide 
+	 * @param host	The object hosting this side of the relation
+	 * @param otherSide The object that we're setting a s new target of the relation
 	 */
 	public void set(T host, O otherSide) {
 		// update binding of other side, if there is another side..

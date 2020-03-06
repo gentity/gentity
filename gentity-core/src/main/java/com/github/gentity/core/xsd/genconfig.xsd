@@ -20,40 +20,185 @@ limitations under the License.
 		   targetNamespace="https://github.com/gentity/gentity/ns"
 		   xmlns:tns="https://github.com/gentity/gentity/ns"
 		   elementFormDefault="qualified">
-
-	<xs:element name="mappingConfig" type='tns:MappingConfig'/>
+	<xs:element name="mappingConfig" type='tns:MappingConfig'>
+		<xs:annotation>
+			<xs:documentation>
+				Root element of a gentity mapping configuration file. 
+				
+				Gentity focuses
+				on database schema structures such as tables, columns
+				and foreign keys defined in the database schema file to derive 
+				JPA structures like entity classes, fields and associations.
+				This process is called table classification.
+				
+				While the database schema is used as the main source of information
+				to perform classification, 
+				a gentity file can override override the defaults to explicitely
+				fine-tune the generated code and to provide additional information
+				that is not present in the database schema (like directionality
+				of an association, entity class inheritance, etc.).
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
 	
 	<xs:complexType name="MappingConfig">
 		<xs:sequence>
-			<xs:element name='exclude' type='tns:Exclusion' minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element name="configuration" type='tns:GlobalConfiguration' minOccurs="0" maxOccurs="1"/>
-			<xs:element name="joinTable" type='tns:JoinTable' minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element name="entityTable" type='tns:RootEntityTable' minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name='exclude' type='tns:Exclusion' minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>
+						Defines tables and/or specific columns to exclude from
+						entity generation. Gentity will pretend that the database
+						structures declared here will not exist in the database
+						schema, and therefore not generate any code for them.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="configuration" type='tns:GlobalConfiguration' minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>
+						Defines configuration defaults for code generation.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="joinTable" type='tns:JoinTable' minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>
+						Explicitely classifies the table as the join table of a 
+						many-to-many relationship between two entities. 
+						The table must have at least two foreign key relations,
+						one identifiying owning entity's table,
+						the other the inverse entity's table. The foreign keys 
+						can be specified explicitely via the ownerRelation 
+						and inverseRelation tags. 
+						
+						If not specified, owner-relation and inverse-relation are picked
+						from the first two foreign keys declared on the table. If only one of the two is specified, the other is picked
+						from the first remaining foreign key of the table, again in declaration order.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="entityTable" type='tns:RootEntityTable' minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>
+						Explicitely classifies the table as entity table. The
+						table is required to have a primary key definition.
+						If not specified explicitely, gentity classifies 
+						tables by introspecting their structure. Tables with a
+						primary key are classfied as entity tables by default.
+						This declaration is generally used to specify further
+						explicit definitions for that entity table, such as 
+						fields, associations or collections.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 			
 		</xs:sequence>
 		
-		<xs:attribute name="targetPackageName" default="" type="xs:string"/>
+		<xs:attribute name="targetPackageName" default="" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>
+					Sets or overrides the target package that the JPA entity classes are generated into.
+					
+					Note that the target package can be set externally when starting gentity; however, this setting will override it.
+					
+					If the target package is unspecified, classes are generated into the default package.
+				</xs:documentation>			
+			</xs:annotation>
+		</xs:attribute>
 		
 	</xs:complexType>
 
 	<xs:complexType name="Configuration">
-		<xs:attribute name='extends' type='tns:FQCN' use="optional"/>
+		<xs:attribute name='extends' type='tns:FQCN' use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					A generated entity class will extend the given Java class, which 
+					must be defined externally. Entity classes that are subclasses
+					in an inheritance hierarchy ignore this attribute.
+					A fully qualified Java type name is required.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
 		<xs:attribute name='implements' use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					A generated entity class will implement the given Java interface, which 
+					must be defined externally.
+					A fully qualified Java type name is required.
+				</xs:documentation>
+			</xs:annotation>
 			<xs:simpleType>
 				<xs:list itemType="tns:FQCN"/>
 			</xs:simpleType>
 		</xs:attribute>
-		<xs:attribute name="classNameSuffix" default="" type="xs:string"/>
-		<xs:attribute name="classNamePrefix" default="" type="xs:string"/>
-		<xs:attribute name="fieldNameSuffix" default="" type="xs:string"/>
-		<xs:attribute name="fieldNamePrefix" default="" type="xs:string"/>
-		<xs:attribute name="idClass" type="tns:FQCN"/>
+		<xs:attribute name="classNameSuffix" default="" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>
+					The specified suffix will be appended to the generated
+					Java entity class name. For an entity table 'customer',
+					a class name suffix of 'Entity' will lead to the java
+					class name 'CustomerEntity'.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="classNamePrefix" default="" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>
+					The specified prefix will be prepended to the generated
+					Java entity class name. For an entity table 'person',
+					a class name prefix of 'Acme' will lead to the java
+					class name 'AcmePerson'.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>			
+		<xs:attribute name="fieldNameSuffix" default="" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>
+					The specified suffix will be appended to the generated
+					Java field name. For column named 'phone' and a field name
+					suffix of '_field', the generated field name is 'phone_field'.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="fieldNamePrefix" default="" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>
+					The specified prefix will be prepended to the generated
+					Java field name. For column named 'phone' and a field name
+					prefix of 'f_', the generated field name is 'f_phone'.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="idClass" type="tns:FQCN">
+			<xs:annotation>
+				<xs:documentation>
+					If specified, the generated entity class will receive an
+					@IdClass annotation including the given Java class name,
+					which muast be fully qualified.
+					The class must be defined externally.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
 	</xs:complexType>
 	
 	<xs:complexType name="GlobalConfiguration">
 		<xs:complexContent>
 			<xs:extension base="tns:Configuration">
-				<xs:attribute name='automaticBidirectionalUpdate' type='xs:boolean'/>
+				<xs:attribute name='automaticBidirectionalUpdate' type='xs:boolean' default="true">
+					<xs:annotation>
+						<xs:documentation>
+							Specifies whether bidirectional update logic should be 
+							included into generated entity classes. 
+							If an association is bidirectional, the JPA application
+							code is responsible for keeping both sides of the
+							association up to date - if forgotten by the programmer,
+							this can lead stale associations and elusive bugs.
+							Gentity generates code that updates the other side of
+							a changed bidirectional relation automatically. This 
+							attribute is used to turn this feature off globally.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
@@ -69,8 +214,28 @@ limitations under the License.
 	
 	
 	<xs:complexType name="Exclusion">
-		<xs:attribute name="table" type="xs:string"/>
-		<xs:attribute name="column" type="xs:string"/>
+		<xs:attribute name="table" type="xs:string" use='required'>
+			<xs:annotation>
+				<xs:documentation>
+					A table name to mark for exclusion from entity generation.
+					If no column is specfied in the exclusion declaration, the
+					entire table is excluded, otherwise only that specific
+					column.
+					Excluded tables are treated as if they were not declared
+					in the database schema. Foreign keys targeting excluded
+					tables are also treated as nonexisting.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="column" type="xs:string" use='optional'>
+			<xs:annotation>
+				<xs:documentation>
+					A column name to mark for exclusion from entity generation.
+					Excluded columns are treated as if they were not declared
+					in the database schema.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>			
 	</xs:complexType>
 	
 	<xs:complexType name="TableConfiguration">
@@ -81,9 +246,29 @@ limitations under the License.
 		<xs:complexContent>
 			<xs:extension base="tns:Configuration">
 				<xs:sequence>
-					<xs:element name="field" type="tns:TableField" minOccurs='0' maxOccurs='unbounded'/>
+					<xs:element name="field" type="tns:TableField" minOccurs='0' maxOccurs='unbounded'>
+						<xs:annotation>
+							<xs:documentation>
+								Overrides the field definition for the specified 
+								column. Gentity derives JPA field definitions 
+								automatically from an entity table's column
+								definitions. Specifying a field allows to set a
+								field name explicitely. In polymorphic entity
+								hierarchies, the field definition is used to assign
+								fields to entity subclasses (by default, all
+								unspecified fields are declared on the hierarchy's root
+								entity).
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
 				</xs:sequence>
-				<xs:attribute name='table' type="xs:string"/>
+				<xs:attribute name='table' type="xs:string">
+					<xs:annotation>
+						<xs:documentation>
+							The name of the table targeted by this declaration.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
@@ -92,17 +277,53 @@ limitations under the License.
 		<xs:complexContent>
 			<xs:extension base="tns:TableConfiguration">
 				<xs:sequence>
-					<xs:element name='ownerRelation' type='tns:JoinTableOwnerRelation' minOccurs='0' maxOccurs='1'/>
-					<xs:element name='inverseRelation' type='tns:JoinTableInverseRelation' minOccurs='0' maxOccurs='1'/>
+					<xs:element name='ownerRelation' type='tns:OwnerTargetRelation' minOccurs='0' maxOccurs='1'>
+						<xs:annotation>
+							<xs:documentation>
+								Defines the owner relation of this join table. Defaults apply if unspecified.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name='inverseRelation' type='tns:InverseTargetRelation' minOccurs='0' maxOccurs='1'>
+						<xs:annotation>
+							<xs:documentation>
+								Defines the inverse relation of this join table. Defaults apply if unspecified.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
 				</xs:sequence>
-				<xs:attribute name='unidirectional' type="xs:boolean" default="false"/>
+				<xs:attribute name='unidirectional' type="xs:boolean" default="false">
+					<xs:annotation>
+						<xs:documentation>
+							Specifies whether this many-to-many association should
+							be unidirectional or bidirectional.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
 	
 	<xs:complexType name="CollectionTable">
-		<xs:attribute name='table' type='xs:string'/>
-		<xs:attribute name='foreignKey' type='xs:string'/>
+		<xs:attribute name='table' type='xs:string' use='required'>
+			<xs:annotation>
+				<xs:documentation>
+					The name of the table to classify as collection table of the
+					host entity.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name='foreignKey' type='xs:string' use='optional'>
+			<xs:annotation>
+				<xs:documentation>
+					The name of the foreign key to use as relation to the 
+					host entity's table. If unspecified, the first foreign key
+					in declaration order us used. Specifying it is useful in
+					cases where multiple foreign keys exist, and using the first
+					one is not feasible.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
 	</xs:complexType>
 	
 	<xs:complexType name="EntityTable">
@@ -113,9 +334,39 @@ limitations under the License.
 					OneToMany/ManyToOne and OneToOne Relationships in JPA; see Section 2.9 in the JPA 2.2 spec:
 					http://download.oracle.com/otn-pub/jcp/persistence-2_2-mrel-spec/JavaPersistence.pdf
 					-->
-					<xs:element name="oneToOne" type="tns:XToOneRelation" minOccurs='0' maxOccurs='unbounded'/>
-					<xs:element name="manyToOne" type="tns:XToOneRelation" minOccurs='0' maxOccurs='unbounded'/>
-					<xs:element name="collectionTable" type="tns:CollectionTable" minOccurs='0' maxOccurs='unbounded'/>
+					<xs:element name="oneToOne" type="tns:XToOneRelation" minOccurs='0' maxOccurs='unbounded'>
+						<xs:annotation>
+							<xs:documentation>
+								Explicitely specifies a one-to-one association
+								to another entity. 
+								Note that gentity derives associations automatcally
+								from the database schema; specifying one will
+								override this mechanism.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="manyToOne" type="tns:XToOneRelation" minOccurs='0' maxOccurs='unbounded'>
+						<xs:annotation>
+							<xs:documentation>
+								Explicitely specifies a many-to-one association
+								to another entity. 
+								Note that gentity derives associations automatcally
+								from the database schema; specifying one will
+								override this mechanism.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="collectionTable" type="tns:CollectionTable" minOccurs='0' maxOccurs='unbounded'>
+						<xs:annotation>
+							<xs:documentation>
+								Explicitely specifies a collection table for an
+								element collection hosted by this entity. 
+								Note that gentity derives collection tables automatcally
+								from the database schema; specifying one will
+								override this mechanism.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>
@@ -123,10 +374,28 @@ limitations under the License.
 	<xs:complexType name="RootEntityTable">
 		<xs:complexContent>
 			<xs:extension base="tns:EntityTable">
-				<xs:sequence>
+				<xs:sequence minOccurs='0'>
 					<xs:choice>
-						<xs:element name='joinedHierarchy' type='tns:JoinedHierarchy' minOccurs='1' maxOccurs='1'/>
-						<xs:element name='singleTableHierarchy' type='tns:SingleTableHierarchy' minOccurs='0' maxOccurs='1'/>
+						<xs:element name='joinedHierarchy' type='tns:JoinedHierarchy' minOccurs='1' maxOccurs='1'>
+							<xs:annotation>
+								<xs:documentation>
+									If specified, the entity table and its corresponding
+									generated entity class is the root
+									of an entity class hierarchy, using the
+									'JOINED' JPA inheritance strategy.
+								</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name='singleTableHierarchy' type='tns:SingleTableHierarchy' minOccurs='1' maxOccurs='1'>
+							<xs:annotation>
+								<xs:documentation>
+									If specified, the entity table and its corresponding
+									generated entity class is the root
+									of an entity class hierarchy, using the
+									'SINGLE_TABLE' JPA inheritance strategy.
+								</xs:documentation>
+							</xs:annotation>
+						</xs:element>
 					</xs:choice>
 				</xs:sequence>
 			</xs:extension>
@@ -141,69 +410,140 @@ limitations under the License.
 		<xs:complexContent>
 			<xs:extension base="tns:EntityTable">
 				<xs:sequence>
-					<xs:element name="entityTable" type="tns:JoinedEntityTable" minOccurs='0' maxOccurs='unbounded'/>
+					<xs:element name="entityTable" type="tns:JoinedEntityTable" minOccurs='0' maxOccurs='unbounded'>
+						<xs:annotation>
+							<xs:documentation>
+								Specifies that the entity table represents a 
+								subclass entity of the enclosing table's entity.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
 				</xs:sequence>
-				<xs:attribute name="foreignKey" use="required" type="xs:string"/>
-				<xs:attribute name='discriminator' type='xs:string' use="required"/>
+				<xs:attribute name="foreignKey" use="required" type="xs:string">
+					<xs:annotation>
+						<xs:documentation>
+							The name of the foreign key used to join this entity table
+							to the parent entity table.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name='discriminator' type='xs:string' use="required">
+					<xs:annotation>
+						<xs:documentation>
+							The discriminator value used to identify a specific entity
+							type (for @DiscriminatorValue).
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 			</xs:extension>
 		</xs:complexContent>
-	</xs:complexType>
-	<xs:complexType name="Extends">
-		<xs:attribute name='class' type="xs:string"/>
-	</xs:complexType>
-	
-	<xs:complexType name="Implements">
-		<xs:attribute name='class' type="xs:string"/>
-	</xs:complexType>
-	
-	<xs:complexType name="Relationship">
-		<xs:attribute name='table' type='xs:string' />
 	</xs:complexType>
 	
 	<xs:complexType name="Relation">
 		<xs:attribute name="foreignKey" type="xs:string"/>
 	</xs:complexType>
-	<xs:complexType name="JoinTableOwnerRelation">
+	<xs:complexType name="OwnerTargetRelation">
 		<xs:complexContent>
 			<xs:extension base="tns:Relation">
-				<xs:attribute name="owningEntity" type="xs:string"/>
+				<xs:attribute name="owningEntity" type="xs:string">
+					<xs:annotation>
+						<xs:documentation>
+							The name of the target entity hosting the owning side of 
+							the relationship. 
+							
+							Gentity determines the target entity 
+							automatically from the foreign backing this side of the
+							association. However, when polymorphic entities
+							map to the same table, the target entity selected
+							automatically is the base class of that hierarchy.
+							This attribute allows to specify a subclass of the
+							hierarchy as the target entity.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
-	<xs:complexType name="JoinTableInverseRelation">
+	<xs:complexType name="InverseTargetRelation">
 		<xs:complexContent>
 			<xs:extension base="tns:Relation">
-				<xs:attribute name="inverseEntity" type="xs:string"/>
+				<xs:attribute name="inverseEntity" type="xs:string">
+					<xs:annotation>
+						<xs:documentation>
+							The name of the target entity hosting the inverse side of 
+							the relationship. 
+							
+							Gentity determines the target entity 
+							automatically from the foreign backing this side of the
+							association. However, when polymorphic entities
+							map to the same table, the target entity selected
+							automatically is the base class of that hierarchy.
+							This attribute allows to specify a subclass of the
+							hierarchy as the target entity.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
 	
 	<xs:complexType name="XToOneRelation">
 		<xs:complexContent>
-			<xs:extension base="tns:Relation">
+			<xs:extension base="tns:InverseTargetRelation">
 				<!-- FIXME: We'll need to turn the default to false -->
-				<xs:attribute name="bidirectional" type="xs:boolean" default="true"/>
-				<xs:attribute name="inverseEntity" type="xs:string"/>
+				<xs:attribute name="bidirectional" type="xs:boolean" default="true">
+					<xs:annotation>
+						<xs:documentation>
+							Specifies if the association is bidirectional or
+							unidirectional.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
 	<xs:complexType name="Hierarchy">
 		<xs:sequence>
-			<xs:element name="discriminateBy" type="tns:DiscriminatorDecl" minOccurs="1" maxOccurs="1"/>
-			<xs:element name="root" type='tns:Root' minOccurs='1'/>
+			<xs:element name="rootEntity" type='tns:RootEntity' minOccurs='1'>
+				<xs:annotation>
+					<xs:documentation>
+						Specifies required settings for the root entity class,
+						like its discriminator.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 		</xs:sequence>
 	</xs:complexType>
-	<xs:complexType name="Root">
-		<xs:attribute name='discriminator' type='xs:string'/>
-	</xs:complexType>
-	<xs:complexType name="DiscriminatorDecl">
-		<xs:attribute name="column" type="xs:string"/>
+	<xs:complexType name="RootEntity">
+		<xs:attribute name='discriminator' type='xs:string' use='required'>
+			<xs:annotation>
+				<xs:documentation>
+					The discriminator value used to identify a specific entity
+					type (for @DiscriminatorValue).
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name='discriminatorColumn' type='xs:string' use='required'>
+			<xs:annotation>
+				<xs:documentation>
+					The name of the column in the root entity table used to store 
+					the discriminator value.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
 	</xs:complexType>
 	<xs:complexType  name="JoinedHierarchy">
 		<xs:complexContent>
 			<xs:extension base="tns:Hierarchy">
 				<xs:sequence>
-					<xs:element name="entityTable" type="tns:JoinedEntityTable" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="entityTable" type="tns:JoinedEntityTable" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>
+								Specifies that the entity table represents a 
+								subclass entity of the enclosing table's entity.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>
@@ -212,29 +552,79 @@ limitations under the License.
 		<xs:complexContent>
 			<xs:extension base="tns:Hierarchy">
 				<xs:sequence>
-					<xs:element name="entity" type="tns:SingleTableEntity" minOccurs='0' maxOccurs='unbounded'/>
+					<xs:element name="entity" type="tns:SingleTableEntity" minOccurs='0' maxOccurs='unbounded'>
+						<xs:annotation>
+							<xs:documentation>
+								Declares a subclass entity.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
 	<xs:complexType name="SingleTableEntity">
 		<xs:complexContent>
-			<xs:extension base="tns:TableConfiguration">
+			<xs:extension base="tns:EntityTable">
 				<xs:sequence>
-					<xs:element name="collectionTable" type="tns:CollectionTable"  minOccurs='0' maxOccurs='unbounded'/>
-					<xs:element name="oneToOne" type="tns:XToOneRelation" minOccurs='0' maxOccurs='unbounded'/>
-					<xs:element name="manyToOne" type="tns:XToOneRelation" minOccurs='0' maxOccurs='unbounded'/>
-					<xs:element name="entity" type="tns:SingleTableEntity" minOccurs="0" maxOccurs='unbounded'/>
+					<xs:element name="entity" type="tns:SingleTableEntity" minOccurs="0" maxOccurs='unbounded'>
+						<xs:annotation>
+							<xs:documentation>
+								Declares a subclass entity.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
 				</xs:sequence>
-				<xs:attribute name="name" type="xs:string" use='required'/>
-				<xs:attribute name="discriminator" type="xs:string" use='required'/>
+				<xs:attribute name="name" type="xs:string" use='required'>
+					<xs:annotation>
+						<xs:documentation>
+							Name of the generated entity subclass.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="discriminator" type="xs:string" use='required'>
+					<xs:annotation>
+						<xs:documentation>
+							The discriminator value used to identify a specific entity
+							type (for @DiscriminatorValue).
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
 	
 	<xs:complexType name="TableField">
-		<xs:attribute name="enumType" type="xs:string"/>
-		<xs:attribute name="column" type="xs:string"/>
-		<xs:attribute name="name" type="xs:string"/>
+		<xs:attribute name="enumType" type="tns:FQCN" use='optional'>
+			<xs:annotation>
+				<xs:documentation>
+					Declares that this field should be mapped using the
+					given Java enum. The enum type is not generated by gentity
+					and therefore must be defined in user code externally.
+					Only columns backed by string or integral types are allowed
+					to be mapped to enums.
+					If unspecified, the field is mapped to the matching Java type
+					automatically.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="column" type="xs:string" use='required'>
+			<xs:annotation>
+				<xs:documentation>
+					The table column this field definition refers to.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="name" type="xs:string" use='optional'>
+			<xs:annotation>
+				<xs:documentation>
+					The name of the field that the column should be mapped to. 
+					The given name is a candidate; gentity resolves name collisions
+					by appending integer numbers to the candicate.
+					If unspecified, the column name is converted to a Java field
+					name.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
 	</xs:complexType>
 </xs:schema>

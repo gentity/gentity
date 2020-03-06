@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.github.gentity</groupId>
 		<artifactId>gentity</artifactId>
-		<version>0.17-SNAPSHOT</version>
+		<version>0.19-SNAPSHOT</version>
 	</parent>
 	<artifactId>gentity-test</artifactId>
 	<packaging>jar</packaging>
@@ -199,6 +199,16 @@
 							<inputDbsFile>src/main/resources/test1i-many-to-many-composite-pk.dbs</inputDbsFile>
 							<mappingConfigFile>src/main/resources/test1i-many-to-many-composite-pk.genconfig</mappingConfigFile>
 							<targetPackageName>com.github.gentity.test.test1i_many_to_many_composite_pk</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
+						<id>entities-test1j_many_to_one_bid_update_delete</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputDbsFile>src/main/resources/test1j_many_to_one_bid_update_delete.dbs</inputDbsFile>
+							<targetPackageName>com.github.gentity.test.test1j_many_to_one_bid_update_delete</targetPackageName>
 						</configuration>
 					</execution>
 					<execution>
