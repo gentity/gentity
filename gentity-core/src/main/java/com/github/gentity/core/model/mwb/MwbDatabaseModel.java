@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 The Gentity Project. All rights reserved.
+ * Copyright 2020 The Gentity Project. All rights reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.model;
+package com.github.gentity.core.model.mwb;
 
-import java.util.List;
+import com.github.gentity.core.model.util.DefaultDatabaseModel;
+import java.util.Map;
 
 /**
  *
  * @author count
  */
-public interface DatabaseModel {
-	TableModel getTable(String name);
+public class MwbDatabaseModel extends DefaultDatabaseModel<MwbTableModel>{
+
+	public MwbDatabaseModel(Map<String, MwbTableModel> tables) {
+		super(tables);
+	}
 	
-	List<? extends TableModel> getTables();
 }
