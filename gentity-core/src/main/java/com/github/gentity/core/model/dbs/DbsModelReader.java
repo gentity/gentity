@@ -34,6 +34,8 @@ import com.github.gentity.core.model.TableColumnGroup;
 import com.github.gentity.core.model.TableModel;
 import com.github.gentity.core.model.util.ArrayListIndexModel;
 import com.github.gentity.core.model.util.ArrayListTableColumnGroup;
+import com.github.gentity.core.model.util.GenericSQLTypeParser;
+import com.github.gentity.core.model.util.SQLTypeParser;
 import com.github.gentity.core.util.UnmarshallerFactory;
 import java.io.IOException;
 import java.io.InputStream;
@@ -60,6 +62,7 @@ public class DbsModelReader implements ModelReader {
 	private ProjectDto dbSchemaProject;
 	private SchemaDto dbSchema;
 	private Exclusions exclusions;
+	private SQLTypeParser typeParser;
 
 	public DbsModelReader(UnmarshallerFactory factory, String fileName, InputStreamSupplier streamSupplier) {
 		this.factory = factory;
@@ -88,7 +91,11 @@ public class DbsModelReader implements ModelReader {
 			throw new IOException(ex);
 		}
 		
-		this.dbSchemaProject = dbSchemaProject;
+		typeParser = GenericSQLTypeParser.forRdbms(dbSchemaProject.getDatabase());
+		if(typeParser == null) {
+			typeParser = GenericSQLTypeParser.forUnknownRdbms();
+		}
+		
 		this.dbSchema = dbSchemaProject.getSchema();
 		
 		this.exclusions = exclusions;
@@ -137,7 +144,7 @@ public class DbsModelReader implements ModelReader {
 		DbsTableModel table = new DbsTableModel(tableDto);
 		TableColumnGroup cmodels = tableDto.getColumn().stream().sequential()
 				.filter(c -> !exclusions.isTableColumnExcluded(tableDto.getName(), c.getName()))
-				.map(c -> new DbsColumnModel(table, c))
+				.map(c -> new DbsColumnModel(table, c, typeParser.parseTypename(c.getType())))
 				.collect(Collectors.toCollection(ArrayListTableColumnGroup::new));
 		table.setDbsColumnModels(cmodels);
 		

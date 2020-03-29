@@ -18,6 +18,7 @@ package com.github.gentity.core.model.mwb;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.SequenceModel;
 import com.github.mwbmodel.model.db.mysql.Column;
+import java.sql.JDBCType;
 
 /**
  *
@@ -42,7 +43,7 @@ public class MwbColumnModel implements ColumnModel{
 	}
 
 	@Override
-	public String getSqlType() {
+	public JDBCType getType() {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
