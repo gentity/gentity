@@ -2,6 +2,9 @@
 <project name="test0" id="Project_13045f4" template="Default" database="HSql" >
 	<schema name="TEST0A" schemaname="TEST0A" >
 		<table name="PERSON" >
+			<!-- 8.2+ versions of DbSchema emit this for new tables -->
+			<options><![CDATA[engine=InnoDB]]></options>
+			
 			<column name="ID" type="bigint" length="100" jt="-5" mandatory="y" />
 			<column name="FIRSTNAME" type="varchar" length="100" jt="12" mandatory="y" />
 			<column name="SURNAME" type="varchar" length="100" jt="12" mandatory="y" />
