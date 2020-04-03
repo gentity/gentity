@@ -47,6 +47,7 @@ limitations under the License.
   </xs:complexType>
   <xs:complexType name="Table">
     <xs:sequence>
+      <xs:element type="xs:string" name="options" minOccurs="0"/>
       <xs:element type="xs:string" name="comment" minOccurs="0"/>
       <xs:element type="Column" name="column" maxOccurs="unbounded" minOccurs="0"/>
       <xs:element type="Index" name="index" maxOccurs="unbounded" minOccurs="0"/>

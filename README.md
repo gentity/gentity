@@ -1,4 +1,4 @@
-# gentity [![Build Status](https://travis-ci.org/gentity/gentity.svg?branch=master)](https://travis-ci.org/gentity/gentity) ![Maven metadata URI](https://img.shields.io/maven-metadata/v/http/central.maven.org/maven2/com/github/gentity/gentity-maven-plugin/maven-metadata.xml.svg)
+# gentity [![Build Status](https://img.shields.io/travis/gentity/gentity.svg)](https://travis-ci.org/gentity/gentity) ![Maven](https://img.shields.io/maven-central/v/com.github.gentity/gentity-maven-plugin.svg)
 
 JPA Entity class generator from DBSchema (*.dbs) database models (see https://www.dbschema.com). 
 

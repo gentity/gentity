@@ -1,0 +1,9 @@
+# general case
+* text=auto
+
+# text file types in gentity 
+*.java text eol=lf
+*.xml text eol=lf
+*.properties eol=lf
+*.md eol=lf
+
