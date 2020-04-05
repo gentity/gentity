@@ -18,22 +18,17 @@ package com.github.gentity.core;
 import com.sun.codemodel.JCodeModel;
 import java.io.File;
 import java.io.IOException;
-import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
 import com.github.gentity.core.config.dto.MappingConfigDto;
 import com.github.gentity.core.model.ModelReader;
 import com.github.gentity.core.model.ModelReaderFactory;
+import com.github.gentity.core.model.ReaderContext;
 import com.github.gentity.core.util.UnmarshallerFactory;
 import com.github.gentity.core.xsd.R;
 import java.io.FileInputStream;
 import java.util.ServiceLoader;
-import javax.xml.bind.ValidationEventHandler;
-import org.xml.sax.SAXException;
 
 /**
  *
@@ -77,8 +72,9 @@ public class FileShell {
 		Iterable<ModelReaderFactory> factories;
 		factories = ServiceLoader.load(ModelReaderFactory.class);
 		
+		ReaderContext ctx = new FileReaderContextImpl(inputFile);
 		for(ModelReaderFactory f : factories) {
-			if(f.supportsReading(inputFile.getName(), () -> new FileInputStream(inputFile))) {
+			if(f.supportsReading(inputFile.getName(), ctx)) {
 				modelReaderFactory = f;
 				break;
 			}
@@ -86,7 +82,7 @@ public class FileShell {
 		if(modelReaderFactory == null) {
 			throw new RuntimeException("The format of the provided file '" + inputFile.getName() + "' is not supported");
 		}
-		ModelReader reader = modelReaderFactory.createModelReader(inputFile.getName(), () -> new FileInputStream(inputFile));
+		ModelReader reader = modelReaderFactory.createModelReader(inputFile.getName(), ctx);
 		
 		Generator gen = new Generator(config, reader);
 		

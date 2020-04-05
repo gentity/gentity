@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.model.util;
+package com.github.gentity.core.model.types;
 
 import java.sql.JDBCType;
 import java.util.Arrays;
@@ -35,54 +35,8 @@ import java.util.regex.Pattern;
  */
 public class GenericSQLTypeParser implements SQLTypeParser {
 	
-	private static final GenericSQLTypeParser INSTANCE = new GenericSQLTypeParser();
-	
-	// PatternParserMapping: PatternParserMapping
-	static class PatternParserMapping {
-		final Pattern pattern;
-		final SQLTypeParser parser;
-
-		public PatternParserMapping(Pattern pattern, SQLTypeParser parser) {
-			this.pattern = pattern;
-			this.parser = parser;
-		}
-	}
-	
-	// NOTE: add more patterns here
-	private static final List<PatternParserMapping> ppms = Arrays.asList(
-		new PatternParserMapping(
-			Pattern.compile("mysql", Pattern.CASE_INSENSITIVE), 
-			new MySQLTypeParser()
-		)
-	);
-	
-	public static GenericSQLTypeParser forUnknownRdbms() {
-		return INSTANCE;
-	}
-	
-	protected GenericSQLTypeParser() {
-	}
-	
-	/**
-	 * Tries to find SQL type parser for a RDBMS name. Names can be like 'MyQL', 
-	 * 'Postgres', etc. If no parser is found, the method responds with 
-	 * {@code null}. Callers can decide whether or not they want to proceed with
-	 * a generic SQL parser that they can get via {@link #forUnknownRdbms()}.
-	 * @param database name
-	 * @return a parser or {@code null} no parser matching this particular
-	 *	RDBMS was found.
-	 */
-	public static SQLTypeParser forRdbms(String database) {
-		for(PatternParserMapping ppm : ppms) {
-			if(ppm.pattern.matcher(database).matches()) {
-				return ppm.parser;
-			}
-		}
-		return null;
-	}
-
 	@Override
-	public JDBCType parseTypename(String sqlType) {
+	public JDBCType parseTypename(String sqlType, JDBCType defaultValue) {
 		switch(sqlType.trim().toLowerCase(Locale.ROOT)) {
 			case "char":
 			case "character":
@@ -130,7 +84,7 @@ public class GenericSQLTypeParser implements SQLTypeParser {
 			case "longvarbinary":
 				return JDBCType.LONGVARBINARY;
 			default:
-				throw new IllegalArgumentException("Unrecognized type name '" + sqlType + "'");
+				return defaultValue;
 		}
 	}
 	

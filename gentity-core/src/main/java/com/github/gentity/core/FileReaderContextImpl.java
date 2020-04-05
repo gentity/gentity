@@ -13,27 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.model.mwb;
+package com.github.gentity.core;
 
-import com.github.gentity.core.model.ModelReader;
-import com.github.gentity.core.model.ModelReaderFactory;
-import java.io.IOException;
 import com.github.gentity.core.model.ReaderContext;
+import com.github.gentity.core.model.types.ParserResolver;
+import com.github.gentity.core.model.types.SQLTypeParser;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  *
  * @author count
  */
-public class MwbModelReaderFactory implements ModelReaderFactory {
+public class FileReaderContextImpl implements ReaderContext{
+	private ParserResolver parserResolver = new ParserResolver();
+	private final File inputFile;
 
+	public FileReaderContextImpl(File inputFile) {
+		this.inputFile = inputFile;
+	}
+	
+	
 	@Override
-	public boolean supportsReading(String fileName, ReaderContext streamSupplier) throws IOException {
-		return fileName.toLowerCase().endsWith(".mwb");
+	public InputStream open() throws IOException {
+		return new FileInputStream(inputFile);
 	}
 
 	@Override
-	public ModelReader createModelReader(String fileName, ReaderContext streamSupplier) {
-		return new MwbModelReader(fileName, streamSupplier);
+	public SQLTypeParser findTypeParser(String databaseProductName) {
+		return parserResolver.findSQLTypeParser(databaseProductName);
 	}
+
+	
 	
 }

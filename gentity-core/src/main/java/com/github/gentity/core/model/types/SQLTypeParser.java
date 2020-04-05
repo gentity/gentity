@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.model.util;
+package com.github.gentity.core.model.types;
 
 import com.github.gentity.core.model.ModelReader;
 import java.sql.JDBCType;
@@ -39,6 +39,22 @@ public interface SQLTypeParser {
 	 * @throws IllegalArgumentException	the given type name was not recognized
 	 *	by the parser
 	 */
-	JDBCType parseTypename(String sqlType) throws IllegalArgumentException;
+	default JDBCType parseTypename(String sqlType) throws IllegalArgumentException {
+		JDBCType t = parseTypename(sqlType, null);
+		if(t == null) {
+			throw new IllegalArgumentException("Unrecognized type name '" + sqlType + "'");
+		}
+		return t;
+	}
+	
+	/**
+	 * Convert a column type name to {@link JDBCType}.
+	 * @param sqlType column type name
+	 * @param defaultValue	the default value to return of type was not recognized
+	 * @return the JDBCType representation for the given type name or the 
+	 *	{@code defaultValue} if the given type name was not recognized
+	 *	by the parser
+	 */
+	JDBCType parseTypename(String sqlType, JDBCType defaultValue);
 	
 }

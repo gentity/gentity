@@ -27,9 +27,15 @@ import java.sql.JDBCType;
 public class MwbColumnModel implements ColumnModel{
 	
 	private final Column column;
-
-	public MwbColumnModel(Column column) {
+	private final JDBCType jdbcType;
+	
+	public MwbColumnModel(Column column, JDBCType jdbcType) {
 		this.column = column;
+		this.jdbcType = jdbcType;
+	}
+	
+	Column getMappedColumn() {
+		return column;
 	}
 	
 	@Override
@@ -44,7 +50,7 @@ public class MwbColumnModel implements ColumnModel{
 
 	@Override
 	public JDBCType getType() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return jdbcType;
 	}
 
 	@Override

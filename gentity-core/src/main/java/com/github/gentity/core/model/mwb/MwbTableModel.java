@@ -21,6 +21,7 @@ import com.github.gentity.core.model.IndexModel;
 import com.github.gentity.core.model.PrimaryKeyModel;
 import com.github.gentity.core.model.TableColumnGroup;
 import com.github.gentity.core.model.TableModel;
+import com.github.gentity.core.model.types.SQLTypeParser;
 import com.github.mwbmodel.model.db.mysql.Column;
 import com.github.mwbmodel.model.db.mysql.ForeignKey;
 import com.github.mwbmodel.model.db.mysql.Table;
@@ -37,14 +38,16 @@ public class MwbTableModel implements TableModel{
 	private final Table table;
 	private final MwbPrimaryKeyModel pk;
 	private final Map<Column,MwbColumnModel> columnModels;
+	private final TableColumnGroup<MwbColumnModel> columns;
 
-	public MwbTableModel(Table table) {
+	public MwbTableModel(Table table, TableColumnGroup<MwbColumnModel> columns) {
 		this.table = table;
+		this.columns = columns;
 		
 		columnModels = new HashMap<>();
 		Map<Column,MwbColumnModel> columnModels = new HashMap<>();
-		for(Column c : table.getColumns()) {
-			columnModels.put(c, new MwbColumnModel(c));
+		for(MwbColumnModel cm : columns) {
+			columnModels.put(cm.getMappedColumn(), cm);
 		}
 		
 		pk = new MwbPrimaryKeyModel(this, table.getPrimaryKey());

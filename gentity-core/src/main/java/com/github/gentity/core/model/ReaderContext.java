@@ -15,17 +15,28 @@
  */
 package com.github.gentity.core.model;
 
+import com.github.gentity.core.model.types.SQLTypeParser;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.function.Supplier;
 
 /**
- * A supplier-like interface providing {@link InputStream} instances. A supplier
- * alone cannot be used to supply InputStream instances because supplying them
- * may case {@link IOException}s, which a {@link Supplier#get()} does not 
- * support throwing. Hence the need for a specialized supplier.
+ * A context for reader implementations, which supplies the {@link InputStream}
+ * to the source as well as other context that may be relevant for a {@link ModelReader}
+ * implementation.
  * @author count
  */
-public interface InputStreamSupplier {
-	InputStream get() throws IOException;
+public interface ReaderContext {
+	/**
+	 * Opens the {@link InputStream} to the actual source file.
+	 * @return
+	 * @throws IOException 
+	 */
+	InputStream open() throws IOException;
+	
+	/**
+	 * Finds a type parser for a database product identified by its name.
+	 * @param databaseProductName	a common name for a DBMS, like 'mysql', etc.
+	 * @return 
+	 */
+	SQLTypeParser findTypeParser(String databaseProductName);
 }

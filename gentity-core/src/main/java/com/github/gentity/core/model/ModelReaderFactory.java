@@ -41,7 +41,7 @@ public interface ModelReaderFactory {
 	 * @throws java.io.IOException	thrown in case that reading from the supplied
 	 *	InputStream fails
 	 */
-	boolean supportsReading(String fileName, InputStreamSupplier streamSupplier) throws IOException;
+	boolean supportsReading(String fileName, ReaderContext streamSupplier) throws IOException;
 	
 	/**
 	 * Creates a {@link ModelReader} instance reading files of the format(s) that
@@ -50,5 +50,5 @@ public interface ModelReaderFactory {
 	 * @param inputStream	the {@link InputStream} providing the file content
 	 * @return a new model reader.
 	 */
-	ModelReader createModelReader(String fileName, InputStreamSupplier streamSupplier);
+	ModelReader createModelReader(String fileName, ReaderContext streamSupplier);
 }

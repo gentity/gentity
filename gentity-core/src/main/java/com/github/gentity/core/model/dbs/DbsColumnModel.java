@@ -18,7 +18,7 @@ package com.github.gentity.core.model.dbs;
 import com.github.gentity.core.model.dbs.dto.ColumnDto;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.SequenceModel;
-import com.github.gentity.core.model.util.GenericSQLTypeParser;
+import com.github.gentity.core.model.types.GenericSQLTypeParser;
 import java.sql.JDBCType;
 
 /**

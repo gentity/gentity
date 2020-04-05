@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.model.util;
+package com.github.gentity.core.model.types;
 
 import java.sql.JDBCType;
 import java.util.Locale;

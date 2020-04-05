@@ -27,15 +27,14 @@ import com.github.gentity.core.model.dbs.dto.TableDto;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.DatabaseModel;
 import com.github.gentity.core.model.ForeignKeyModel;
-import com.github.gentity.core.model.InputStreamSupplier;
 import com.github.gentity.core.model.ModelReader;
 import com.github.gentity.core.model.SequenceModel;
 import com.github.gentity.core.model.TableColumnGroup;
 import com.github.gentity.core.model.TableModel;
 import com.github.gentity.core.model.util.ArrayListIndexModel;
 import com.github.gentity.core.model.util.ArrayListTableColumnGroup;
-import com.github.gentity.core.model.util.GenericSQLTypeParser;
-import com.github.gentity.core.model.util.SQLTypeParser;
+import com.github.gentity.core.model.types.GenericSQLTypeParser;
+import com.github.gentity.core.model.types.SQLTypeParser;
 import com.github.gentity.core.util.UnmarshallerFactory;
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,6 +47,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
+import com.github.gentity.core.model.ReaderContext;
 
 /**
  *
@@ -57,17 +57,17 @@ public class DbsModelReader implements ModelReader {
 
 	private final UnmarshallerFactory factory;
 	private final String fileName;
-	private final InputStreamSupplier streamSupplier;
+	private final ReaderContext readerContext;
 	
 	private ProjectDto dbSchemaProject;
 	private SchemaDto dbSchema;
 	private Exclusions exclusions;
 	private SQLTypeParser typeParser;
 
-	public DbsModelReader(UnmarshallerFactory factory, String fileName, InputStreamSupplier streamSupplier) {
+	public DbsModelReader(UnmarshallerFactory factory, String fileName, ReaderContext readerContext) {
 		this.factory = factory;
 		this.fileName = fileName;
-		this.streamSupplier = streamSupplier;
+		this.readerContext = readerContext;
 	}
 	
 	private ForeignKeyModel.Mapping toMapping(ForeignKeyDto fk, ForeignKeyColumnDto fkCol, TableModel childTable, TableModel parentTable) {
@@ -77,7 +77,7 @@ public class DbsModelReader implements ModelReader {
 	}
 	public DatabaseModel read(Exclusions exclusions) throws IOException {
 		
-		try (InputStream inputStream = streamSupplier.get()) {
+		try (InputStream inputStream = readerContext.open()) {
 			Unmarshaller unmarshaller = factory.createUnmarshaller();
 			
 			Source src = new StreamSource(inputStream);
@@ -91,10 +91,7 @@ public class DbsModelReader implements ModelReader {
 			throw new IOException(ex);
 		}
 		
-		typeParser = GenericSQLTypeParser.forRdbms(dbSchemaProject.getDatabase());
-		if(typeParser == null) {
-			typeParser = GenericSQLTypeParser.forUnknownRdbms();
-		}
+		typeParser = readerContext.findTypeParser(dbSchemaProject.getDatabase().toLowerCase().trim());
 		
 		this.dbSchema = dbSchemaProject.getSchema();
 		

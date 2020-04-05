@@ -15,13 +15,12 @@
  */
 package com.github.gentity.core.model.dbs;
 
-import com.github.gentity.core.model.InputStreamSupplier;
 import com.github.gentity.core.model.ModelReader;
 import com.github.gentity.core.model.ModelReaderFactory;
 import com.github.gentity.core.util.UnmarshallerFactory;
 import com.github.gentity.core.xsd.R;
 import java.io.IOException;
-import javax.xml.bind.ValidationEventHandler;
+import com.github.gentity.core.model.ReaderContext;
 
 /**
  *
@@ -32,12 +31,12 @@ public class DbsModelReaderFactory implements ModelReaderFactory {
 	private static final UnmarshallerFactory uFactory = new UnmarshallerFactory(R.class.getResource("dbs.xsd"), com.github.gentity.core.model.dbs.dto.ObjectFactory.class);
 	
 	@Override
-	public boolean supportsReading(String fileName, InputStreamSupplier streamSupplier) throws IOException {
+	public boolean supportsReading(String fileName, ReaderContext streamSupplier) throws IOException {
 		return fileName.toLowerCase().endsWith(".dbs");
 	}
 
 	@Override
-	public ModelReader createModelReader(String fileName, InputStreamSupplier streamSupplier) {
+	public ModelReader createModelReader(String fileName, ReaderContext streamSupplier) {
 		return new DbsModelReader(uFactory, fileName, streamSupplier);
 	}
 	
