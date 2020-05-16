@@ -45,7 +45,7 @@ public class MwbColumnModel implements ColumnModel{
 
 	@Override
 	public boolean isNullable() {
-		return !column.isIsNotNull();
+		return !column.isNotNull();
 	}
 
 	@Override
