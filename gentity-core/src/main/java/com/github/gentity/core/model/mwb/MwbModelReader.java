@@ -16,13 +16,15 @@
 package com.github.gentity.core.model.mwb;
 
 import com.github.gentity.core.Exclusions;
+import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.DatabaseModel;
+import com.github.gentity.core.model.ForeignKeyModel;
+import com.github.gentity.core.model.ForeignKeyModel.Mapping;
 import com.github.gentity.core.model.ModelReader;
 import com.github.gentity.core.model.TableColumnGroup;
 import com.github.gentity.core.model.util.ArrayListTableColumnGroup;
 import com.github.gentity.core.model.types.SQLTypeParser;
 import com.github.mwbmodel.Loader;
-import com.github.mwbmodel.model.db.DatatypeGroup;
 import com.github.mwbmodel.model.db.SimpleDatatype;
 import com.github.mwbmodel.model.db.mysql.Column;
 import com.github.mwbmodel.model.db.mysql.Schema;
@@ -35,6 +37,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.github.gentity.core.model.ReaderContext;
+import com.github.gentity.core.model.util.ArrayListIndexModel;
+import com.github.mwbmodel.model.db.mysql.ForeignKey;
+import com.github.mwbmodel.model.db.mysql.Index;
+import com.github.mwbmodel.model.db.mysql.IndexColumn;
+import java.util.ArrayList;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -73,11 +82,7 @@ public class MwbModelReader implements ModelReader{
 		Document doc = Loader.loadMwb(context.open());
 		
 			
-		Map<Column, MwbColumnModel> colMap = new HashMap<>();
-		
-		TableColumnGroup<MwbColumnModel> colModels = new ArrayListTableColumnGroup<>();
-		
-		Map<String,MwbTableModel> tables = new HashMap<>();
+		Map<Table,MwbTableModel> tables = new HashMap<>();
 		for(Model pm : doc.getPhysicalModels()) {
 			SQLTypeParser typeParser = context.findTypeParser(pm.getRdbms().getName());
 
@@ -85,8 +90,11 @@ public class MwbModelReader implements ModelReader{
 			if(!schemata.isEmpty()) {
 				Schema s = schemata.get(0);
 				
+				// create tables, columns and indices
 				for(Table t : s.getTables()) {
-					
+					TableColumnGroup<MwbColumnModel> colModels = new ArrayListTableColumnGroup<>();
+		
+					Map<Column, MwbColumnModel> colMap = new HashMap<>();					
 					for(Column c : t.getColumns()) {
 						MwbColumnModel cm = toColumnModel(c, typeParser);
 						colModels.add(cm);
@@ -94,12 +102,60 @@ public class MwbModelReader implements ModelReader{
 					}
 					
 					MwbTableModel mt = new MwbTableModel(t, colModels);
-					tables.put(mt.getName(), mt);
+					tables.put(t, mt);
+					
+					for(Index i : t.getIndices()) {
+						convertIndex(mt, i);
+					}
+				}
+				
+				// create foreign keys (referring to columns)
+				for(Table t : s.getTables()) {
+					
+					MwbTableModel tm = tables.get(t);
+					for(ForeignKey fk : t.getForeignKeys()) {
+						List<Mapping> mappings = new ArrayList<>();
+						MwbTableModel targetTable = tables.get(fk.getReferencedTable());
+						for(int i=0; i<fk.getColumns().size(); ++i) {
+							
+							ColumnModel childColumn = tm.getMappedColumnModel(fk.getColumns().get(i));
+							ColumnModel parentColumn = targetTable.getMappedColumnModel(fk.getReferencedColumns().get(i));
+							Mapping mapping = new ForeignKeyModel.Mapping(childColumn, parentColumn);
+							mappings.add(mapping);
+						}
+						MwbForeignKeyModel fkm = new MwbForeignKeyModel(fk, mappings, tm, targetTable);
+						tm.getForeignKeyImpl().add(fkm);
+					}
 				}
 			}
 		}
 		
-		return new MwbDatabaseModel(tables);
+		
+		return new MwbDatabaseModel(tables.entrySet().stream()
+			.collect(Collectors.toMap(e->e.getKey().getName(), Entry::getValue))
+		);
+	}
+	
+	private void convertIndex(MwbTableModel tm, Index idx) {
+		ArrayListIndexModel i;
+		List<ColumnModel> cm = new ArrayList<>();
+		for(IndexColumn ic : idx.getColumns()) {
+			ColumnModel c = tm.getMappedColumnModel(ic.getReferencedColumn());
+			cm.add(c);
+		}
+		if(idx.getIndexType() == Index.Type.PRIMARY) {
+			if(tm.getPrimaryKey() != null) {
+					throw new RuntimeException("table " + tm.getName() + " has duplicate primary keys defined");
+			}
+			
+			MwbPrimaryKeyModel pk = new MwbPrimaryKeyModel(tm, idx);
+			tm.setPrimaryKeyModel(pk);
+		} else {
+			boolean unique = idx.getIndexType() ==  Index.Type.UNIQUE;
+			i = new ArrayListIndexModel(idx.getName(), unique, cm);
+			tm.getIndicesImpl().add(i);
+		}
+		
 	}
 	
 }

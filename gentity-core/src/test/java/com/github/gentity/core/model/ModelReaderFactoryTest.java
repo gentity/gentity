@@ -117,6 +117,7 @@ public class ModelReaderFactoryTest {
 		// covered in the prevous company table tests).
 		// We mostly check for the foreign keys here
 		TableModel employee = m.getTable("employee");
+		System.out.println(employee.toString());
 		assertNotNull(employee);
 		ColumnModel employeeCompanyId = employee.findColumn("company_id");
 		assertFalse(employeeCompanyId.isNullable());
@@ -134,9 +135,9 @@ public class ModelReaderFactoryTest {
 		// relationship to a desk. It also requires a unique index on employee.desk_id
 		ForeignKeyModel employeeFkDesk = employee.findForeignKey("fk_employee_desk");
 		assertSame(desk, employeeFkDesk.getTargetTable());
-		ForeignKeyModel.Mapping deskKfCompanyColumnMapping = employeeFkDesk.getColumnMappings().get(0);
-		assertSame(deskId, deskKfCompanyColumnMapping.getParentColumn());
-		assertSame(employeeCompanyId, employeeKfCompanyColumnMapping.getChildColumn());
+		ForeignKeyModel.Mapping eployeeFkDeskColumnMapping = employeeFkDesk.getColumnMappings().get(0);
+		assertSame(deskId, eployeeFkDeskColumnMapping.getParentColumn());
+		assertSame(employeeDeskId, eployeeFkDeskColumnMapping.getChildColumn());
 		IndexModel employeeDeskIdIndex = employee.findIndex("idx_employee_desk_id");
 		assertTrue(employeeDeskIdIndex.isUnique());
 		assertEquals(1, employeeDeskIdIndex.size());

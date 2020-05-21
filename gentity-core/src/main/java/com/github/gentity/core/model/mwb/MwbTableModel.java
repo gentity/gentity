@@ -21,10 +21,13 @@ import com.github.gentity.core.model.IndexModel;
 import com.github.gentity.core.model.PrimaryKeyModel;
 import com.github.gentity.core.model.TableColumnGroup;
 import com.github.gentity.core.model.TableModel;
+import com.github.gentity.core.model.util.ArrayListIndexModel;
 import com.github.gentity.core.model.util.ArrayListTableColumnGroup;
+import com.github.gentity.core.model.util.DebugUtil;
 import com.github.mwbmodel.model.db.mysql.Column;
-import com.github.mwbmodel.model.db.mysql.ForeignKey;
 import com.github.mwbmodel.model.db.mysql.Table;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,9 +39,11 @@ import java.util.Map;
 public class MwbTableModel implements TableModel{
 	
 	private final Table table;
-	private final MwbPrimaryKeyModel pk;
+	private MwbPrimaryKeyModel pk;
 	private final Map<Column,MwbColumnModel> columnModels;
 	private final TableColumnGroup<MwbColumnModel> columns;
+	private final List<MwbForeignKeyModel> mwbForeignKeys = new ArrayList<>();
+	private final List<ArrayListIndexModel> indexModels = new ArrayList<>();
 
 	public MwbTableModel(Table table, TableColumnGroup<MwbColumnModel> columns) {
 		this.table = table;
@@ -47,12 +52,6 @@ public class MwbTableModel implements TableModel{
 		columnModels = new HashMap<>();
 		for(MwbColumnModel cm : columns) {
 			columnModels.put(cm.getMappedColumn(), cm);
-		}
-		
-		pk = new MwbPrimaryKeyModel(this, table.getPrimaryKey());
-		
-		for(ForeignKey fk: table.getForeignKeys()) {
-			
 		}
 	}
 	
@@ -69,15 +68,18 @@ public class MwbTableModel implements TableModel{
 	public PrimaryKeyModel getPrimaryKey() {
 		return pk;
 	}
-
+	
+	public void setPrimaryKeyModel(MwbPrimaryKeyModel pk) {
+		this.pk = pk;
+	}
+	
 	@Override
 	public List<ForeignKeyModel> getForeignKeys() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return Collections.unmodifiableList(mwbForeignKeys);
 	}
 
-	@Override
-	public ForeignKeyModel findForeignKey(String name) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	public List<MwbForeignKeyModel> getForeignKeyImpl() {
+		return mwbForeignKeys;
 	}
 
 	@Override
@@ -87,8 +89,14 @@ public class MwbTableModel implements TableModel{
 
 	@Override
 	public List<IndexModel> getIndices() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return Collections.unmodifiableList(indexModels);
 	}
 	
+	public List<ArrayListIndexModel> getIndicesImpl() {
+		return indexModels;
+	}
 	
+	public String toString() {
+		return DebugUtil.toDescriptiveSQLString(this);
+	}
 }

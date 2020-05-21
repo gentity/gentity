@@ -27,8 +27,13 @@ public interface TableModel {
 	PrimaryKeyModel getPrimaryKey();
 	
 	List<ForeignKeyModel> getForeignKeys();
-	ForeignKeyModel findForeignKey(String name);
-	
+	default ForeignKeyModel findForeignKey(String name) {
+		return getForeignKeys().stream()
+			.filter(fk -> name.equals(fk.getName()))
+			.findAny()
+			.orElse(null);
+	}
+
 	TableColumnGroup<ColumnModel> getColumns();
 	default ColumnModel findColumn(String name) {
 		return getColumns().findColumn(name);

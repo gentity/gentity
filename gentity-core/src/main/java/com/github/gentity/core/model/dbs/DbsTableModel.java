@@ -26,7 +26,6 @@ import com.github.gentity.core.model.util.ArrayListTableColumnGroup;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  *
@@ -65,14 +64,6 @@ public class DbsTableModel implements TableModel {
 	
 	public List<DbsForeignKeyModel> getForeignKeysImpl() {
 		return dbsForeignKeys;
-	}
-
-	@Override
-	public DbsForeignKeyModel findForeignKey(String name) {
-		return dbsForeignKeys.stream()
-			.filter(fk -> name.equals(fk.getName()))
-			.findAny()
-			.orElse(null);
 	}
 
 	public void setDbsColumnModels(List<DbsColumnModel> columns) {
