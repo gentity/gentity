@@ -167,7 +167,7 @@ public class DbsModelReader implements ModelReader {
 				table.setDbsPrimaryKey(pk);
 			} else {
 				boolean unique = IndexUniqueDto.UNIQUE == idx.getUnique();
-				table.getIndicesImpl().add(new ArrayListIndexModel(unique, columns));
+				table.getIndicesImpl().add(new ArrayListIndexModel(idx.getName(), unique, columns));
 			}
 		}
 		

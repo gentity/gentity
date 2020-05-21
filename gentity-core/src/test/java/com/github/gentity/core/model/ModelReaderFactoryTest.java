@@ -108,22 +108,39 @@ public class ModelReaderFactoryTest {
 		assertEquals(companyParentId, companyFkParentCompanyMapping.getChildColumn());
 		assertEquals(companyId, companyFkParentCompanyMapping.getParentColumn());
 		
+		// check that the desk table exists
+		TableModel desk = m.getTable("desk");
+		assertNotNull(desk);
+		ColumnModel deskId = desk.findColumn("id");
+		
 		// we're not checking employee to thoroughly (because most cases are already
 		// covered in the prevous company table tests).
 		// We mostly check for the foreign keys here
 		TableModel employee = m.getTable("employee");
 		assertNotNull(employee);
-		ColumnModel employeeCompanyId = employee.getColumns().findColumn("company_id");
+		ColumnModel employeeCompanyId = employee.findColumn("company_id");
 		assertFalse(employeeCompanyId.isNullable());
+		ColumnModel employeeDeskId = employee.findColumn("desk_id");
+		assertTrue(employeeDeskId.isNullable());
+		
+		// classic employee foreign key referring to company
 		ForeignKeyModel employeeFkCompany = employee.findForeignKey("fk_employee_company");
 		assertSame(company, employeeFkCompany.getTargetTable());
 		ForeignKeyModel.Mapping employeeKfCompanyColumnMapping = employeeFkCompany.getColumnMappings().get(0);
 		assertSame(companyId, employeeKfCompanyColumnMapping.getParentColumn());
 		assertSame(employeeCompanyId, employeeKfCompanyColumnMapping.getChildColumn());
 		
-		// check that the time_record table exists
-		TableModel time_record = m.getTable("time_record");
-		assertNotNull(time_record);
+		// unique employee foreign key referring to desk. This is forming a 0..1
+		// relationship to a desk. It also requires a unique index on employee.desk_id
+		ForeignKeyModel employeeFkDesk = employee.findForeignKey("fk_employee_desk");
+		assertSame(desk, employeeFkDesk.getTargetTable());
+		ForeignKeyModel.Mapping deskKfCompanyColumnMapping = employeeFkDesk.getColumnMappings().get(0);
+		assertSame(deskId, deskKfCompanyColumnMapping.getParentColumn());
+		assertSame(employeeCompanyId, employeeKfCompanyColumnMapping.getChildColumn());
+		IndexModel employeeDeskIdIndex = employee.findIndex("idx_employee_desk_id");
+		assertTrue(employeeDeskIdIndex.isUnique());
+		assertEquals(1, employeeDeskIdIndex.size());
+		assertSame(employeeDeskId, employeeDeskIdIndex.findColumn("desk_id"));
 		
 	}
 

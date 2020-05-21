@@ -30,6 +30,15 @@ public interface TableModel {
 	ForeignKeyModel findForeignKey(String name);
 	
 	TableColumnGroup<ColumnModel> getColumns();
+	default ColumnModel findColumn(String name) {
+		return getColumns().findColumn(name);
+	}
 	
 	List<IndexModel> getIndices();
+	default IndexModel findIndex(String name) {
+		return getIndices().stream()
+			.filter(i -> i.getName().equals(name))
+			.findAny()
+			.orElse(null);
+	}
 }

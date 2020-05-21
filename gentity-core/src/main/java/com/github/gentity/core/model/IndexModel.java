@@ -22,4 +22,5 @@ package com.github.gentity.core.model;
 public interface IndexModel extends TableColumnGroup<ColumnModel>{
 	
 	boolean isUnique();
+	String getName();
 }

@@ -28,18 +28,20 @@ import java.util.Collections;
 public class ArrayListIndexModel extends ArrayList<ColumnModel> implements IndexModel{
 
 	private final boolean unique;
+	private final String name;
 
-	public ArrayListIndexModel(boolean unique) {
-		this(unique, Collections.EMPTY_LIST);
-	}
-
-	public ArrayListIndexModel(boolean unique, Collection<? extends ColumnModel> c) {
+	public ArrayListIndexModel(String name, boolean unique, Collection<? extends ColumnModel> c) {
 		super(c);
+		this.name = name;
 		this.unique = unique;
 	}
 
 	public boolean isUnique() {
 		return unique;
+	}
+
+	public String getName() {
+		return name;
 	}
 	
 }

@@ -21,7 +21,7 @@ import com.github.gentity.core.model.IndexModel;
 import com.github.gentity.core.model.PrimaryKeyModel;
 import com.github.gentity.core.model.TableColumnGroup;
 import com.github.gentity.core.model.TableModel;
-import com.github.gentity.core.model.types.SQLTypeParser;
+import com.github.gentity.core.model.util.ArrayListTableColumnGroup;
 import com.github.mwbmodel.model.db.mysql.Column;
 import com.github.mwbmodel.model.db.mysql.ForeignKey;
 import com.github.mwbmodel.model.db.mysql.Table;
@@ -83,7 +83,7 @@ public class MwbTableModel implements TableModel{
 
 	@Override
 	public TableColumnGroup<ColumnModel> getColumns() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return new ArrayListTableColumnGroup(columns);
 	}
 
 	@Override
