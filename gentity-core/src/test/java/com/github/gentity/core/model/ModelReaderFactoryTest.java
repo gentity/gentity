@@ -18,11 +18,8 @@ package com.github.gentity.core.model;
 import com.github.gentity.core.Exclusions;
 import com.github.gentity.core.model.dbs.DbsModelReaderFactory;
 import com.github.gentity.core.model.mwb.MwbModelReaderFactory;
-import com.github.gentity.core.model.types.SQLTypeParser;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
+import java.sql.JDBCType;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -64,9 +61,14 @@ public class ModelReaderFactoryTest {
 	 * Test of createModelReader method, of class ModelReaderFactory.
 	 */
 	@Test
-	public void testCreateModelReader() throws IOException {
-		System.out.println("createModelReader");
+	public void testRead_DBS() throws IOException {
+		System.out.println("testRead_DBS");
 		testReadCompanyModel(DBS_FACTORY, COMPANY_DBS_FILENAME, COMPANY_DBS_SS);
+	}
+	
+	@Test
+	public void testRead_MWB() throws IOException {
+		System.out.println("testRead_MWB");
 		testReadCompanyModel(MWB_FACTORY, COMPANY_MWB_FILENAME, COMPANY_MWB_SS);
 	}
 	
@@ -77,8 +79,49 @@ public class ModelReaderFactoryTest {
 		
 		TableModel company = m.getTable("company");
 		assertNotNull(company);
+		
+		ColumnModel companyId = company.getColumns().findColumn("id");
+		assertEquals(JDBCType.INTEGER, companyId.getType());
+		assertTrue(companyId.isIdentityColumn());
+		assertFalse(companyId.isNullable());
+		assertEquals(companyId.getName(), company.getPrimaryKey().get(0).getName());
+		
+		ColumnModel companyName = company.getColumns().findColumn("name");
+		assertEquals(JDBCType.VARCHAR, companyName.getType());
+		assertEquals(100, companyName.getLength());
+		assertFalse(companyName.isIdentityColumn());
+		assertFalse(companyName.isNullable());
+		
+		ColumnModel companyEstablished = company.getColumns().findColumn("established");
+		assertEquals(JDBCType.TIMESTAMP, companyEstablished.getType());
+		
+		ColumnModel companyParentId = company.getColumns().findColumn("parent_company_id");
+		assertEquals(JDBCType.INTEGER, companyParentId.getType());
+		assertTrue(companyParentId.isNullable());
+		
+		// check foreign key of parent table referencing self (the parent company)
+		ForeignKeyModel companyFkCompanyCompany = company.findForeignKey("fk_company_company");
+		assertNotNull(companyFkCompanyCompany);
+		assertSame(company, companyFkCompanyCompany.getTargetTable());
+		assertEquals(1, companyFkCompanyCompany.getColumnMappings().size());
+		ForeignKeyModel.Mapping companyFkParentCompanyMapping = companyFkCompanyCompany.getColumnMappings().get(0);
+		assertEquals(companyParentId, companyFkParentCompanyMapping.getChildColumn());
+		assertEquals(companyId, companyFkParentCompanyMapping.getParentColumn());
+		
+		// we're not checking employee to thoroughly (because most cases are already
+		// covered in the prevous company table tests).
+		// We mostly check for the foreign keys here
 		TableModel employee = m.getTable("employee");
 		assertNotNull(employee);
+		ColumnModel employeeCompanyId = employee.getColumns().findColumn("company_id");
+		assertFalse(employeeCompanyId.isNullable());
+		ForeignKeyModel employeeFkCompany = employee.findForeignKey("fk_employee_company");
+		assertSame(company, employeeFkCompany.getTargetTable());
+		ForeignKeyModel.Mapping employeeKfCompanyColumnMapping = employeeFkCompany.getColumnMappings().get(0);
+		assertSame(companyId, employeeKfCompanyColumnMapping.getParentColumn());
+		assertSame(employeeCompanyId, employeeKfCompanyColumnMapping.getChildColumn());
+		
+		// check that the time_record table exists
 		TableModel time_record = m.getTable("time_record");
 		assertNotNull(time_record);
 		
