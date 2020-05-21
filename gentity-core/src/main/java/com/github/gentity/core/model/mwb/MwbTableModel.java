@@ -45,7 +45,6 @@ public class MwbTableModel implements TableModel{
 		this.columns = columns;
 		
 		columnModels = new HashMap<>();
-		Map<Column,MwbColumnModel> columnModels = new HashMap<>();
 		for(MwbColumnModel cm : columns) {
 			columnModels.put(cm.getMappedColumn(), cm);
 		}
