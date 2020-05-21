@@ -18,25 +18,17 @@ package com.github.gentity.core;
 import com.github.gentity.core.model.ReaderContext;
 import com.github.gentity.core.model.types.ParserResolver;
 import com.github.gentity.core.model.types.SQLTypeParser;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 
 /**
  *
- * @author count
+ * @author upachler
  */
-public class FileReaderContextImpl extends AbstractReaderContext {
-	private final File inputFile;
+public abstract class AbstractReaderContext implements ReaderContext {
 
-	public FileReaderContextImpl(File inputFile) {
-		this.inputFile = inputFile;
+	protected ParserResolver parserResolver = new ParserResolver();
+
+	public SQLTypeParser findTypeParser(String databaseProductName) {
+		return parserResolver.findSQLTypeParser(databaseProductName);
 	}
 	
-	@Override
-	public InputStream open() throws IOException {
-		return new FileInputStream(inputFile);
-	}
-
 }

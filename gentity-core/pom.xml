@@ -24,6 +24,17 @@
 				</excludes>
 			</resource>
 		</resources>
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+			</testResource>
+			<testResource>
+				<directory>src/test/java</directory>
+				<excludes>
+					<exclude>**/*.java</exclude>
+				</excludes>
+			</testResource>
+		</testResources>
 		<plugins>
 			<!-- Note that there is an issue with jaxb2-maven-plugin on JDK 9+:
 			https://github.com/mojohaus/jaxb2-maven-plugin/issues/43

@@ -13,30 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core;
+package com.github.gentity.core.model;
 
-import com.github.gentity.core.model.ReaderContext;
-import com.github.gentity.core.model.types.ParserResolver;
-import com.github.gentity.core.model.types.SQLTypeParser;
-import java.io.File;
-import java.io.FileInputStream;
+import com.github.gentity.core.AbstractReaderContext;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
 /**
  *
- * @author count
+ * @author upachler
  */
-public class FileReaderContextImpl extends AbstractReaderContext {
-	private final File inputFile;
+public class ResourceReaderContextImpl extends AbstractReaderContext {
+	
+	private final Class<?> clazz;
+	private final String resourceName;
 
-	public FileReaderContextImpl(File inputFile) {
-		this.inputFile = inputFile;
+	public ResourceReaderContextImpl(Class<?> clazz, String resourceName) {
+		this.clazz = clazz;
+		this.resourceName = resourceName;
 	}
+	
 	
 	@Override
 	public InputStream open() throws IOException {
-		return new FileInputStream(inputFile);
+		InputStream is = clazz.getResourceAsStream(resourceName);
+		if(is == null) {
+			throw new FileNotFoundException("the resource " + resourceName + " could not be found");
+		}
+		return is;
 	}
-
+	
 }

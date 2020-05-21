@@ -47,7 +47,7 @@ public class ParserResolver {
 	);
 	
 	/**
-	 * Tries to find SQL type parser for a RDBMS name. Names can be like 'MyQL', 
+	 * Tries to find SQL type parser for a RDBMS name. Names can be like 'MySQL', 
 	 * 'Postgres', etc. If no parser is found, the method responds with 
 	 * a default SQL type parser.
 	 * @param database name
