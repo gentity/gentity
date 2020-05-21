@@ -47,6 +47,7 @@ limitations under the License.
   </xs:complexType>
   <xs:complexType name="Table">
     <xs:sequence>
+      <xs:element type="xs:string" name="options" minOccurs="0"/>
       <xs:element type="xs:string" name="comment" minOccurs="0"/>
       <xs:element type="Column" name="column" maxOccurs="unbounded" minOccurs="0"/>
       <xs:element type="Index" name="index" maxOccurs="unbounded" minOccurs="0"/>
@@ -100,6 +101,7 @@ limitations under the License.
         <xs:attribute type="xs:string" name="host"/>
         <xs:attribute type="xs:short" name="port"/>
         <xs:attribute type="xs:string" name="instance"/>
+        <xs:attribute type="xs:string" name="url"/>
         <xs:attribute type="xs:string" name="user"/>
         <xs:attribute type="xs:string" name="passwd"/>
       </xs:extension>
