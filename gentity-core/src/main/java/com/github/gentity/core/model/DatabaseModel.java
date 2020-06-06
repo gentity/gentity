@@ -24,5 +24,5 @@ import java.util.List;
 public interface DatabaseModel {
 	TableModel getTable(String name);
 	
-	List<TableModel> getTables();
+	List<? extends TableModel> getTables();
 }

@@ -15,7 +15,7 @@
  */
 package com.github.gentity.core.model.dbs;
 
-import com.github.dbsjpagen.dbsmodel.ForeignKeyDto;
+import com.github.gentity.core.model.dbs.dto.ForeignKeyDto;
 import com.github.gentity.core.model.ForeignKeyModel;
 import com.github.gentity.core.model.TableModel;
 import java.util.Collection;

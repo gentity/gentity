@@ -16,7 +16,7 @@
 package com.github.gentity.core;
 
 import com.github.gentity.core.entities.CollectionTableDecl;
-import com.github.dbsjpagen.config.CollectionTableDto;
+import com.github.gentity.core.config.dto.CollectionTableDto;
 import com.sun.codemodel.JAnnotationUse;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,27 +28,25 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.persistence.GenerationType;
-import com.github.dbsjpagen.config.ConfigurationDto;
-import com.github.dbsjpagen.config.EntityTableDto;
-import com.github.dbsjpagen.config.ExclusionDto;
-import com.github.dbsjpagen.config.GlobalConfigurationDto;
-import com.github.dbsjpagen.config.InverseTargetRelationDto;
-import com.github.dbsjpagen.config.JoinTableDto;
-import com.github.dbsjpagen.config.JoinedEntityTableDto;
-import com.github.dbsjpagen.config.MappingConfigDto;
-import com.github.dbsjpagen.config.OwnerTargetRelationDto;
-import com.github.dbsjpagen.config.RootEntityTableDto;
-import com.github.dbsjpagen.config.SingleTableEntityDto;
-import com.github.dbsjpagen.config.SingleTableHierarchyDto;
-import com.github.dbsjpagen.config.TableConfigurationDto;
-import com.github.dbsjpagen.config.TableFieldDto;
-import com.github.dbsjpagen.config.XToOneRelationDto;
-import com.github.dbsjpagen.dbsmodel.ColumnDto;
-import com.github.dbsjpagen.dbsmodel.ForeignKeyColumnDto;
-import com.github.dbsjpagen.dbsmodel.ForeignKeyDto;
-import com.github.dbsjpagen.dbsmodel.ProjectDto;
-import com.github.dbsjpagen.dbsmodel.SequenceDto;
-import com.github.dbsjpagen.dbsmodel.TableDto;
+import com.github.gentity.core.config.dto.ConfigurationDto;
+import com.github.gentity.core.config.dto.EntityTableDto;
+import com.github.gentity.core.config.dto.ExclusionDto;
+import com.github.gentity.core.config.dto.GlobalConfigurationDto;
+import com.github.gentity.core.config.dto.InverseTargetRelationDto;
+import com.github.gentity.core.config.dto.JoinTableDto;
+import com.github.gentity.core.config.dto.JoinedEntityTableDto;
+import com.github.gentity.core.config.dto.MappingConfigDto;
+import com.github.gentity.core.config.dto.OwnerTargetRelationDto;
+import com.github.gentity.core.config.dto.RootEntityTableDto;
+import com.github.gentity.core.config.dto.SingleTableEntityDto;
+import com.github.gentity.core.config.dto.SingleTableHierarchyDto;
+import com.github.gentity.core.config.dto.TableConfigurationDto;
+import com.github.gentity.core.config.dto.TableFieldDto;
+import com.github.gentity.core.config.dto.XToOneRelationDto;
+import com.github.gentity.core.model.dbs.dto.ColumnDto;
+import com.github.gentity.core.model.dbs.dto.ForeignKeyColumnDto;
+import com.github.gentity.core.model.dbs.dto.ForeignKeyDto;
+import com.github.gentity.core.model.dbs.dto.TableDto;
 import com.github.gentity.core.entities.EntityInfo;
 import com.github.gentity.core.entities.JoinedRootEntityInfo;
 import com.github.gentity.core.entities.JoinedSubEntityInfo;
@@ -63,10 +61,10 @@ import com.github.gentity.core.fields.SingleTableRootFieldColumnSource;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.DatabaseModel;
 import com.github.gentity.core.model.ForeignKeyModel;
+import com.github.gentity.core.model.ModelReader;
 import com.github.gentity.core.model.TableColumnGroup;
 import com.github.gentity.core.model.TableModel;
-import com.github.gentity.core.model.dbs.DbsModelReader;
-import com.github.gentity.core.model.dbs.Exclusions;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import javax.persistence.ForeignKey;
@@ -81,7 +79,6 @@ import java.util.function.Function;
 public class SchemaModelImpl implements SchemaModel {
 	
 	private final MappingConfigDto cfg;
-	private final ProjectDto project;
 	
 	
 	private Set<String> excludedTables;
@@ -89,18 +86,16 @@ public class SchemaModelImpl implements SchemaModel {
 	private Map<String, ConfigurationDto> tableConfigurations;
 	private ConfigurationDto globalConfiguration;
 	private Map<String, TableDto> tables;
-	private Map<String, SequenceDto> sequences;
 	private List<ChildTableRelation> childTableRelations;
 	private List<JoinTableRelation> joinTableRelations;
 	private Map<String, JoinTableRelation> manyToManyRelationsJoinTables;
 	private Map<String, CollectionTableDecl> collectionTableDeclarations = new HashMap<>();
 	private HashMap<SingleTableEntityDto, RootEntityTableDto> singleTableRootMap;
 	private final List<RootEntityInfo> entityInfos = new ArrayList<>();
-	private final DatabaseModel databaseSchemaModel;
+	private final DatabaseModel databaseModel;
 	
-	public SchemaModelImpl(MappingConfigDto cfg, ProjectDto project) {
+	public SchemaModelImpl(MappingConfigDto cfg, ModelReader reader) throws IOException {
 		this.cfg = cfg;
-		this.project = project;
 		
 		
 		Set<String> mappedTables = new HashSet<>();
@@ -120,7 +115,7 @@ public class SchemaModelImpl implements SchemaModel {
 		
 		// TODO: abstract DbsModelReader out so that we finally are independent of the
 		// DBS format
-		databaseSchemaModel = new DbsModelReader(project, exclusions).read();
+		databaseModel = reader.read(exclusions);
 		
 		// generate entity infos first that are declared in the mapping configuration file
 		for(RootEntityTableDto et : cfg.getEntityTable()) {
@@ -129,13 +124,13 @@ public class SchemaModelImpl implements SchemaModel {
 			}
 			RootEntityInfo ei;
 			if(et.getJoinedHierarchy()!= null) {
-				ei = buildJoinedHierarchyEntityInfos(et, databaseSchemaModel);
+				ei = buildJoinedHierarchyEntityInfos(et, databaseModel);
 			} else if(et.getSingleTableHierarchy() != null) {
-				ei = buildSingleTableHierarchy(et, databaseSchemaModel);
+				ei = buildSingleTableHierarchy(et, databaseModel);
 			} else {
-				TableModel table = databaseSchemaModel.getTable(et.getTable());
+				TableModel table = databaseModel.getTable(et.getTable());
 				ei = new PlainEntityInfo(table, new PlainTableFieldColumnSource(table, et), et);
-				buildCollectionTableDecls(ei, et.getCollectionTable(), databaseSchemaModel);
+				buildCollectionTableDecls(ei, et.getCollectionTable(), databaseModel);
 			}
 			entityInfos.add(ei);
 		}
@@ -163,7 +158,7 @@ public class SchemaModelImpl implements SchemaModel {
 		// NOTE: currently we're generating them while generating entity tables above..
 		
 		// TODO / FINISH: implement default table mappings not declared in configurations
-		Set<TableModel> tablesToMap = new HashSet<>(databaseSchemaModel.getTables());
+		Set<TableModel> tablesToMap = new HashSet<>(databaseModel.getTables());
 		tablesToMap.removeIf(t -> mappedTables.contains(t.getName()));
 		
 		// all tables with primary keys are mapped as root entities
@@ -525,7 +520,7 @@ public class SchemaModelImpl implements SchemaModel {
 	
 	@Override
 	public TableModel findTable(String name) {
-		return databaseSchemaModel.getTable(name);
+		return databaseModel.getTable(name);
 	}
 
 	Set<SingleTableEntityDto> findSingleTableEntities(List<SingleTableEntityDto> sts) {
@@ -550,15 +545,6 @@ public class SchemaModelImpl implements SchemaModel {
 			}
 		}
 		return singleTableRootMap.get(singleTableEntity);
-	}
-	
-	@Override
-	public SequenceDto getSequence(String sequenceName) {
-		if(sequences == null) {
-			sequences = project.getSchema().getSequence().stream()
-				.collect(Collectors.toMap(SequenceDto::getName, s->s));
-		}
-		return sequences.get(sequenceName);
 	}
 	
 	@Override
@@ -591,7 +577,7 @@ public class SchemaModelImpl implements SchemaModel {
 	
 	private JoinTableRelation toJoinTableRelation(JoinTableDto manyToMany) {
 		JoinTableRelation.Kind kind = manyToMany.isUnidirectional() ? JoinTableRelation.Kind.UNI_MANY_TO_MANY : JoinTableRelation.Kind.MANY_TO_MANY;
-		TableModel table = Optional.ofNullable(databaseSchemaModel.getTable(manyToMany.getTable()))
+		TableModel table = Optional.ofNullable(databaseModel.getTable(manyToMany.getTable()))
 			.orElseThrow(()->new RuntimeException("table not found in relation: '" + manyToMany.getTable() + "'"));
 		
 		Optional<OwnerTargetRelationDto> ownerRelation = Optional.ofNullable(manyToMany.getOwnerRelation());
@@ -733,7 +719,7 @@ public class SchemaModelImpl implements SchemaModel {
 		// auto-collect all foreign keys into a one-to-x relation which are not
 		// involved into a declared relationship (one-to-many, many-to-many,
 		// or a hierarchy
-		for(TableModel t : databaseSchemaModel.getTables()) {
+		for(TableModel t : databaseModel.getTables()) {
 			if(isTableExcluded(t.getName())) {
 				continue;
 			}

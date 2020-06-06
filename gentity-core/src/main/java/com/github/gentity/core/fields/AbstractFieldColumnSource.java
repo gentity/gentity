@@ -15,7 +15,7 @@
  */
 package com.github.gentity.core.fields;
 
-import com.github.dbsjpagen.config.TableFieldDto;
+import com.github.gentity.core.config.dto.TableFieldDto;
 import com.github.gentity.core.NameProvider;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.TableModel;

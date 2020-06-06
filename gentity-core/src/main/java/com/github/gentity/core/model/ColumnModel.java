@@ -15,6 +15,8 @@
  */
 package com.github.gentity.core.model;
 
+import java.sql.JDBCType;
+
 /**
  *
  * @author count
@@ -22,7 +24,7 @@ package com.github.gentity.core.model;
 public interface ColumnModel {
 	String getName();
 	boolean isNullable();
-	String getSqlType();
+	JDBCType getType();
 	int getLength();
 	boolean isIdentityColumn();
 	SequenceModel getSequence();

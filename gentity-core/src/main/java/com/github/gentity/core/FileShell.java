@@ -18,18 +18,17 @@ package com.github.gentity.core;
 import com.sun.codemodel.JCodeModel;
 import java.io.File;
 import java.io.IOException;
-import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import com.github.dbsjpagen.config.MappingConfigDto;
-import com.github.dbsjpagen.dbsmodel.ProjectDto;
+import com.github.gentity.core.config.dto.MappingConfigDto;
+import com.github.gentity.core.model.ModelReader;
+import com.github.gentity.core.model.ModelReaderFactory;
+import com.github.gentity.core.model.ReaderContext;
+import com.github.gentity.core.util.UnmarshallerFactory;
 import com.github.gentity.core.xsd.R;
-import javax.xml.bind.ValidationEventHandler;
-import org.xml.sax.SAXException;
+import java.io.FileInputStream;
+import java.util.ServiceLoader;
 
 /**
  *
@@ -38,35 +37,18 @@ import org.xml.sax.SAXException;
 public class FileShell {
 	
 	private String targetPackageName;
+	private static final UnmarshallerFactory uFactory = new UnmarshallerFactory(R.class.getResource("genconfig.xsd"), com.github.gentity.core.config.dto.ObjectFactory.class);
 
 	public void setTargetPackageName(String targetPackageName) {
 		this.targetPackageName = targetPackageName;
 	}
 	
-	private ValidationEventHandler validationEventHandler = event -> {
-		throw new RuntimeException(event.getMessage(), event.getLinkedException());
-	};
-	
 	public void generate(File inputFile, File configFile, File outputFolder) throws IOException {
 
-		Schema dbsSchema;
-		Schema genconfigSchema;
-		try {
-			dbsSchema = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
-				.newSchema(R.class.getResource("dbs.xsd"));
-			genconfigSchema = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
-				.newSchema(R.class.getResource("genconfig.xsd"));
-		} catch (SAXException ex) {
-			throw new RuntimeException(ex);
-		}
-		
 		MappingConfigDto config = new MappingConfigDto();
 		if(configFile != null) {
 			try {
-				Unmarshaller unmarshaller = JAXBContext.newInstance(com.github.dbsjpagen.config.ObjectFactory.class)
-					.createUnmarshaller();
-				unmarshaller.setSchema(genconfigSchema);
-				unmarshaller.setEventHandler(validationEventHandler);
+				Unmarshaller unmarshaller = uFactory.createUnmarshaller();
 				JAXBElement<MappingConfigDto> configElement = (JAXBElement<MappingConfigDto>)unmarshaller
 					.unmarshal(configFile);
 				config = configElement.getValue();
@@ -85,21 +67,24 @@ public class FileShell {
 			config.setTargetPackageName(targetPackageName);
 		}
 		
-		ProjectDto project;
-		try {
-			Unmarshaller unmarshaller = JAXBContext.newInstance(com.github.dbsjpagen.dbsmodel.ObjectFactory.class)
-				.createUnmarshaller();
-			unmarshaller.setSchema(dbsSchema);
-			unmarshaller.setEventHandler(validationEventHandler);
-			JAXBElement<ProjectDto> schemaElement = (JAXBElement<ProjectDto>)unmarshaller
-				.unmarshal(inputFile);
-			project = schemaElement.getValue();
-		} catch (JAXBException ex) {
-			checkForIOException(ex);
-			throw new RuntimeException(ex);
-		}
+		ModelReaderFactory modelReaderFactory = null;
 		
-		Generator gen = new Generator(config, project);
+		Iterable<ModelReaderFactory> factories;
+		factories = ServiceLoader.load(ModelReaderFactory.class);
+		
+		ReaderContext ctx = new FileReaderContextImpl(inputFile);
+		for(ModelReaderFactory f : factories) {
+			if(f.supportsReading(inputFile.getName(), ctx)) {
+				modelReaderFactory = f;
+				break;
+			}
+		}
+		if(modelReaderFactory == null) {
+			throw new RuntimeException("The format of the provided file '" + inputFile.getName() + "' is not supported");
+		}
+		ModelReader reader = modelReaderFactory.createModelReader(inputFile.getName(), ctx);
+		
+		Generator gen = new Generator(config, reader);
 		
 		JCodeModel cm = gen.generate();
 		

@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.model.dbs;
+package com.github.gentity.core;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -24,8 +25,22 @@ import java.util.Set;
  */
 public class Exclusions {
 	private static final String SEPARATOR = "#";
-	private final Set<String> excludedTableNames = new HashSet<>();
-	private final Set<String> excludedTableColumnNames = new HashSet<>();
+	
+	private final Set<String> excludedTableNames;
+	private final Set<String> excludedTableColumnNames;
+	
+	public static final Exclusions EMPTY = new Exclusions(Collections.EMPTY_SET, Collections.EMPTY_SET);
+
+	public Exclusions() {
+		this(new HashSet<>(), new HashSet<>());
+	}
+	
+	private Exclusions(Set<String> excludedTableNames, Set<String> excludedTableColumnNames) {
+		this.excludedTableNames = excludedTableNames;
+		this.excludedTableColumnNames = excludedTableColumnNames;
+	}
+	
+	
 	
 	public void addTable(String name) {
 		excludedTableNames.add(name);

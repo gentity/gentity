@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="company" id="Project_1fd7fef" database="MySql" >
+	<schema name="company" >
+		<table name="company" >
+			<column name="id" type="int" jt="4" mandatory="y" autoincrement="y" />
+			<column name="name" type="varchar" length="100" jt="12" mandatory="y" />
+			<column name="parent_company_id" type="int" jt="4" />
+			<column name="established" type="datetime" jt="93" mandatory="y" />
+			<index name="pk_company_id" unique="PRIMARY_KEY" >
+				<column name="id" />
+			</index>
+			<fk name="fk_company_company" to_schema="company" to_table="company" >
+				<fk_column name="parent_company_id" pk="id" />
+			</fk>
+		</table>
+		<table name="desk" >
+			<column name="id" type="int" jt="4" mandatory="y" />
+			<column name="location" type="varchar" length="100" jt="12" />
+			<index name="pk_desk_id" unique="PRIMARY_KEY" >
+				<column name="id" />
+			</index>
+			
+		</table>
+		<table name="employee" >
+			<column name="id" type="int" jt="4" mandatory="y" autoincrement="y" />
+			<column name="company_id" type="int" jt="4" mandatory="y" />
+			<column name="name" type="varchar" length="100" jt="12" />
+			<column name="desk_id" type="int" jt="4" />
+			<index name="pk_employee_id" unique="PRIMARY_KEY" >
+				<column name="id" />
+			</index>
+			<index name="idx_employee_desk_id" unique="UNIQUE" >
+				<column name="desk_id" />
+			</index>
+			<fk name="fk_employee_company" to_schema="company" to_table="company" >
+				<fk_column name="company_id" pk="id" />
+			</fk>
+			<fk name="fk_employee_desk" to_schema="company" to_table="desk" >
+				<fk_column name="desk_id" pk="id" />
+			</fk>
+		</table>
+		<table name="time_record" >
+			<column name="id" type="int" jt="4" mandatory="y" autoincrement="y" />
+			<column name="recorded_time" type="timestamp" jt="93" />
+			<column name="eployee_id" type="int" jt="4" mandatory="y" />
+			<column name="record_type" type="char" length="8" jt="1" >
+				<comment><![CDATA[can either bei CHECKIN or CHECKOUT]]></comment>
+			</column>
+			<index name="pk_time_recoding_id" unique="PRIMARY_KEY" >
+				<column name="id" />
+			</index>
+			<fk name="fk_time_record_employee" to_schema="company" to_table="employee" >
+				<fk_column name="eployee_id" pk="id" />
+			</fk>
+		</table>
+	</schema>
+	<layout name="Default Layout" id="Layout_43995bc" show_relation="columns" >
+		<entity schema="company" name="company" color="C1D8EE" x="48" y="112" />
+		<entity schema="company" name="desk" color="C1D8EE" x="496" y="320" />
+		<entity schema="company" name="employee" color="C1D8EE" x="368" y="144" />
+		<entity schema="company" name="time_record" color="C1D8EE" x="608" y="144" />
+		<callout x="448" y="48" pointer="Round" >
+			<comment><![CDATA[This project is in offline mode.
+Design the schema and save the design to project file. Later create or upgrade the schema on any database.
+Right-click the layout to add new tables. Drop this callout from its right-click pop-up menu.]]></comment>
+		</callout>
+	</layout>
+</project>

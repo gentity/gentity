@@ -16,12 +16,12 @@
 package com.github.gentity.core;
 
 import com.github.gentity.core.entities.CollectionTableDecl;
-import com.github.dbsjpagen.config.ConfigurationDto;
-import com.github.dbsjpagen.config.JoinedEntityTableDto;
-import com.github.dbsjpagen.config.RootEntityTableDto;
-import com.github.dbsjpagen.config.SingleTableEntityDto;
-import com.github.dbsjpagen.dbsmodel.ColumnDto;
-import com.github.dbsjpagen.dbsmodel.SequenceDto;
+import com.github.gentity.core.config.dto.ConfigurationDto;
+import com.github.gentity.core.config.dto.JoinedEntityTableDto;
+import com.github.gentity.core.config.dto.RootEntityTableDto;
+import com.github.gentity.core.config.dto.SingleTableEntityDto;
+import com.github.gentity.core.model.dbs.dto.ColumnDto;
+import com.github.gentity.core.model.dbs.dto.SequenceDto;
 import com.github.gentity.core.entities.RootEntityInfo;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.ForeignKeyModel;
@@ -66,8 +66,6 @@ public interface SchemaModel {
 	TableModel findTable(String name);
 	
 	TableModel toTable(String name);
-	
-	SequenceDto getSequence(String sequenceName);
 	
 	String getTargetPackageName();
 	

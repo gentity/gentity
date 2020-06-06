@@ -57,9 +57,8 @@ import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.SequenceGenerators;
 import javax.persistence.Table;
-import com.github.dbsjpagen.config.ConfigurationDto;
-import com.github.dbsjpagen.config.MappingConfigDto;
-import com.github.dbsjpagen.dbsmodel.ProjectDto;
+import com.github.gentity.core.config.dto.ConfigurationDto;
+import com.github.gentity.core.config.dto.MappingConfigDto;
 import com.github.gentity.ToManySide;
 import com.github.gentity.ToOneSide;
 import static com.github.gentity.core.Cardinality.*;
@@ -85,14 +84,18 @@ import com.github.gentity.core.fields.PlainTableFieldColumnSource;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.ForeignKeyModel;
 import com.github.gentity.core.model.ForeignKeyModel.Mapping;
+import com.github.gentity.core.model.ModelReader;
 import com.github.gentity.core.model.SequenceModel;
 import com.github.gentity.core.model.TableModel;
 import com.github.gentity.core.util.Tuple;
 import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.sql.JDBCType;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.EnumSet;
 import java.util.Optional;
 import javax.persistence.Lob;
 import java.util.function.Function;
@@ -137,8 +140,8 @@ public class Generator {
 	private NameProvider nameProvider;
 	private final MappingConfigDto cfg;
 	
-	public Generator(MappingConfigDto cfg, ProjectDto project) {
-		sm = new SchemaModelImpl(cfg, project);
+	public Generator(MappingConfigDto cfg, ModelReader reader) throws IOException {
+		sm = new SchemaModelImpl(cfg, reader);
 		this.cfg = cfg;
 	}
 	
@@ -478,7 +481,14 @@ public class Generator {
 			}
 		}
 		
-		if(isColumnByteArrayType(column)) {
+		// FIXME: this is probably wong - it ignores what @Lob is for:
+		// to indicate that the field should be persisted as a large object.
+		// See the {@link Lob} documentation for details.
+		// The question is, however, what a JPA implementation needs this for - 
+		// most likely for generating a database schema, which is not really 
+		// the gentity use case anyways, since we assume pleople generate
+		// their database schema through modelling software.
+		if(EnumSet.of(JDBCType.BINARY, JDBCType.VARBINARY, JDBCType.LONGVARBINARY, JDBCType.CLOB).contains(column.getType())) {
 			field.annotate(Lob.class);
 		}
 		// @Column or @JoinColumn
@@ -841,74 +851,54 @@ public class Generator {
 		return typeName.toLowerCase();
 	}
 	
-	private boolean isLob(ColumnModel column) {
-		// NOTE: this may not always be the case, but for now it'll do
-		return isColumnByteArrayType(column);
-	}
-	
-	private boolean isColumnByteArrayType(ColumnModel column) {
-		switch(column.getSqlType()) {
-			case "blob":
-			case "binary":
-			case "varbinary":
-			case "bytea":
-				return true;
-			default:
-				return false;
-		}
-	}
-	
 	private JType mapColumnType(TableModel table, ColumnModel column) {
-		String type = normalizeTypeName(column.getSqlType());
+		JDBCType type = column.getType();
 		
 		JType jtype;
 		switch(type) {
-			case "char":
-			case "character":
+			case CHAR:
 				if(Short.valueOf((short)1).equals(column.getLength())) {
 					jtype = cm.ref(Character.class);
 				} else {
 					jtype = cm.ref(String.class);
 				}
 				break;
-			case "varchar":
-			case "character varying":
+			case VARCHAR:
 				jtype = cm.ref(String.class);
 				break;
-			case "bigint":
+			case BIGINT:
 				jtype = cm.LONG;
 				break;
-			case "int":
-			case "integer":
+			case INTEGER:
 				jtype = cm.INT;
 				break;
-			case "bool":
-			case "boolean":
+			case BOOLEAN:
 				jtype = cm.BOOLEAN;
 				break;
-			case "float":
+			case FLOAT:
 				jtype = cm.FLOAT;
 				break;
-			case "real":
-			case "double":
-			case "double precision":
+			case REAL:
+			case DOUBLE:
 				jtype = cm.DOUBLE;
 				break;
-			case "timestamp":
+			case TIMESTAMP_WITH_TIMEZONE:
 				jtype = cm.ref(Timestamp.class);
 				break;
-			case "date":
+			case DATE:
 				jtype = cm.ref(LocalDate.class);
 				break;
-			case "datetime":
+			case TIMESTAMP:
 				jtype = cm.ref(LocalDateTime.class);
 				break;
+			case BLOB:
+			case BINARY:
+			case VARBINARY:
+			case LONGVARBINARY:
+				jtype = cm.ref(byte[].class);
+				break;
 			default:
-				if(isColumnByteArrayType(column)) {
-					jtype = cm.ref(byte[].class);
-					break;
-				}
-				throw new RuntimeException("no mapping found for SQL type '" + column.getSqlType() + "'");
+				throw new RuntimeException("no mapping found for SQL type '" + column.getType() + "'");
 		}
 		
 		if(column.isNullable() || (table.getPrimaryKey() != null && table.getPrimaryKey().contains(column))) {

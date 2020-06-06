@@ -15,42 +15,59 @@
  */
 package com.github.gentity.core.model.dbs;
 
-import com.github.dbsjpagen.dbsmodel.ColumnDto;
-import com.github.dbsjpagen.dbsmodel.ForeignKeyColumnDto;
-import com.github.dbsjpagen.dbsmodel.ForeignKeyDto;
-import com.github.dbsjpagen.dbsmodel.IndexDto;
-import com.github.dbsjpagen.dbsmodel.IndexUniqueDto;
-import com.github.dbsjpagen.dbsmodel.ProjectDto;
-import com.github.dbsjpagen.dbsmodel.SchemaDto;
-import com.github.dbsjpagen.dbsmodel.SequenceDto;
-import com.github.dbsjpagen.dbsmodel.TableDto;
+import com.github.gentity.core.Exclusions;
+import com.github.gentity.core.model.dbs.dto.ColumnDto;
+import com.github.gentity.core.model.dbs.dto.ForeignKeyColumnDto;
+import com.github.gentity.core.model.dbs.dto.ForeignKeyDto;
+import com.github.gentity.core.model.dbs.dto.IndexDto;
+import com.github.gentity.core.model.dbs.dto.IndexUniqueDto;
+import com.github.gentity.core.model.dbs.dto.ProjectDto;
+import com.github.gentity.core.model.dbs.dto.SchemaDto;
+import com.github.gentity.core.model.dbs.dto.TableDto;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.DatabaseModel;
 import com.github.gentity.core.model.ForeignKeyModel;
+import com.github.gentity.core.model.ModelReader;
 import com.github.gentity.core.model.SequenceModel;
 import com.github.gentity.core.model.TableColumnGroup;
 import com.github.gentity.core.model.TableModel;
 import com.github.gentity.core.model.util.ArrayListIndexModel;
 import com.github.gentity.core.model.util.ArrayListTableColumnGroup;
+import com.github.gentity.core.model.types.GenericSQLTypeParser;
+import com.github.gentity.core.model.types.SQLTypeParser;
+import com.github.gentity.core.util.UnmarshallerFactory;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+import com.github.gentity.core.model.ReaderContext;
 
 /**
  *
  * @author count
  */
-public class DbsModelReader {
+public class DbsModelReader implements ModelReader {
 
-	private final ProjectDto dbSchemaProject;
-	private final SchemaDto dbSchema;
-	private final Exclusions exclusions;
+	private final UnmarshallerFactory factory;
+	private final String fileName;
+	private final ReaderContext readerContext;
+	
+	private ProjectDto dbSchemaProject;
+	private SchemaDto dbSchema;
+	private Exclusions exclusions;
+	private SQLTypeParser typeParser;
 
-	public DbsModelReader(ProjectDto dbSchemaProject, Exclusions exclusions) {
-		this.dbSchemaProject = dbSchemaProject;
-		this.dbSchema = dbSchemaProject.getSchema();
-		this.exclusions = exclusions;
+	public DbsModelReader(UnmarshallerFactory factory, String fileName, ReaderContext readerContext) {
+		this.factory = factory;
+		this.fileName = fileName;
+		this.readerContext = readerContext;
 	}
 	
 	private ForeignKeyModel.Mapping toMapping(ForeignKeyDto fk, ForeignKeyColumnDto fkCol, TableModel childTable, TableModel parentTable) {
@@ -58,7 +75,27 @@ public class DbsModelReader {
 		ColumnModel parentColumn = parentTable.getColumns().findColumn(fkCol.getPk());
 		return new ForeignKeyModel.Mapping(childColumn, parentColumn);
 	}
-	public DatabaseModel read() {
+	public DatabaseModel read(Exclusions exclusions) throws IOException {
+		
+		try (InputStream inputStream = readerContext.open()) {
+			Unmarshaller unmarshaller = factory.createUnmarshaller();
+			
+			Source src = new StreamSource(inputStream);
+			src.setSystemId(fileName);
+			JAXBElement<ProjectDto> schemaElement = (JAXBElement<ProjectDto>)unmarshaller
+				.unmarshal(src);
+			
+			dbSchemaProject = schemaElement.getValue();
+			dbSchema = dbSchemaProject.getSchema();
+		} catch (JAXBException ex) {
+			throw new IOException(ex);
+		}
+		
+		typeParser = readerContext.findTypeParser(dbSchemaProject.getDatabase().toLowerCase().trim());
+		
+		this.dbSchema = dbSchemaProject.getSchema();
+		
+		this.exclusions = exclusions;
 		Map<String, DbsTableModel> tables = dbSchema.getTable().stream()
 				.filter(t -> !exclusions.isTableExcluded(t.getName()))
 				.map(this::toTable)
@@ -104,7 +141,7 @@ public class DbsModelReader {
 		DbsTableModel table = new DbsTableModel(tableDto);
 		TableColumnGroup cmodels = tableDto.getColumn().stream().sequential()
 				.filter(c -> !exclusions.isTableColumnExcluded(tableDto.getName(), c.getName()))
-				.map(c -> new DbsColumnModel(table, c))
+				.map(c -> new DbsColumnModel(table, c, typeParser.parseTypename(c.getType())))
 				.collect(Collectors.toCollection(ArrayListTableColumnGroup::new));
 		table.setDbsColumnModels(cmodels);
 		
@@ -130,7 +167,7 @@ public class DbsModelReader {
 				table.setDbsPrimaryKey(pk);
 			} else {
 				boolean unique = IndexUniqueDto.UNIQUE == idx.getUnique();
-				table.getIndicesImpl().add(new ArrayListIndexModel(unique, columns));
+				table.getIndicesImpl().add(new ArrayListIndexModel(idx.getName(), unique, columns));
 			}
 		}
 		

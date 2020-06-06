@@ -15,9 +15,11 @@
  */
 package com.github.gentity.core.model.dbs;
 
-import com.github.dbsjpagen.dbsmodel.ColumnDto;
+import com.github.gentity.core.model.dbs.dto.ColumnDto;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.SequenceModel;
+import com.github.gentity.core.model.types.GenericSQLTypeParser;
+import java.sql.JDBCType;
 
 /**
  *
@@ -26,10 +28,12 @@ import com.github.gentity.core.model.SequenceModel;
 public class DbsColumnModel implements ColumnModel {
 	private final DbsTableModel parentTable;
 	private final ColumnDto dbsColumn;
+	private final JDBCType jdbcType;
 
-	public DbsColumnModel(DbsTableModel parentTable, ColumnDto dbsColumn) {
+	public DbsColumnModel(DbsTableModel parentTable, ColumnDto dbsColumn, JDBCType jdbcType) {
 		this.parentTable = parentTable;
 		this.dbsColumn = dbsColumn;
+		this.jdbcType = jdbcType;
 	}
 
 	@Override
@@ -43,8 +47,8 @@ public class DbsColumnModel implements ColumnModel {
 	}
 
 	@Override
-	public String getSqlType() {
-		return dbsColumn.getType();
+	public JDBCType getType() {
+		return jdbcType;
 	}
 
 	@Override
