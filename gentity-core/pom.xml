@@ -190,9 +190,9 @@
 			<version>2.3.2</version>
 		</dependency>
 		<dependency>
-			<groupId>com.github.mwbmodel</groupId>
+			<groupId>com.github.upachler.mwbmodel</groupId>
 			<artifactId>mwbmodel</artifactId>
-			<version>0.1-SNAPSHOT</version>
+			<version>1.0</version>
 		</dependency>
 	</dependencies>
 	<groupId>com.github.gentity</groupId>

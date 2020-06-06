@@ -17,9 +17,9 @@ package com.github.gentity.core.model.mwb;
 
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.PrimaryKeyModel;
-import com.github.mwbmodel.model.db.mysql.Column;
-import com.github.mwbmodel.model.db.mysql.Index;
-import com.github.mwbmodel.model.db.mysql.IndexColumn;
+import com.github.upachler.mwbmodel.model.db.mysql.Column;
+import com.github.upachler.mwbmodel.model.db.mysql.Index;
+import com.github.upachler.mwbmodel.model.db.mysql.IndexColumn;
 import java.util.ArrayList;
 
 /**

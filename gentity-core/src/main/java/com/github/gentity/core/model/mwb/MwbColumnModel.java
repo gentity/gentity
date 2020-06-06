@@ -17,7 +17,7 @@ package com.github.gentity.core.model.mwb;
 
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.SequenceModel;
-import com.github.mwbmodel.model.db.mysql.Column;
+import com.github.upachler.mwbmodel.model.db.mysql.Column;
 import java.sql.JDBCType;
 
 /**

@@ -17,7 +17,7 @@ package com.github.gentity.core.model.mwb;
 
 import com.github.gentity.core.model.ForeignKeyModel;
 import com.github.gentity.core.model.TableModel;
-import com.github.mwbmodel.model.db.mysql.ForeignKey;
+import com.github.upachler.mwbmodel.model.db.mysql.ForeignKey;
 import java.util.List;
 
 /**
