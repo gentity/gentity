@@ -16,16 +16,16 @@
 package com.github.gentity.core.entities;
 
 import com.github.gentity.core.config.dto.ConfigurationDto;
-import com.github.gentity.core.fields.FieldColumnSource;
 import com.github.gentity.core.model.TableModel;
 
 /**
  *
  * @author count
  */
-public class SubEntityInfo<T extends SubEntityInfo> extends EntityInfo<T>{
-	public SubEntityInfo(TableModel table, TableModel baseTable, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, String discriminatorValue, ConfigurationDto configDto) {
-		super(table, baseTable, fieldColumnSource, parentEntityInfo, discriminatorValue, configDto);
+public abstract class SubEntityInfo<T extends SubEntityInfo> extends EntityInfo<T>{
+
+	public SubEntityInfo(TableModel table, TableModel baseTable, EntityInfo parentEntityInfo, String discriminatorValue, ConfigurationDto configDto) {
+		super(table, baseTable, parentEntityInfo, discriminatorValue, configDto);
 	}
 
 }

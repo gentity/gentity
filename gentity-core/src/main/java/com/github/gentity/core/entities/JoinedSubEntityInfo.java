@@ -15,8 +15,9 @@
  */
 package com.github.gentity.core.entities;
 
-import com.github.gentity.core.config.dto.ConfigurationDto;
+import com.github.gentity.core.config.dto.JoinedEntityTableDto;
 import com.github.gentity.core.fields.FieldColumnSource;
+import com.github.gentity.core.fields.PlainTableFieldColumnSource;
 import com.github.gentity.core.model.ForeignKeyModel;
 import com.github.gentity.core.model.TableModel;
 
@@ -26,9 +27,11 @@ import com.github.gentity.core.model.TableModel;
  */
 public class JoinedSubEntityInfo extends SubEntityInfo<JoinedSubEntityInfo>{
 	private final ForeignKeyModel joiningForeignKey;
+	private final FieldColumnSource fieldColumnSource;
 
-	public JoinedSubEntityInfo(TableModel table, TableModel baseTable, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, ForeignKeyModel joiningForeignKey, String discriminatorValue, ConfigurationDto configDto) {
-		super(table, baseTable, fieldColumnSource, parentEntityInfo, discriminatorValue, configDto);
+	public JoinedSubEntityInfo(TableModel table, TableModel baseTable, EntityInfo parentEntityInfo, ForeignKeyModel joiningForeignKey, JoinedEntityTableDto configDto) {
+		super(table, baseTable, parentEntityInfo, configDto.getDiscriminator(), configDto);
+		fieldColumnSource = new PlainTableFieldColumnSource(table, configDto);
 		this.joiningForeignKey = joiningForeignKey;
 	}
 	
@@ -36,6 +39,8 @@ public class JoinedSubEntityInfo extends SubEntityInfo<JoinedSubEntityInfo>{
 		return joiningForeignKey;
 	}
 
-
-	
+	@Override
+	public FieldColumnSource getFieldColumnSource() {
+		return fieldColumnSource;
+	}
 }

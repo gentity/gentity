@@ -15,8 +15,9 @@
  */
 package com.github.gentity.core.entities;
 
-import com.github.gentity.core.config.dto.ConfigurationDto;
+import com.github.gentity.core.config.dto.RootEntityTableDto;
 import com.github.gentity.core.fields.FieldColumnSource;
+import com.github.gentity.core.fields.SingleTableRootFieldColumnSource;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.TableModel;
 
@@ -26,8 +27,17 @@ import com.github.gentity.core.model.TableModel;
  */
 public class SingleTableRootEntityInfo extends HierarchyRootEntityInfo<SingleTableSubEntityInfo>{
 
-	public SingleTableRootEntityInfo(TableModel table, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, ColumnModel discriminatorColumn, String discriminatorValue, ConfigurationDto configDto) {
-		super(table, fieldColumnSource, parentEntityInfo, discriminatorColumn, discriminatorValue, configDto);
+	private final SingleTableRootFieldColumnSource fieldColumnSource;
+	
+	public SingleTableRootEntityInfo(TableModel table, ColumnModel discriminatorColumn, String discriminatorValue, RootEntityTableDto rootEntityTable) {
+		super(table, null, discriminatorColumn, discriminatorValue, rootEntityTable);
+		fieldColumnSource = new SingleTableRootFieldColumnSource(table, rootEntityTable);
 	}
+
+	@Override
+	public FieldColumnSource getFieldColumnSource() {
+		return fieldColumnSource;
+	}
+	
 	
 }

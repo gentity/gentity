@@ -28,8 +28,8 @@ public abstract class HierarchyRootEntityInfo<T extends EntityInfo> extends Root
 	
 	private final ColumnModel discriminatorColumn;
 
-	public HierarchyRootEntityInfo(TableModel table, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, ColumnModel discriminatorColumn, String discriminatorValue, ConfigurationDto configDto) {
-		super(table, fieldColumnSource, parentEntityInfo, discriminatorValue, configDto);
+	public HierarchyRootEntityInfo(TableModel table, EntityInfo parentEntityInfo, ColumnModel discriminatorColumn, String discriminatorValue, ConfigurationDto configDto) {
+		super(table, parentEntityInfo, discriminatorValue, configDto);
 		this.discriminatorColumn = discriminatorColumn;
 	}
 	

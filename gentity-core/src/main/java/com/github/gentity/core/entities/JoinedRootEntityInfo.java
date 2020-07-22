@@ -15,8 +15,9 @@
  */
 package com.github.gentity.core.entities;
 
-import com.github.gentity.core.config.dto.ConfigurationDto;
+import com.github.gentity.core.config.dto.RootEntityTableDto;
 import com.github.gentity.core.fields.FieldColumnSource;
+import com.github.gentity.core.fields.PlainTableFieldColumnSource;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.TableModel;
 
@@ -25,9 +26,16 @@ import com.github.gentity.core.model.TableModel;
  * @author count
  */
 public class JoinedRootEntityInfo extends HierarchyRootEntityInfo<JoinedSubEntityInfo>{
+	private final PlainTableFieldColumnSource fieldColumnSource;
+	
+	public JoinedRootEntityInfo(TableModel table, ColumnModel discriminatorColumn, String discriminatorValue, RootEntityTableDto rootEntityTable) {
+		super(table, null, discriminatorColumn, discriminatorValue, rootEntityTable);
+		fieldColumnSource = new PlainTableFieldColumnSource(table, rootEntityTable);
+	}
 
-	public JoinedRootEntityInfo(TableModel table, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, ColumnModel discriminatorColumn, String discriminatorValue, ConfigurationDto configDto) {
-		super(table, fieldColumnSource, parentEntityInfo, discriminatorColumn, discriminatorValue, configDto);
+	@Override
+	public FieldColumnSource getFieldColumnSource() {
+		return fieldColumnSource;
 	}
 	
 }

@@ -15,8 +15,9 @@
  */
 package com.github.gentity.core.entities;
 
-import com.github.gentity.core.config.dto.ConfigurationDto;
+import com.github.gentity.core.config.dto.EntityTableDto;
 import com.github.gentity.core.fields.FieldColumnSource;
+import com.github.gentity.core.fields.PlainTableFieldColumnSource;
 import com.github.gentity.core.model.TableModel;
 
 /**
@@ -24,9 +25,15 @@ import com.github.gentity.core.model.TableModel;
  * @author upachler
  */
 public class PlainEntityInfo extends RootEntityInfo<EntityInfo>{
+	private final PlainTableFieldColumnSource fieldColumnSource;
 	
-	public PlainEntityInfo(TableModel table, FieldColumnSource fieldColumnSource, ConfigurationDto configDto) {
-		super(table, fieldColumnSource, null, null, configDto);
+	public PlainEntityInfo(TableModel table, EntityTableDto configDto) {
+		super(table, null, null, configDto);
+		fieldColumnSource = new PlainTableFieldColumnSource(table, configDto);
 	}
-	
+
+	@Override
+	public FieldColumnSource getFieldColumnSource() {
+		return fieldColumnSource;
+	}
 }
