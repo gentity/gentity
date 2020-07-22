@@ -295,7 +295,13 @@ public class SchemaModelImpl implements SchemaModel {
 			if(table == null) {
 				throw new RuntimeException("table '" + ctableDto.getTable() + "' declared in collection table tag not found in database model");
 			}
-			ForeignKeyModel fk = table.findForeignKey(ctableDto.getForeignKey());
+			ForeignKeyModel fk;
+			if(ctableDto.getForeignKey() != null) {
+				fk = table.findForeignKey(ctableDto.getForeignKey());
+			} else {
+				// use first foreign key (in declaration order)
+				fk = table.getForeignKeys().get(0);
+			}
 			if(fk == null) {
 				throw new RuntimeException("foreign key '" + ctableDto.getForeignKey() + "' not found in table '" + ctableDto.getTable() + "' declared in collection table tag");
 			}

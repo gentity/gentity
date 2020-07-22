@@ -328,7 +328,7 @@ public class Generator {
 		return genEntityClassImpl(p, nameCandidate, superClassEntity, einfo);
 	}
 	
-	private JDefinedClass genEntityClassImpl(JPackage p, String nameCandidate, JDefinedClass superClassEntity, EntityInfo einfo) throws JClassAlreadyExistsException {
+	private JDefinedClass genMappedClassImpl(JPackage p, String nameCandidate, JDefinedClass superClassEntity, MappingInfo einfo) throws JClassAlreadyExistsException {
 		JClass serializableClass = cm.ref(Serializable.class);
 			
 		JDefinedClass cls = p._class(JMod.PUBLIC, toClassName(p, nameCandidate));
@@ -336,7 +336,7 @@ public class Generator {
 		JClass effectiveSuperClass;
 		if(einfo.getExtends() != null) {
 			if(superClassEntity != null) {
-				throw new IllegalArgumentException(String.format("entity class %s has a superclass entity %s in conflict with a declared superclass %s", cls.name(), superClassEntity.name(), einfo.getExtends()));
+				throw new IllegalArgumentException(String.format("class %s has a superclass entity %s in conflict with a declared superclass %s", cls.name(), superClassEntity.name(), einfo.getExtends()));
 			}
 			effectiveSuperClass = cm.ref(einfo.getExtends());
 		} else if(sm.getDefaultExtends() != null && superClassEntity == null) {
@@ -362,6 +362,13 @@ public class Generator {
 			}
 		}
 		
+		cls._implements(serializableClass);
+		return cls;
+	}
+	
+	private JDefinedClass genEntityClassImpl(JPackage p, String nameCandidate, JDefinedClass superClassEntity, EntityInfo einfo) throws JClassAlreadyExistsException {
+		JDefinedClass cls = genMappedClassImpl(p, nameCandidate, superClassEntity, einfo);
+		
 		cls.annotate(Entity.class);
 		TableModel table = einfo.getTable();
 		if(table != null) {
@@ -371,7 +378,6 @@ public class Generator {
 		}
 		entities.put(cls, einfo);
 		
-		cls._implements(serializableClass);
 		return cls;
 	}
 	
@@ -395,7 +401,7 @@ public class Generator {
 			}
 			fieldNameCandidate = m.getFieldName();
 		} else {
-			JDefinedClass cls = p._class(JMod.PUBLIC, toClassName(p, table.getName()));
+			JDefinedClass cls = genMappedClassImpl(p, table.getName(), null, collectionTable);
 			cls.annotate(Embeddable.class);
 			tablesToEmbeddables.put(table.getName(), cls);
 			embeddables.put(cls, collectionTable);
