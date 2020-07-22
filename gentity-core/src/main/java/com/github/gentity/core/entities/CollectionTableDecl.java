@@ -16,24 +16,39 @@
 package com.github.gentity.core.entities;
 
 import com.github.gentity.core.config.dto.CollectionTableDto;
+import com.github.gentity.core.fields.FieldColumnSource;
+import com.github.gentity.core.fields.PlainTableFieldColumnSource;
+import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.ForeignKeyModel;
 import com.github.gentity.core.model.TableModel;
+import java.util.function.Predicate;
 
 /**
  *
  * @author count
  */
-public class CollectionTableDecl {
-	private final CollectionTableDto collectionTableDto;
+public class CollectionTableDecl extends MappingInfo{
 	private final EntityInfo parentEntity;
 	private final ForeignKeyModel foreignKey;
 	private final TableModel table;
-
+	private final PlainTableFieldColumnSource fieldColumnSource;
+	private final boolean basicElementCollection;
+	
 	public CollectionTableDecl(CollectionTableDto collectionTableDto, TableModel table, ForeignKeyModel foreignKey, EntityInfo parentEntity) {
-		this.collectionTableDto = collectionTableDto;
+		super(table, collectionTableDto);
 		this.parentEntity = parentEntity;
 		this.foreignKey = foreignKey;
 		this.table = table;
+		
+		// map all fields except the table's foreign key columns leading
+		// to the containing entity
+		Predicate<ColumnModel> foreignKeyColumnFilter = c-> null == foreignKey.getColumns().findColumn(c.getName());
+		this.fieldColumnSource = new PlainTableFieldColumnSource(table, collectionTableDto, foreignKeyColumnFilter);
+		
+		boolean firstFieldDeclarationOverridesName = collectionTableDto != null
+			&& !collectionTableDto.getField().isEmpty() 
+			&& collectionTableDto.getField().get(0).getName() != null;
+		this.basicElementCollection = fieldColumnSource.getFieldMappings().size() == 1 && !firstFieldDeclarationOverridesName;
 		
 		parentEntity.addCollectionTable(this);
 	}
@@ -45,4 +60,19 @@ public class CollectionTableDecl {
 	public TableModel getTable() {
 		return table;
 	}
+	
+	/**
+	 * @return {@code true} if the collection mapped for this table consists of 
+	 *	basic type elements, {@code false} if it consists of embeddable class 
+	 *	elements, (e.g. {@code List<String>} vs. {@code List<Person>}).
+	 */
+	public boolean isBasicElementCollection() {
+		return basicElementCollection;
+	}
+
+	@Override
+	public FieldColumnSource getFieldColumnSource() {
+		return fieldColumnSource;
+	}
+	
 }
