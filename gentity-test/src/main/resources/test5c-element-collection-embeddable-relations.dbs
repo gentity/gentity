@@ -12,7 +12,6 @@
 			<column name="PIZZA_ORDER_ID" type="integer" jt="4" mandatory="y" />
 			<column name="PRODUCT_ID" type="char" length="10" jt="1" />
 			<column name="AMOUNT" type="integer" jt="4" mandatory="y" />
-			<column name="REBATE" type="float" jt="6" />
 			<index name="IDX_ORDER_ITEM_ORDER_ID" unique="NORMAL" >
 				<column name="PIZZA_ORDER_ID" />
 			</index>
