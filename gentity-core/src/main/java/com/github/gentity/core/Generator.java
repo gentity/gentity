@@ -377,7 +377,9 @@ public class Generator {
 		return cls;
 	}
 	
-	private void genElementCollection(String embeddableNameCandidate, TableModel table, ForeignKeyModel foreignKeyName, JDefinedClass enclosingEntityClass) throws JClassAlreadyExistsException {
+	private void genEmbeddable(JDefinedClass enclosingEntityClass, CollectionTableDecl collectionTable) throws JClassAlreadyExistsException {
+		TableModel table = collectionTable.getTable();
+		ForeignKeyModel foreignKeyName = collectionTable.getForeignKey();
 		JPackage p = cm._package(sm.getTargetPackageName());
 		JClass serializableClass = cm.ref(Serializable.class);
 		
@@ -395,7 +397,7 @@ public class Generator {
 			}
 			fieldNameCandidate = m.getFieldName();
 		} else {
-			JDefinedClass cls = p._class(JMod.PUBLIC, toClassName(p, embeddableNameCandidate));
+			JDefinedClass cls = p._class(JMod.PUBLIC, toClassName(p, table.getName()));
 			cls.annotate(Embeddable.class);
 			tablesToEmbeddables.put(table.getName(), cls);
 		
@@ -609,11 +611,6 @@ public class Generator {
 	private EntityRefFactory findEntityRefFactory(JDefinedClass cls) {
 		// for now, all we support is List<> with a created ArrayList<> instance
 		return LIST_ENTITY_REF_FACTORY;
-	}
-	
-	private void genEmbeddable(JDefinedClass entityClass, CollectionTableDecl collectionTable) throws JClassAlreadyExistsException {
-		TableModel table = collectionTable.getTable();
-		genElementCollection(table.getName(), table, collectionTable.getForeignKey(), entityClass);
 	}
 	
 	private JFieldVar genCollectionFieldVar(JDefinedClass cls, JDefinedClass elementType) {
