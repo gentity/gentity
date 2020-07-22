@@ -305,25 +305,21 @@ limitations under the License.
 	</xs:complexType>
 	
 	<xs:complexType name="CollectionTable">
-		<xs:attribute name='table' type='xs:string' use='required'>
-			<xs:annotation>
-				<xs:documentation>
-					The name of the table to classify as collection table of the
-					host entity.
-				</xs:documentation>
-			</xs:annotation>
-		</xs:attribute>
-		<xs:attribute name='foreignKey' type='xs:string' use='optional'>
-			<xs:annotation>
-				<xs:documentation>
-					The name of the foreign key to use as relation to the 
-					host entity's table. If unspecified, the first foreign key
-					in declaration order us used. Specifying it is useful in
-					cases where multiple foreign keys exist, and using the first
-					one is not feasible.
-				</xs:documentation>
-			</xs:annotation>
-		</xs:attribute>
+		<xs:complexContent>
+			<xs:extension base="tns:TableConfiguration">
+				<xs:attribute name='foreignKey' type='xs:string' use='optional'>
+					<xs:annotation>
+						<xs:documentation>
+							The name of the foreign key to use as relation to the 
+							host entity's table. If unspecified, the first foreign key
+							in declaration order us used. Specifying it is useful in
+							cases where multiple foreign keys exist, and using the first
+							one is not feasible.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+			</xs:extension>
+		</xs:complexContent>
 	</xs:complexType>
 	
 	<xs:complexType name="EntityTable">
