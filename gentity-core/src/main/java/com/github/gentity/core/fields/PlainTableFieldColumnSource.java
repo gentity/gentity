@@ -17,10 +17,12 @@ package com.github.gentity.core.fields;
 
 import com.github.gentity.core.config.dto.TableConfigurationDto;
 import com.github.gentity.core.config.dto.TableFieldDto;
+import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.TableModel;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -31,14 +33,19 @@ public class PlainTableFieldColumnSource extends AbstractFieldColumnSource{
 
 	private final TableModel table;
 	private final TableConfigurationDto tableConfiguration;
+	private final Predicate<ColumnModel> columnFilter;
 
 	
 	public PlainTableFieldColumnSource(TableModel table) {
-		this(table, null);
+		this(table, null, c->true);
 	}
 	public PlainTableFieldColumnSource(TableModel table, TableConfigurationDto tc) {
+		this(table, tc, c->true);
+	}
+	public PlainTableFieldColumnSource(TableModel table, TableConfigurationDto tc, Predicate<ColumnModel> columnFilter) {
 		this.table = table;
 		this.tableConfiguration = tc;
+		this.columnFilter = columnFilter;
 	}
 	
 	@Override
@@ -49,6 +56,7 @@ public class PlainTableFieldColumnSource extends AbstractFieldColumnSource{
 				.collect(Collectors.toMap(TableFieldDto::getColumn, f->f));
 		
 		return table.getColumns().stream()
+			.filter(columnFilter)
 			.map(c -> toDefaultColumnFieldMapping(table, c, fieldMap.get(c.getName())))
 			.collect(Collectors.toList())
 			;

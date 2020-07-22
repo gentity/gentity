@@ -16,7 +16,6 @@
 package com.github.gentity.core.entities;
 
 import com.github.gentity.core.config.dto.ConfigurationDto;
-import com.github.gentity.core.fields.FieldColumnSource;
 import com.github.gentity.core.model.TableModel;
 
 /**
@@ -26,8 +25,8 @@ import com.github.gentity.core.model.TableModel;
 public abstract class RootEntityInfo<T extends EntityInfo> extends EntityInfo<T> {
 	
 	
-	public RootEntityInfo(TableModel table, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, String discriminatorValue, ConfigurationDto configDto) {
-		super(table, fieldColumnSource, parentEntityInfo, discriminatorValue, configDto);
+	public RootEntityInfo(TableModel table, EntityInfo parentEntityInfo, String discriminatorValue, ConfigurationDto configDto) {
+		super(table, parentEntityInfo, discriminatorValue, configDto);
 	}
 	
 	public String getIdClass() {

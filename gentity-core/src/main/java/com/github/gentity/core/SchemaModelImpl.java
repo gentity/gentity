@@ -129,7 +129,7 @@ public class SchemaModelImpl implements SchemaModel {
 				ei = buildSingleTableHierarchy(et, databaseModel);
 			} else {
 				TableModel table = databaseModel.getTable(et.getTable());
-				ei = new PlainEntityInfo(table, new PlainTableFieldColumnSource(table, et), et);
+				ei = new PlainEntityInfo(table, et);
 				buildCollectionTableDecls(ei, et.getCollectionTable(), databaseModel);
 			}
 			entityInfos.add(ei);
@@ -168,7 +168,7 @@ public class SchemaModelImpl implements SchemaModel {
 				.collect(Collectors.toSet());
 		defaultEntityMappedTables
 			.forEach(t -> {
-				entityInfos.add(new PlainEntityInfo(t, new PlainTableFieldColumnSource(t), null));
+				entityInfos.add(new PlainEntityInfo(t, null));
 			});
 		tablesToMap.removeAll(defaultEntityMappedTables);
 		
@@ -281,7 +281,7 @@ public class SchemaModelImpl implements SchemaModel {
 		}
 		
 		String dval = rt.getJoinedHierarchy().getRootEntity().getDiscriminator();
-		JoinedRootEntityInfo rootEInfo = new JoinedRootEntityInfo(rootTable, new PlainTableFieldColumnSource(rootTable, rt), null, dcol, dval, rt);
+		JoinedRootEntityInfo rootEInfo = new JoinedRootEntityInfo(rootTable, dcol, dval, rt);
 		buildCollectionTableDecls(rootEInfo, rt.getCollectionTable(), dm);
 		
 		buildJoinedHierarchySubentities(rootTable, rt, rootEInfo, rt.getJoinedHierarchy().getEntityTable(), dm);
@@ -295,7 +295,13 @@ public class SchemaModelImpl implements SchemaModel {
 			if(table == null) {
 				throw new RuntimeException("table '" + ctableDto.getTable() + "' declared in collection table tag not found in database model");
 			}
-			ForeignKeyModel fk = table.findForeignKey(ctableDto.getForeignKey());
+			ForeignKeyModel fk;
+			if(ctableDto.getForeignKey() != null) {
+				fk = table.findForeignKey(ctableDto.getForeignKey());
+			} else {
+				// use first foreign key (in declaration order)
+				fk = table.getForeignKeys().get(0);
+			}
 			if(fk == null) {
 				throw new RuntimeException("foreign key '" + ctableDto.getForeignKey() + "' not found in table '" + ctableDto.getTable() + "' declared in collection table tag");
 			}
@@ -316,7 +322,7 @@ public class SchemaModelImpl implements SchemaModel {
 			if(!fk.getTargetTable().equals(parentEntityInfo.getTable())) {
 				throw new RuntimeException(String.format("specified foreign key %s of table %s refers to table %s, but the supertable is %s", fk.getName(), subTable.getTable(), fk.getTargetTable().getName(), parent.getTable()));
 			}
-			EntityInfo einfo = new JoinedSubEntityInfo(table, rootTable, new PlainTableFieldColumnSource(table, subTable), parentEntityInfo, fk, subTable.getDiscriminator(), subTable);
+			EntityInfo einfo = new JoinedSubEntityInfo(table, rootTable, parentEntityInfo, fk, subTable);
 			buildCollectionTableDecls(einfo, subTable.getCollectionTable(), dm);
 			buildJoinedHierarchySubentities(rootTable, subTable, einfo, subTable.getEntityTable(), dm);
 		}
@@ -332,7 +338,7 @@ public class SchemaModelImpl implements SchemaModel {
 		}
 		String dval = h.getRootEntity().getDiscriminator();
 		checkEachFieldOnlyOnce(rootTable, h.getEntity());
-		SingleTableRootEntityInfo einfo = new SingleTableRootEntityInfo(rootTable, new SingleTableRootFieldColumnSource(rootTable, rootEntity), null, dcol, dval, rootEntity);
+		SingleTableRootEntityInfo einfo = new SingleTableRootEntityInfo(rootTable, dcol, dval, rootEntity);
 		
 		buildSingleTableChildEntities(rootTable, einfo, h.getEntity(), dm);
 		buildCollectionTableDecls(einfo, rootEntity.getCollectionTable(), dm);
@@ -342,7 +348,7 @@ public class SchemaModelImpl implements SchemaModel {
 	private void buildSingleTableChildEntities(TableModel rootTable, EntityInfo parentEntityInfo, List<SingleTableEntityDto> entities, DatabaseModel dm) {
 		for(SingleTableEntityDto entity : entities) {
 			String dval = entity.getDiscriminator();
-			EntityInfo einfo = new SingleTableSubEntityInfo(entity.getName(), rootTable, new SingleTableFieldColumnSource(rootTable, entity), parentEntityInfo, dval, entity);
+			EntityInfo einfo = new SingleTableSubEntityInfo(entity.getName(), rootTable, parentEntityInfo, entity);
 			buildSingleTableChildEntities(rootTable, einfo, entity.getEntity(), dm);
 			buildCollectionTableDecls(einfo, entity.getCollectionTable(), dm);
 		}

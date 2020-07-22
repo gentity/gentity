@@ -74,13 +74,13 @@ import javax.persistence.PrimaryKeyJoinColumns;
 import static com.github.gentity.core.ChildTableRelation.Kind.MANY_TO_ONE;
 import com.github.gentity.core.entities.JoinedRootEntityInfo;
 import com.github.gentity.core.entities.JoinedSubEntityInfo;
+import com.github.gentity.core.entities.MappingInfo;
 import com.github.gentity.core.entities.PlainEntityInfo;
 import com.github.gentity.core.entities.RootEntityInfo;
 import com.github.gentity.core.entities.SingleTableRootEntityInfo;
 import com.github.gentity.core.entities.SingleTableSubEntityInfo;
 import com.github.gentity.core.entities.SubEntityInfo;
 import com.github.gentity.core.fields.FieldMapping;
-import com.github.gentity.core.fields.PlainTableFieldColumnSource;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.ForeignKeyModel;
 import com.github.gentity.core.model.ForeignKeyModel.Mapping;
@@ -122,6 +122,7 @@ public class Generator {
 	Map<String, JDefinedClass> tablesToEntities;
 	Map<JDefinedClass, EntityInfo> entities;
 	Map<String, JDefinedClass> tablesToEmbeddables;
+	Map<JDefinedClass, CollectionTableDecl> embeddables;
 	
 	private final EntityRefFactory LIST_ENTITY_REF_FACTORY = new EntityRefFactory() {
 		@Override
@@ -164,6 +165,7 @@ public class Generator {
 			tablesToEntities = new HashMap<>();
 			entities = new HashMap<>();
 			tablesToEmbeddables = new HashMap<>();
+			embeddables = new HashMap<>();
 			
 			// generate entities first that are part of a hierarchy
 			for(EntityInfo et : sm.getRootEntityDefinitions()) {
@@ -212,16 +214,12 @@ public class Generator {
 			
 			// process table columns
 			Stream.of(
-				entities.entrySet().stream()
-					.map(Tuple::of)
-					.map(t -> t.mapY(EntityInfo::getFieldColumnSource))
-				,
-				tablesToEmbeddables.entrySet().stream()
-					.map(e -> Tuple.of(e.getValue(), e.getKey()))
-					.map(t -> t.mapY(sm::toTable))
-					.map(t -> t.mapY(x -> new PlainTableFieldColumnSource(x)))
+				entities.entrySet().stream(),
+				embeddables.entrySet().stream()
 			)
 				.flatMap(t -> t)
+				.map(Tuple::of)
+				.map(t -> t.mapY(MappingInfo::getFieldColumnSource))
 				.forEach(t -> {
 					FieldColumnSource src = t.y();
 					JDefinedClass cls = t.x();
@@ -330,7 +328,7 @@ public class Generator {
 		return genEntityClassImpl(p, nameCandidate, superClassEntity, einfo);
 	}
 	
-	private JDefinedClass genEntityClassImpl(JPackage p, String nameCandidate, JDefinedClass superClassEntity, EntityInfo einfo) throws JClassAlreadyExistsException {
+	private JDefinedClass genMappedClassImpl(JPackage p, String nameCandidate, JDefinedClass superClassEntity, MappingInfo einfo) throws JClassAlreadyExistsException {
 		JClass serializableClass = cm.ref(Serializable.class);
 			
 		JDefinedClass cls = p._class(JMod.PUBLIC, toClassName(p, nameCandidate));
@@ -338,7 +336,7 @@ public class Generator {
 		JClass effectiveSuperClass;
 		if(einfo.getExtends() != null) {
 			if(superClassEntity != null) {
-				throw new IllegalArgumentException(String.format("entity class %s has a superclass entity %s in conflict with a declared superclass %s", cls.name(), superClassEntity.name(), einfo.getExtends()));
+				throw new IllegalArgumentException(String.format("class %s has a superclass entity %s in conflict with a declared superclass %s", cls.name(), superClassEntity.name(), einfo.getExtends()));
 			}
 			effectiveSuperClass = cm.ref(einfo.getExtends());
 		} else if(sm.getDefaultExtends() != null && superClassEntity == null) {
@@ -364,6 +362,13 @@ public class Generator {
 			}
 		}
 		
+		cls._implements(serializableClass);
+		return cls;
+	}
+	
+	private JDefinedClass genEntityClassImpl(JPackage p, String nameCandidate, JDefinedClass superClassEntity, EntityInfo einfo) throws JClassAlreadyExistsException {
+		JDefinedClass cls = genMappedClassImpl(p, nameCandidate, superClassEntity, einfo);
+		
 		cls.annotate(Entity.class);
 		TableModel table = einfo.getTable();
 		if(table != null) {
@@ -373,18 +378,19 @@ public class Generator {
 		}
 		entities.put(cls, einfo);
 		
-		cls._implements(serializableClass);
 		return cls;
 	}
 	
-	private void genElementCollection(String embeddableNameCandidate, TableModel table, ForeignKeyModel foreignKeyName, JDefinedClass enclosingEntityClass) throws JClassAlreadyExistsException {
+	private void genEmbeddable(JDefinedClass enclosingEntityClass, CollectionTableDecl collectionTable) throws JClassAlreadyExistsException {
+		TableModel table = collectionTable.getTable();
+		ForeignKeyModel foreignKeyName = collectionTable.getForeignKey();
 		JPackage p = cm._package(sm.getTargetPackageName());
 		JClass serializableClass = cm.ref(Serializable.class);
 		
-		List<FieldMapping> mappings = filterBasicMappings(new PlainTableFieldColumnSource(table).getFieldMappings());
+		List<FieldMapping> mappings = filterBasicMappings(collectionTable.getFieldColumnSource().getFieldMappings());
 		JType type;
 		String fieldNameCandidate = null;
-		boolean isSingleValueColumn = mappings.size() == 1;
+		boolean isSingleValueColumn = collectionTable.isBasicElementCollection();
 		EnumType etype = null;
 		if(isSingleValueColumn) {
 			FieldMapping m = mappings.get(0);
@@ -395,9 +401,10 @@ public class Generator {
 			}
 			fieldNameCandidate = m.getFieldName();
 		} else {
-			JDefinedClass cls = p._class(JMod.PUBLIC, toClassName(p, embeddableNameCandidate));
+			JDefinedClass cls = genMappedClassImpl(p, table.getName(), null, collectionTable);
 			cls.annotate(Embeddable.class);
 			tablesToEmbeddables.put(table.getName(), cls);
+			embeddables.put(cls, collectionTable);
 		
 			cls._implements(serializableClass);
 			type = cls;
@@ -609,11 +616,6 @@ public class Generator {
 	private EntityRefFactory findEntityRefFactory(JDefinedClass cls) {
 		// for now, all we support is List<> with a created ArrayList<> instance
 		return LIST_ENTITY_REF_FACTORY;
-	}
-	
-	private void genEmbeddable(JDefinedClass entityClass, CollectionTableDecl collectionTable) throws JClassAlreadyExistsException {
-		TableModel table = collectionTable.getTable();
-		genElementCollection(table.getName(), table, collectionTable.getForeignKey(), entityClass);
 	}
 	
 	private JFieldVar genCollectionFieldVar(JDefinedClass cls, JDefinedClass elementType) {

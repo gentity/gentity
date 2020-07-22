@@ -27,23 +27,19 @@ import java.util.Optional;
  */
 public abstract class MappingInfo {
 
-	protected final FieldColumnSource fieldColumnSource;
 	protected final TableModel table;
 	
 	// NOTE: this reference binds the info to the mapping configuration file model.
 	// We may want to refactor this in the future..
 	protected final ConfigurationDto configDto;
 
-	public MappingInfo(FieldColumnSource fieldColumnSource, TableModel table, ConfigurationDto configDto) {
-		this.fieldColumnSource = fieldColumnSource;
+	public MappingInfo(TableModel table, ConfigurationDto configDto) {
 		this.table = table;
 		this.configDto = configDto;
 	}
 
 	
-	public FieldColumnSource getFieldColumnSource() {
-		return fieldColumnSource;
-	}
+	public abstract FieldColumnSource getFieldColumnSource();
 
 	/**
 	 * The table this entity is based upon. Can be null if Entity was generated

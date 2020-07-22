@@ -35,12 +35,12 @@ public abstract class EntityInfo<T extends EntityInfo> extends MappingInfo {
 	private final List<CollectionTableDecl> collectionTables = new ArrayList<>();
 
 
-	public EntityInfo(TableModel table, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, String discriminatorValue, ConfigurationDto configDto) {
-		this(table, table, fieldColumnSource, parentEntityInfo, discriminatorValue, configDto);
+	public EntityInfo(TableModel table, EntityInfo parentEntityInfo, String discriminatorValue, ConfigurationDto configDto) {
+		this(table, table, parentEntityInfo, discriminatorValue, configDto);
 	}
 	
-	public EntityInfo(TableModel table, TableModel baseTable, FieldColumnSource fieldColumnSource, EntityInfo parentEntityInfo, String discriminatorValue, ConfigurationDto configDto) {
-		super(fieldColumnSource, table, configDto);
+	public EntityInfo(TableModel table, TableModel baseTable, EntityInfo parentEntityInfo, String discriminatorValue, ConfigurationDto configDto) {
+		super(table, configDto);
 		this.baseTable = baseTable;
 		this.parentEntityInfo = parentEntityInfo;
 		if(parentEntityInfo != null) {

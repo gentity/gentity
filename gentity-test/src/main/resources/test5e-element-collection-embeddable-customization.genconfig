@@ -20,11 +20,15 @@ limitations under the License.
 	xsi:schemaLocation="
 	    https://github.com/gentity/gentity/ns
 			../../../../gentity-core/src/main/java/com/github/gentity/core/xsd/genconfig.xsd
+	    https://github.com/gentity/gentity/ns
+			https://github.com/gentity/gentity/blob/master/gentity-core/src/main/java/com/github/gentity/core/xsd/genconfig.xsd
 	"
 >
-	
-	<entityTable table="PIZZA_ORDER">
-		<collectionTable table="PIZZA_ORDER_ITEM" foreignKey="FK_PIZZA_ORDER_ITEM_PIZZA_ORDER"/>
+	<entityTable table='pizza_order'>
+		<collectionTable table="pizza_order_item" implements="com.github.gentity.test.test5e_element_collection_embeddable_customization.OrderFragment">
+			<field column="size" enumType="com.github.gentity.test.test5e_element_collection_embeddable_customization.PizzaSize"/>
+		</collectionTable>
 	</entityTable>
 	
+
 </mappingConfig>

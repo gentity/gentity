@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 The Gentity Project. All rights reserved.
+ * Copyright 2020 The Gentity Project. All rights reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.entities;
-
-import com.github.gentity.core.config.dto.ConfigurationDto;
-import com.github.gentity.core.model.TableModel;
+package com.github.gentity.test.test5e_element_collection_embeddable_customization;
 
 /**
  *
- * @author count
+ * @author Uwe pachler
  */
-public abstract class SubEntityInfo<T extends SubEntityInfo> extends EntityInfo<T>{
-
-	public SubEntityInfo(TableModel table, TableModel baseTable, EntityInfo parentEntityInfo, String discriminatorValue, ConfigurationDto configDto) {
-		super(table, baseTable, parentEntityInfo, discriminatorValue, configDto);
-	}
-
+public interface OrderFragment {
+	
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 The Gentity Project. All rights reserved.
+ * Copyright 2020 The Gentity Project. All rights reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.gentity.core.entities;
+package com.github.gentity.test.test5e_element_collection_embeddable_customization;
 
 /**
  *
- * @author upachler
+ * @author Uwe pachler
  */
-public class EmbeddableInfo {
-	
+public enum PizzaSize {
+	SMALL, MEDIUM, LARGE, XLARGE
 }
