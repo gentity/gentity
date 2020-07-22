@@ -23,6 +23,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import com.github.gentity.core.FileShell;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 
 /**
@@ -32,6 +33,14 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 @Mojo( name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
 public class GentityMojo extends AbstractMojo{
 	
+	private final String EPISODEFILE_BASENAME = ".gentity_episode_";
+	
+	private File episodeFile;
+	
+	@Parameter(defaultValue = "${mojoExecution}", required = true, readonly = true)
+	private MojoExecution execution;
+
+
 	/**
 	 * Input DbSchema file that is the source for the entity generator.
 	 */
@@ -87,12 +96,72 @@ public class GentityMojo extends AbstractMojo{
 		FileShell shell = new FileShell();
 		shell.setTargetPackageName(targetPackageName);
 		
+		// acquire an episode file that marks the last run's timestamp
+		acquireEpisodeFile();
+		
 		try {
+			if(canSkipCodeGeneration()) {
+				getLog().info("no changes detected, skipping code generation");
+				return;
+			}
 			shell.generate(inputDbsFile, mappingConfigFile, outputFolder);
+			
 		} catch (IOException ex) {
 			throw new MojoExecutionException("error while generating entities", ex);
 		}
 		
+		// finally touch the episode file to store this run's timestamp
+		touchEpisodeFile();
     }
 	
+	private void acquireEpisodeFile() {
+		episodeFile = new File(outputFolder, EPISODEFILE_BASENAME + execution.getExecutionId());
+	}
+	
+	private File touchEpisodeFile() throws MojoExecutionException {
+		try {
+			if(episodeFile.createNewFile()) {
+				return episodeFile;
+			} else {
+				return null;
+			}
+		} catch(IOException iox) {
+			throw new MojoExecutionException("cannot create episode file " + episodeFile + " - is output folder writable?");
+		}
+	}
+	
+	boolean canSkipCodeGeneration() throws IOException, MojoExecutionException {
+		
+		if(!episodeFile.exists()) {
+			// the episode file records the last run's timestamp - if we don't
+			// have it (for whatever reason), we cannot skip codegen.
+			return false;
+		}
+		
+		File[] changedFileCandidates = new File[] {
+			inputDbsFile, mappingConfigFile
+		};
+		
+		long newestMtime = 0;
+		for(File f: changedFileCandidates) {
+			if(f == null) {
+				continue;
+			}
+			long mtime = f.lastModified();
+			if(mtime > newestMtime) {
+				newestMtime = mtime;
+			}
+		}
+		
+		if(newestMtime == 0) {
+			// no mtime extracted from any file candidate - we cannot make a
+			// decision, so we can't skip codegen
+			return false;
+		}
+		
+		boolean changesSinceLastRun = episodeFile.lastModified() < newestMtime;
+		
+		// if there were no changes since the last run, we can skip codegen
+		return !changesSinceLastRun;
+	}
 }
