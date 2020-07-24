@@ -27,8 +27,8 @@ import com.github.gentity.core.model.ModelReaderFactory;
 import com.github.gentity.core.model.ReaderContext;
 import com.github.gentity.core.util.UnmarshallerFactory;
 import com.github.gentity.core.xsd.R;
-import java.io.FileInputStream;
 import java.util.ServiceLoader;
+import java.util.logging.Logger;
 
 /**
  *
@@ -38,16 +38,24 @@ public class FileShell {
 	
 	private String targetPackageName;
 	private static final UnmarshallerFactory uFactory = new UnmarshallerFactory(R.class.getResource("genconfig.xsd"), com.github.gentity.core.config.dto.ObjectFactory.class);
-
+	private ShellLogger logger = new JULShellLogger(Logger.getLogger(getClass().getName()));
+	
 	public void setTargetPackageName(String targetPackageName) {
 		this.targetPackageName = targetPackageName;
 	}
+
+	public void setLogger(ShellLogger logger) {
+		this.logger = logger;
+	}
 	
 	public void generate(File inputFile, File configFile, File outputFolder) throws IOException {
-
+		
+		logger.info("Database modeller file: %s", inputFile.getAbsolutePath());
+		
 		MappingConfigDto config = new MappingConfigDto();
 		if(configFile != null) {
 			try {
+				logger.info("Gentity file: %s", configFile.getAbsolutePath());
 				Unmarshaller unmarshaller = uFactory.createUnmarshaller();
 				JAXBElement<MappingConfigDto> configElement = (JAXBElement<MappingConfigDto>)unmarshaller
 					.unmarshal(configFile);
@@ -55,6 +63,7 @@ public class FileShell {
 				
 
 			} catch (JAXBException ex) {
+				logger.error("error while reading gentity file %s", configFile.getAbsolutePath());
 				checkForIOException(ex);
 				throw new RuntimeException(ex);
 			}
@@ -84,7 +93,7 @@ public class FileShell {
 		}
 		ModelReader reader = modelReaderFactory.createModelReader(inputFile.getName(), ctx);
 		
-		Generator gen = new Generator(config, reader);
+		Generator gen = new Generator(config, reader, logger);
 		
 		JCodeModel cm = gen.generate();
 		

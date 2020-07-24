@@ -23,7 +23,9 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import com.github.gentity.core.FileShell;
+import com.github.gentity.core.ShellLogger;
 import org.apache.maven.plugin.MojoExecution;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 
 /**
@@ -95,6 +97,7 @@ public class GentityMojo extends AbstractMojo{
 		
 		FileShell shell = new FileShell();
 		shell.setTargetPackageName(targetPackageName);
+		shell.setLogger(new ShellLoggerProxy(getLog()));
 		
 		// acquire an episode file that marks the last run's timestamp
 		acquireEpisodeFile();

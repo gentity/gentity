@@ -140,10 +140,12 @@ public class Generator {
 
 	private NameProvider nameProvider;
 	private final MappingConfigDto cfg;
+	private final ShellLogger logger;
 	
-	public Generator(MappingConfigDto cfg, ModelReader reader) throws IOException {
-		sm = new SchemaModelImpl(cfg, reader);
+	public Generator(MappingConfigDto cfg, ModelReader reader, ShellLogger logger) throws IOException {
+		sm = new SchemaModelImpl(cfg, reader, logger);
 		this.cfg = cfg;
+		this.logger = logger;
 	}
 	
 	private boolean isAutomaticBidirectionalUpdateEnabled() {
