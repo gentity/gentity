@@ -120,11 +120,10 @@ public class GentityMojo extends AbstractMojo{
 	
 	private File touchEpisodeFile() throws MojoExecutionException {
 		try {
-			if(episodeFile.createNewFile()) {
-				return episodeFile;
-			} else {
-				return null;
+			if(!episodeFile.createNewFile()) {
+				episodeFile.setLastModified(System.currentTimeMillis());
 			}
+			return episodeFile;
 		} catch(IOException iox) {
 			throw new MojoExecutionException("cannot create episode file " + episodeFile + " - is output folder writable?");
 		}
