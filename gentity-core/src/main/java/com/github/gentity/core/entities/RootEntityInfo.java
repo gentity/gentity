@@ -15,7 +15,7 @@
  */
 package com.github.gentity.core.entities;
 
-import com.github.gentity.core.config.dto.ConfigurationDto;
+import com.github.gentity.core.config.dto.EntityTableDto;
 import com.github.gentity.core.model.TableModel;
 
 /**
@@ -23,15 +23,18 @@ import com.github.gentity.core.model.TableModel;
  * @author count
  */
 public abstract class RootEntityInfo<T extends EntityInfo> extends EntityInfo<T> {
+
+	private final EntityTableDto entityTableDto;
 	
 	
-	public RootEntityInfo(TableModel table, EntityInfo parentEntityInfo, String discriminatorValue, ConfigurationDto configDto) {
-		super(table, parentEntityInfo, discriminatorValue, configDto);
+	public RootEntityInfo(TableModel table, EntityInfo parentEntityInfo, String discriminatorValue, EntityTableDto entityTableDto) {
+		super(table, parentEntityInfo, discriminatorValue, entityTableDto);
+		this.entityTableDto = entityTableDto;
 	}
 	
 	public String getIdClass() {
-		return configDto != null
-			?	configDto.getIdClass()
+		return entityTableDto != null
+			?	entityTableDto.getIdClass()
 			:	null;
 	}
 }
