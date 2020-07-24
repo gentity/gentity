@@ -124,7 +124,9 @@ limitations under the License.
 				<xs:documentation>
 					A generated entity class will implement the given Java interface, which 
 					must be defined externally.
-					A fully qualified Java type name is required.
+					A fully qualified Java type name is required. More than one
+					type name can be specified to implement multiple interfaces;
+					these type names must be separated by a single space character.
 				</xs:documentation>
 			</xs:annotation>
 			<xs:simpleType>
@@ -166,16 +168,6 @@ limitations under the License.
 					The specified prefix will be prepended to the generated
 					Java field name. For column named 'phone' and a field name
 					prefix of 'f_', the generated field name is 'f_phone'.
-				</xs:documentation>
-			</xs:annotation>
-		</xs:attribute>
-		<xs:attribute name="idClass" type="tns:FQCN">
-			<xs:annotation>
-				<xs:documentation>
-					If specified, the generated entity class will receive an
-					@IdClass annotation including the given Java class name,
-					which muast be fully qualified.
-					The class must be defined externally.
 				</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
@@ -364,6 +356,16 @@ limitations under the License.
 						</xs:annotation>
 					</xs:element>
 				</xs:sequence>
+				<xs:attribute name="idClass" type="tns:FQCN">
+					<xs:annotation>
+						<xs:documentation>
+							If specified, the generated entity class will receive an
+							@IdClass annotation including the given Java class name,
+							which muast be fully qualified.
+							The class must be defined externally.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
