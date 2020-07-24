@@ -79,6 +79,7 @@ import java.util.function.Function;
 public class SchemaModelImpl implements SchemaModel {
 	
 	private final MappingConfigDto cfg;
+	private final ShellLogger logger;
 	
 	
 	private Set<String> excludedTables;
@@ -94,9 +95,9 @@ public class SchemaModelImpl implements SchemaModel {
 	private final List<RootEntityInfo> entityInfos = new ArrayList<>();
 	private final DatabaseModel databaseModel;
 	
-	public SchemaModelImpl(MappingConfigDto cfg, ModelReader reader) throws IOException {
+	public SchemaModelImpl(MappingConfigDto cfg, ModelReader reader, ShellLogger logger) throws IOException {
 		this.cfg = cfg;
-		
+		this.logger = logger;
 		
 		Set<String> mappedTables = new HashSet<>();
 		Set<String> excludedTables = new HashSet<>();
@@ -200,6 +201,12 @@ public class SchemaModelImpl implements SchemaModel {
 			// default collection tables use the first foreign key in declaration order
 			ForeignKeyModel fk = table.getForeignKeys().get(0);
 			EntityInfo einfo = findRootOrJoinedEntityOfTable(fk.getTargetTable());
+			
+			if(einfo == null) {
+				// no entity for target table: this can't be a collection
+				// table, because collections live within entities...
+				continue;
+			}
 			collectionTableDeclarations.put(table.getName(), new CollectionTableDecl(null, table, fk, einfo));
 
 		}
@@ -756,6 +763,14 @@ public class SchemaModelImpl implements SchemaModel {
 				if(collectionTable!=null && collectionTable.getForeignKey().getName().equals(fk.getName())) {
 					// the foreign key represents the relation binding a 
 					// collection table to its entity
+					continue;
+				}
+				if(null == findRootOrJoinedEntityOfTable(fk.getTargetTable())) {
+					// if this foreign key does not refer to an entity, ignore
+					// it. However, this could be a problem in the schema,
+					// especially if the foreign key column is NOT NULL -
+					// inserts or update would fail in this case.
+					logger.warn("foreign key %s on table %s refers to non-entity table %s; ignoring foreign key", fk.getName(), t.getName(), fk.getTargetTable().getName());
 					continue;
 				}
 				childTableRelations.add(new ChildTableRelation(t, fk, defaultDirectionality));

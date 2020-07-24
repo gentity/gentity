@@ -93,7 +93,7 @@ public class FileShell {
 		}
 		ModelReader reader = modelReaderFactory.createModelReader(inputFile.getName(), ctx);
 		
-		Generator gen = new Generator(config, reader);
+		Generator gen = new Generator(config, reader, logger);
 		
 		JCodeModel cm = gen.generate();
 		
