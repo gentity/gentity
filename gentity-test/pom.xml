@@ -27,7 +27,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputDbsFile>src/main/resources/test0a-basic-table.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test0a-basic-table.dbs</inputFile>
 							<targetPackageName>com.github.gentity.test.test0a_basic_table</targetPackageName>
 						</configuration>
 					</execution>
@@ -37,7 +37,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputDbsFile>src/main/resources/test0b-basic-table-sequence.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test0b-basic-table-sequence.dbs</inputFile>
 							<targetPackageName>com.github.gentity.test.test0b_basic_table_sequence</targetPackageName>
 						</configuration>
 					</execution>
@@ -47,7 +47,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputDbsFile>src/main/resources/test0c-basic-table-autoincrement.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test0c-basic-table-autoincrement.dbs</inputFile>
 							<targetPackageName>com.github.gentity.test.test0c_basic_table_autoincrement</targetPackageName>
 						</configuration>
 					</execution>
@@ -57,7 +57,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputDbsFile>src/main/resources/test0d-basic-table-blob.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test0d-basic-table-blob.dbs</inputFile>
 							<targetPackageName>com.github.gentity.test.test0d_basic_table_blob</targetPackageName>
 						</configuration>
 					</execution>
@@ -67,7 +67,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputDbsFile>src/main/resources/test0e-basic-table-field.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test0e-basic-table-field.dbs</inputFile>
 							<mappingConfigFile>src/main/resources/test0e-basic-table-field.genconfig</mappingConfigFile>
 							<targetPackageName>com.github.gentity.test.test0e_basic_table_field</targetPackageName>
 						</configuration>
@@ -78,7 +78,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputDbsFile>src/main/resources/test0f-basic-table-enumerated.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test0f-basic-table-enumerated.dbs</inputFile>
 							<mappingConfigFile>src/main/resources/test0f-basic-table-enumerated.genconfig</mappingConfigFile>
 							<targetPackageName>com.github.gentity.test.test0f_basic_table_enumerated</targetPackageName>
 						</configuration>
@@ -89,7 +89,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputDbsFile>src/main/resources/test0g_basic_table_composite_pk.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test0g_basic_table_composite_pk.dbs</inputFile>
 							<mappingConfigFile>src/main/resources/test0g_basic_table_composite_pk.genconfig</mappingConfigFile>
 							<targetPackageName>com.github.gentity.test.test0g_basic_table_composite_pk</targetPackageName>
 						</configuration>
@@ -100,7 +100,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputDbsFile>src/main/resources/test1.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test1.dbs</inputFile>
 							<targetPackageName>com.github.gentity.test.test1</targetPackageName>
 						</configuration>
 					</execution>
@@ -110,7 +110,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputDbsFile>src/main/resources/test1a-many-to-one.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test1a-many-to-one.dbs</inputFile>
 							<targetPackageName>com.github.gentity.test.test1a_many_to_one</targetPackageName>
 						</configuration>
 					</execution>
@@ -120,7 +120,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputDbsFile>src/main/resources/test1b-one-to-one.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test1b-one-to-one.dbs</inputFile>
 							<targetPackageName>com.github.gentity.test.test1b_one_to_one</targetPackageName>
 						</configuration>
 					</execution>
@@ -130,7 +130,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputDbsFile>src/main/resources/test1c-many-to-many.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test1c-many-to-many.dbs</inputFile>
 							<mappingConfigFile>src/main/resources/test1c-many-to-many.genconfig</mappingConfigFile>
 							<targetPackageName>com.github.gentity.test.test1c_many_to_many</targetPackageName>
 						</configuration>
@@ -141,7 +141,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputDbsFile>src/main/resources/test1d-many-to-one-unidirectional.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test1d-many-to-one-unidirectional.dbs</inputFile>
 							<mappingConfigFile>src/main/resources/test1d-many-to-one-unidirectional.genconfig</mappingConfigFile>
 							<targetPackageName>com.github.gentity.test.test1d_many_to_one_unidirectional</targetPackageName>
 						</configuration>
@@ -152,7 +152,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputDbsFile>src/main/resources/test1e-one-to-one-unidirectional.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test1e-one-to-one-unidirectional.dbs</inputFile>
 							<mappingConfigFile>src/main/resources/test1e-one-to-one-unidirectional.genconfig</mappingConfigFile>
 							<targetPackageName>com.github.gentity.test.test1e_one_to_one_unidirectional</targetPackageName>
 						</configuration>
@@ -163,7 +163,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputDbsFile>src/main/resources/test1f-many-to-many-unidirectional.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test1f-many-to-many-unidirectional.dbs</inputFile>
 							<mappingConfigFile>src/main/resources/test1f-many-to-many-unidirectional.genconfig</mappingConfigFile>
 							<targetPackageName>com.github.gentity.test.test1f_many_to_many_unidirectional</targetPackageName>
 						</configuration>
@@ -174,7 +174,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputDbsFile>src/main/resources/test1g-many-to-many-defaulted.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test1g-many-to-many-defaulted.dbs</inputFile>
 							<mappingConfigFile>src/main/resources/test1g-many-to-many-defaulted.genconfig</mappingConfigFile>
 							<targetPackageName>com.github.gentity.test.test1g_many_to_many_defaulted</targetPackageName>
 						</configuration>
@@ -185,7 +185,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputDbsFile>src/main/resources/test1h-many-to-one-composite-pk.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test1h-many-to-one-composite-pk.dbs</inputFile>
 							<mappingConfigFile>src/main/resources/test1h-many-to-one-composite-pk.genconfig</mappingConfigFile>
 							<targetPackageName>com.github.gentity.test.test1h_many_to_one_composite_pk</targetPackageName>
 						</configuration>
@@ -196,7 +196,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputDbsFile>src/main/resources/test1i-many-to-many-composite-pk.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test1i-many-to-many-composite-pk.dbs</inputFile>
 							<mappingConfigFile>src/main/resources/test1i-many-to-many-composite-pk.genconfig</mappingConfigFile>
 							<targetPackageName>com.github.gentity.test.test1i_many_to_many_composite_pk</targetPackageName>
 						</configuration>
@@ -207,7 +207,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputDbsFile>src/main/resources/test1j_many_to_one_bid_update_delete.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test1j_many_to_one_bid_update_delete.dbs</inputFile>
 							<targetPackageName>com.github.gentity.test.test1j_many_to_one_bid_update_delete</targetPackageName>
 						</configuration>
 					</execution>
@@ -217,7 +217,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputDbsFile>src/main/resources/test2.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test2.dbs</inputFile>
 							<targetPackageName>com.github.gentity.test.test2</targetPackageName>
 							<mappingConfigFile>src/main/resources/test2.genconfig</mappingConfigFile>
 						</configuration>
@@ -228,7 +228,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputDbsFile>src/main/resources/test3.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test3.dbs</inputFile>
 							<targetPackageName>com.github.gentity.test.test3</targetPackageName>
 							<mappingConfigFile>src/main/resources/test3.genconfig</mappingConfigFile>
 						</configuration>
@@ -240,7 +240,7 @@
 						</goals>
 						<configuration>
 							<targetPackageName>com.github.gentity.test.test4a_polymorphism_joined</targetPackageName>
-							<inputDbsFile>src/main/resources/test4a-polymorphism-joined.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test4a-polymorphism-joined.dbs</inputFile>
 							<mappingConfigFile>src/main/resources/test4a-polymorphism-joined.genconfig</mappingConfigFile>
 						</configuration>
 					</execution>
@@ -251,7 +251,7 @@
 						</goals>
 						<configuration>
 							<targetPackageName>com.github.gentity.test.test4b_polymorphism_single_table</targetPackageName>
-							<inputDbsFile>src/main/resources/test4b-polymorphism-single-table.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test4b-polymorphism-single-table.dbs</inputFile>
 							<mappingConfigFile>src/main/resources/test4b-polymorphism-single-table.genconfig</mappingConfigFile>
 						</configuration>
 					</execution>
@@ -262,7 +262,7 @@
 						</goals>
 						<configuration>
 							<targetPackageName>com.github.gentity.test.test4d_polymorphism_single_table_relations</targetPackageName>
-							<inputDbsFile>src/main/resources/test4d-polymorphism-single-table-relations.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test4d-polymorphism-single-table-relations.dbs</inputFile>
 							<mappingConfigFile>src/main/resources/test4d-polymorphism-single-table-relations.genconfig</mappingConfigFile>
 						</configuration>
 					</execution>
@@ -273,7 +273,7 @@
 						</goals>
 						<configuration>
 							<targetPackageName>com.github.gentity.test.test5a_element_collection_embeddable</targetPackageName>
-							<inputDbsFile>src/main/resources/test5a-element-collection-embeddable.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test5a-element-collection-embeddable.dbs</inputFile>
 							<mappingConfigFile>src/main/resources/test5a-element-collection-embeddable.genconfig</mappingConfigFile>
 						</configuration>
 					</execution>
@@ -285,7 +285,7 @@
 						</goals>
 						<configuration>
 							<targetPackageName>com.github.gentity.test.test5b_element_collection_embeddable_inheritance</targetPackageName>
-							<inputDbsFile>src/main/resources/test5b-element-collection-embeddable-inheritance.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test5b-element-collection-embeddable-inheritance.dbs</inputFile>
 							<mappingConfigFile>src/main/resources/test5b-element-collection-embeddable-inheritance.genconfig</mappingConfigFile>
 						</configuration>
 					</execution>
@@ -296,7 +296,7 @@
 						</goals>
 						<configuration>
 							<targetPackageName>com.github.gentity.test.test5c_element_collection_embeddable_relations</targetPackageName>
-							<inputDbsFile>src/main/resources/test5c-element-collection-embeddable-relations.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test5c-element-collection-embeddable-relations.dbs</inputFile>
 						</configuration>
 					</execution>
 					<execution>
@@ -306,7 +306,7 @@
 						</goals>
 						<configuration>
 							<targetPackageName>com.github.gentity.test.test5d_element_collection_embeddable_composite_pk</targetPackageName>
-							<inputDbsFile>src/main/resources/test5d-element-collection-embeddable-composite-pk.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test5d-element-collection-embeddable-composite-pk.dbs</inputFile>
 							<mappingConfigFile>src/main/resources/test5d-element-collection-embeddable-composite-pk.genconfig</mappingConfigFile>
 						</configuration>
 					</execution>
@@ -317,7 +317,7 @@
 						</goals>
 						<configuration>
 							<targetPackageName>com.github.gentity.test.test5e_element_collection_embeddable_customization</targetPackageName>
-							<inputDbsFile>src/main/resources/test5e-element-collection-embeddable-customization.mwb</inputDbsFile>
+							<inputFile>src/main/resources/test5e-element-collection-embeddable-customization.mwb</inputFile>
 							<mappingConfigFile>src/main/resources/test5e-element-collection-embeddable-customization.genconfig</mappingConfigFile>
 						</configuration>
 					</execution>
@@ -328,7 +328,7 @@
 						</goals>
 						<configuration>
 							<targetPackageName>com.github.gentity.test.test6a_inheritance_basic_tables</targetPackageName>
-							<inputDbsFile>src/main/resources/test6a-inheritance-basic-tables.dbs</inputDbsFile>
+							<inputFile>src/main/resources/test6a-inheritance-basic-tables.dbs</inputFile>
 							<mappingConfigFile>src/main/resources/test6a-inheritance-basic-tables.genconfig</mappingConfigFile>
 						</configuration>
 					</execution>
@@ -341,7 +341,7 @@
 						</goals>
 						<configuration>
 							<targetPackageName>com.github.gentity.demogallery</targetPackageName>
-							<inputDbsFile>src/main/resources/demo-gallery.dbs</inputDbsFile>
+							<inputFile>src/main/resources/demo-gallery.dbs</inputFile>
 							<mappingConfigFile>src/main/resources/demo-gallery.genconfig</mappingConfigFile>
 						</configuration>
 					</execution>
@@ -353,7 +353,7 @@
 						</goals>
 						<configuration>
 							<targetPackageName>com.github.gentity.demoaddressbook1</targetPackageName>
-							<inputDbsFile>src/main/resources/demo-addressbook-1.dbs</inputDbsFile>
+							<inputFile>src/main/resources/demo-addressbook-1.dbs</inputFile>
 						</configuration>
 					</execution>
 					
@@ -364,7 +364,7 @@
 						</goals>
 						<configuration>
 							<targetPackageName>com.github.gentity.demoaddressbook2</targetPackageName>
-							<inputDbsFile>src/main/resources/demo-addressbook-2.dbs</inputDbsFile>
+							<inputFile>src/main/resources/demo-addressbook-2.dbs</inputFile>
 						</configuration>
 					</execution>
  <!-- -->

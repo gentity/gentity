@@ -44,10 +44,16 @@ public class GentityMojo extends AbstractMojo{
 
 
 	/**
+	 * Input DbSchema file that is the source for the entity generator (deprecated, use 'inputFile' instead)
+	 */
+	@Parameter( property = "generate.inputDbsFile", required = false )
+	private File inputDbsFile;
+	
+	/**
 	 * Input DbSchema file that is the source for the entity generator.
 	 */
-	@Parameter( property = "generate.inputDbsFile", required = true )
-	private File inputDbsFile;
+	@Parameter( property = "generate.inputFile", required = false )
+	private File inputFile;
 	
 	/**
 	 * The base directory into which the sources are generated. If the sources
@@ -81,14 +87,26 @@ public class GentityMojo extends AbstractMojo{
     public void execute() throws MojoExecutionException {
 		project.addCompileSourceRoot(outputFolder.getAbsolutePath());
 		
+		if(inputDbsFile != null) {
+			getLog().warn("deprecated 'inputDbsFile' configuration option is set, use 'inputFile' instead");
+			if(inputFile == null) {
+				inputFile = inputDbsFile;
+			} else {
+				throw new MojoExecutionException("'inputDbsFile' and 'inputFile' cannot be set both");
+			}
+		}
+		if(inputFile == null) {
+			throw new MojoExecutionException("The 'inputFile' configuration parameter must be set");
+		}
+		
 		if(!outputFolder.exists()) {
 			if(!outputFolder.mkdirs()) {
 				throw new MojoExecutionException("output folder '" + outputFolder.toString() + "' does not exist, and cannot be created");
 			}
 		}
 		
-		if(!inputDbsFile.exists()) {
-			throw new MojoExecutionException("input file '" + inputDbsFile.toString() + "' does not exist");
+		if(!inputFile.exists()) {
+			throw new MojoExecutionException("input file '" + inputFile.toString() + "' does not exist");
 		}
 		
 		if(mappingConfigFile != null && !mappingConfigFile.exists()) {
@@ -107,7 +125,7 @@ public class GentityMojo extends AbstractMojo{
 				getLog().info("no changes detected, skipping code generation");
 				return;
 			}
-			shell.generate(inputDbsFile, mappingConfigFile, outputFolder);
+			shell.generate(inputFile, mappingConfigFile, outputFolder);
 			
 		} catch (IOException ex) {
 			throw new MojoExecutionException("error while generating entities", ex);
@@ -141,7 +159,7 @@ public class GentityMojo extends AbstractMojo{
 		}
 		
 		File[] changedFileCandidates = new File[] {
-			inputDbsFile, mappingConfigFile
+			inputFile, mappingConfigFile
 		};
 		
 		long newestMtime = 0;
