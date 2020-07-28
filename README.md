@@ -1,6 +1,6 @@
 # gentity [![Build Status](https://img.shields.io/travis/gentity/gentity.svg)](https://travis-ci.org/gentity/gentity) ![Maven](https://img.shields.io/maven-central/v/com.github.gentity/gentity-maven-plugin.svg)
 
-JPA Entity class generator from DBSchema (*.dbs) database models (see https://www.dbschema.com). 
+JPA Entity class generator from MySQL Workbench (*.mwb) and DBSchema (*.dbs) database models. 
 
 The Workflow:
 1. Create/modify database model in modeller took (DbSchema)
@@ -20,6 +20,9 @@ So, Gentity doesn't need a running database; entity classes are generated direct
 * Bidirectional and unidirectional relationships are supported
 * Mutual update of bidirectional relations (when one side is updated, the other is updated automagically)
 * External (non-generated) superclasses and superinterfaces for generated entities
+* Supported database modellers:
+  - [MySQL Workbench](https://www.mysql.com/products/workbench/)
+  - [DbSchema](https://www.dbschema.com)
 
 ## Documentation
 
