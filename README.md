@@ -1,4 +1,4 @@
-# gentity [![Build Status](https://img.shields.io/travis/gentity/gentity.svg)](https://travis-ci.org/gentity/gentity) ![Maven](https://img.shields.io/maven-central/v/com.github.gentity/gentity-maven-plugin.svg)
+# gentity [![Build Status](https://img.shields.io/travis/gentity/gentity.svg)](https://travis-ci.org/gentity/gentity) [![Maven](https://img.shields.io/maven-central/v/com.github.gentity/gentity-maven-plugin.svg)](https://search.maven.org/search?q=a:gentity-maven-plugin%20g:com.github.gentity)
 
 JPA Entity class generator from MySQL Workbench (*.mwb) and DBSchema (*.dbs) database models. 
 
