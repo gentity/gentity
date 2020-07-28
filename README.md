@@ -8,6 +8,13 @@ The Workflow:
 
 So, Gentity doesn't need a running database; entity classes are generated directly from the modeller file. Perfect for build automation!
 
+
+## Documentation
+
+* [The Wiki](https://github.com/gentity/gentity/wiki) contains an in-depth discussion on usage and concepts
+* Keep on reading below for a quick start!
+
+
 ## Features
 * Automatic entity generation from table schema
 * Automatically derives:
@@ -23,11 +30,6 @@ So, Gentity doesn't need a running database; entity classes are generated direct
 * Supported database modellers:
   - [MySQL Workbench](https://www.mysql.com/products/workbench/)
   - [DbSchema](https://www.dbschema.com)
-
-## Documentation
-
-* [The Wiki](https://github.com/gentity/gentity/wiki) contains an in-depth discussion on usage and concepts
-* Keep on reading below for a quick start!
 
 ## Quick Start
 
