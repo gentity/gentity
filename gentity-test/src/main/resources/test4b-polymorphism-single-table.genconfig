@@ -26,13 +26,11 @@ limitations under the License.
 	<entityTable table='LIFEFORM'>
 		<singleTableHierarchy>
 			<rootEntity discriminatorColumn='KIND' discriminator='LF'/>
-			<entity name='Lifeform' discriminator='LF'>
-				<entity name='Insect' discriminator='IN'>
-					<field column='STINGY'/>
-				</entity>
-				<entity name='Mammal' discriminator='MA'>
-					<field column='FURRY'/>
-				</entity>
+			<entity name='Insect' discriminator='IN'>
+				<field column='STINGY'/>
+			</entity>
+			<entity name='Mammal' discriminator='MA'>
+				<field column='FURRY'/>
 			</entity>
 		</singleTableHierarchy>
 	</entityTable>
