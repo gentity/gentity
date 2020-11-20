@@ -48,6 +48,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import com.github.gentity.core.model.ReaderContext;
+import java.util.EnumSet;
 
 /**
  *
@@ -63,6 +64,15 @@ public class DbsModelReader implements ModelReader {
 	private SchemaDto dbSchema;
 	private Exclusions exclusions;
 	private SQLTypeParser typeParser;
+	
+	private EnumSet<IndexUniqueDto> UNIQUE_INDEX_TYPES = EnumSet.of(
+		// DbSchema < 8.3
+		IndexUniqueDto.UNIQUE,
+		
+		// DbSchema 8.3+
+		IndexUniqueDto.UNIQUE_KEY,
+		IndexUniqueDto.UNIQUE_INDEX
+	);
 
 	public DbsModelReader(UnmarshallerFactory factory, String fileName, ReaderContext readerContext) {
 		this.factory = factory;
@@ -176,7 +186,7 @@ public class DbsModelReader implements ModelReader {
 
 	public boolean isColumnPrimaryKey(TableDto table, ColumnDto column) {
 		return table.getIndex().stream()
-			.filter(idx -> IndexUniqueDto.PRIMARY_KEY == idx.getUnique())
+			.filter(idx -> UNIQUE_INDEX_TYPES.contains(idx.getUnique()))
 			.flatMap(idx -> idx.getColumn().stream())
 			.anyMatch(col -> col.getName().equals(column.getName()));
 	}

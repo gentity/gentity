@@ -34,7 +34,21 @@ limitations under the License.
   <xs:simpleType name="IndexUnique">
 	  <xs:restriction base="xs:string">
 		  <xs:enumeration value="NORMAL"/>
-		  <xs:enumeration value="UNIQUE"/>
+		  <xs:enumeration value="UNIQUE">
+			  <xs:annotation>
+				  <xs:documentation>UNIQUE index type (DbSchema &lt; 8.3, later replaced by UNIQUE_KEY and UNIQUE_INDEX)</xs:documentation>
+			  </xs:annotation>
+		  </xs:enumeration>
+		  <xs:enumeration value="UNIQUE_KEY">
+			  <xs:annotation>
+				  <xs:documentation>UNIQUE index created via ADD CONSTRAINT UNIQUE (DbSchema 8.3+)</xs:documentation>
+			  </xs:annotation>
+		  </xs:enumeration>
+		  <xs:enumeration value="UNIQUE_INDEX">
+			  <xs:annotation>
+				  <xs:documentation>UNIQUE index created via CREATE UNIQUE INDEX (DbSchema 8.3+)</xs:documentation>
+			  </xs:annotation>
+		  </xs:enumeration>
 		  <xs:enumeration value="PRIMARY_KEY"/>
 	  </xs:restriction>
   </xs:simpleType>
