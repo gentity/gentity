@@ -176,7 +176,7 @@ public class DbsModelReader implements ModelReader {
 				pk.addAll(columns);
 				table.setDbsPrimaryKey(pk);
 			} else {
-				boolean unique = IndexUniqueDto.UNIQUE == idx.getUnique();
+				boolean unique = UNIQUE_INDEX_TYPES.contains(idx.getUnique());
 				table.getIndicesImpl().add(new ArrayListIndexModel(idx.getName(), unique, columns));
 			}
 		}
@@ -186,7 +186,7 @@ public class DbsModelReader implements ModelReader {
 
 	public boolean isColumnPrimaryKey(TableDto table, ColumnDto column) {
 		return table.getIndex().stream()
-			.filter(idx -> UNIQUE_INDEX_TYPES.contains(idx.getUnique()))
+			.filter(idx -> IndexUniqueDto.PRIMARY_KEY == idx.getUnique())
 			.flatMap(idx -> idx.getColumn().stream())
 			.anyMatch(col -> col.getName().equals(column.getName()));
 	}
