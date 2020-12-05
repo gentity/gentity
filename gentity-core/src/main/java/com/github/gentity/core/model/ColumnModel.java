@@ -18,14 +18,41 @@ package com.github.gentity.core.model;
 import java.sql.JDBCType;
 
 /**
- *
+ * Represents the properties of a SQL column. 
  * @author count
  */
 public interface ColumnModel {
 	String getName();
 	boolean isNullable();
 	JDBCType getType();
-	int getLength();
+	Integer getLength();
+	/**
+	 * The precision of a column for {@code NUMERIC} and {@code DECIMAL} types
+	 * (and possibley others). 
+	 * @return the {@code precision} or {@code null} if none was defined for that
+	 * column
+	 * @see https://learnsql.com/blog/understanding-numerical-data-types-sql/
+	 */
+	Integer getPrecision();
+	/**
+	 * The scale of a column for {@code NUMERIC} and {@code DECIMAL} types
+	 * (and possibley others). 
+	 * @return the {@code scale} or {@code null} if none was defined for that
+	 * column
+	 * @see https://learnsql.com/blog/understanding-numerical-data-types-sql/
+	 */
+	Integer getScale();
+	/**
+	 * If {@code true} this column was defined with the {@code GENERATED AS IDENTITY}
+	 * clause (or what the database uses; MySQL's {@code AUTOINCREMENT} is also
+	 * considered an identity column)
+	 * @return {@code true} if this column is an identity column {@code false}
+	 *	otherwise
+	 */
 	boolean isIdentityColumn();
+	/**
+	 * @return the sequence that was assigned to create values for this column
+	 *	or {@code null} if no such sequence was set.
+	 */
 	SequenceModel getSequence();
 }

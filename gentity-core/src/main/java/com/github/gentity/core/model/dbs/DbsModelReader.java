@@ -33,7 +33,6 @@ import com.github.gentity.core.model.TableColumnGroup;
 import com.github.gentity.core.model.TableModel;
 import com.github.gentity.core.model.util.ArrayListIndexModel;
 import com.github.gentity.core.model.util.ArrayListTableColumnGroup;
-import com.github.gentity.core.model.types.GenericSQLTypeParser;
 import com.github.gentity.core.model.types.SQLTypeParser;
 import com.github.gentity.core.util.UnmarshallerFactory;
 import java.io.IOException;
@@ -48,7 +47,10 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import com.github.gentity.core.model.ReaderContext;
+import java.sql.JDBCType;
 import java.util.EnumSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -85,6 +87,32 @@ public class DbsModelReader implements ModelReader {
 		ColumnModel parentColumn = parentTable.getColumns().findColumn(fkCol.getPk());
 		return new ForeignKeyModel.Mapping(childColumn, parentColumn);
 	}
+	
+	private SQLTypeParser findTypeParser(String dbmsName) {
+		SQLTypeParser parser = readerContext.findTypeParser(dbmsName);
+		if(dbmsName.contains("sqlserver")) {
+			// NOTE: DbSchema apparently cannot parse the the <type>(max)
+			// construction correctly, which yields columns of lenght=0 but
+			// of type VARCHAR(max). It would make more sense to have
+			// type VARCHAR and length=2^23, but that's how it is. We mitigate
+			// removing (max), making the size unknown because still lenght=0.
+			return new SQLTypeParser() {
+				Pattern TRAILING_PARENTHESIS_PATTERN = Pattern.compile("(.+)\\(.*\\)");
+				@Override
+				public JDBCType parseTypename(String sqlType, JDBCType defaultValue) {
+					Matcher m = TRAILING_PARENTHESIS_PATTERN.matcher(sqlType);
+					if(m.matches()) {
+						sqlType = m.group(1);
+					}
+					return parser.parseTypename(sqlType, defaultValue);
+				}
+			};
+		} else {
+			return parser;
+		}
+		
+	}
+	
 	public DatabaseModel read(Exclusions exclusions) throws IOException {
 		
 		try (InputStream inputStream = readerContext.open()) {
@@ -101,7 +129,7 @@ public class DbsModelReader implements ModelReader {
 			throw new IOException(ex);
 		}
 		
-		typeParser = readerContext.findTypeParser(dbSchemaProject.getDatabase().toLowerCase().trim());
+		typeParser = findTypeParser(dbSchemaProject.getDatabase().toLowerCase().trim());
 		
 		this.dbSchema = dbSchemaProject.getSchema();
 		
