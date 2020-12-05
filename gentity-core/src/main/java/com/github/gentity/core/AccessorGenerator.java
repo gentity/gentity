@@ -32,6 +32,7 @@ import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -121,29 +122,30 @@ class AccessorGenerator {
 
 				if(!isGeneratedValueColumnField(field)) {
 					genSetter(cls, field);
-
-					genBuilderMethod(builderClass, field);
 				}
 			} else {
-				JAnnotationUse au = getEntityAssociationAnnotationUse(field);
-				
-				// we only generate the association getter for the owning
+				// we only generate the association setter for the owning
 				// side
 				genAssociationGetter(cls, field);
-				boolean owningSide = null == au.getAnnotationMembers().get("mappedBy");
-				boolean multiValued = cm.ref(Collection.class).isAssignableFrom((JClass)field.type());
-				if(owningSide && !multiValued) {
+				if(isOwningSideOfSingleValuedAssociation(field)) {
 					genSingleValuedAssociationSetter(cls, field);
-					
-					genBuilderMethod(builderClass, field);
 				}
 			}
 		}
 		
-		generateBaseClassBuilderMethods(cls, builderClass);
+		generateBuilderMethods(cls, builderClass);
 	}
 	
-	JAnnotationUse getEntityAssociationAnnotationUse(JFieldVar field) {
+	private boolean isOwningSideOfSingleValuedAssociation(JFieldVar field) {
+		JAnnotationUse au = getEntityAssociationAnnotationUse(field);
+		// we only generate the association getter for the owning
+		// side
+		boolean owningSide = null == au.getAnnotationMembers().get("mappedBy");
+		boolean multiValued = cm.ref(Collection.class).isAssignableFrom((JClass)field.type());
+		return owningSide && !multiValued;
+	}
+		
+	private JAnnotationUse getEntityAssociationAnnotationUse(JFieldVar field) {
 		for(JAnnotationUse au : field.annotations()) {
 			
 			if(entityAccociationAnnotationsSet.contains(au.getAnnotationClass())) {
@@ -153,28 +155,43 @@ class AccessorGenerator {
 		throw new RuntimeException("No entity association found, but there must be one...");
 	}
 	
-	private void generateBaseClassBuilderMethods(JDefinedClass cls, JDefinedClass builderClass) {
+	private JDefinedClass findEntityBaseClass(JDefinedClass cls) {
 		// find direct base entity class for class, if any
-		cls = Optional.of(cls._extends())
+		return Optional.of(cls._extends())
 			.filter(c -> c instanceof JDefinedClass)
 			.map(c -> (JDefinedClass)c)
 			.filter(c -> c.annotations().stream().anyMatch(au -> au.getAnnotationClass().equals(cm.ref(Entity.class))))
 			.orElse(null);
-		if(cls == null) {
-			return;
-		}
+	}
+	
+	private void generateBuilderMethods(JDefinedClass cls, JDefinedClass builderClass) {
 		
 		for(JFieldVar field : cls.fields().values()) {
-			if(!excludeFieldFromAccessors(field) && !isGeneratedValueColumnField(field)) {
-				genBuilderMethod(builderClass, field);
+			FieldKind fkind = determineFieldKind(field);
+			if(excludeFieldFromAccessors(field) || isGeneratedValueColumnField(field)) {
+				continue;
+			}
+			
+			if(!mutualUpdateEnabled || fkind!=FieldKind.ENTITY_ASSOCIATION) {
+				JFieldVar builderInstanceField = builderClass.fields().get(BUILDER_INSTANCE_NAME);
+				genBuilderMethod(builderClass, field, (body,param) -> {
+					body.assign(builderInstanceField.ref(field), param);
+				});
+			} else if (isOwningSideOfSingleValuedAssociation(field)){
+				genBuilderMethod(builderClass, field, (body,param) -> {
+					body.directStatement(BUILDER_INSTANCE_NAME + ".relationTo$" + field.name() + ".set("+BUILDER_INSTANCE_NAME+", " + param.name() + ");");
+				});
 			}
 		}
 		
-		generateBaseClassBuilderMethods(cls, builderClass);
+		cls = findEntityBaseClass(cls);
+		if(cls != null) {
+			generateBuilderMethods(cls, builderClass);
+		}
 	}
 		
 	
-	String initialUppercaseOf(String name) {
+	private String initialUppercaseOf(String name) {
 		return Character.toUpperCase(name.charAt(0)) + name.substring(1);
 	}
 	
@@ -212,14 +229,13 @@ class AccessorGenerator {
 		});
 	}
 	
-	private void genBuilderMethod(JDefinedClass builderClass, JFieldVar field) {
+	private void genBuilderMethod(JDefinedClass builderClass, JFieldVar field, BiConsumer<JBlock, JVar> assignmentImplementor) {
 		
 		// add method to builder implementation
-		JFieldVar builderInstanceField = builderClass.fields().get(BUILDER_INSTANCE_NAME);
 		JMethod m = builderClass.method(JMod.PUBLIC, builderClass, field.name());
 		JVar p = m.param(field.type(), field.name());
 		JBlock body = m.body();
-		body.assign(builderInstanceField.ref(field), p);
+		assignmentImplementor.accept(body, p);
 		body._return(JExpr._this());
 		
 	}
