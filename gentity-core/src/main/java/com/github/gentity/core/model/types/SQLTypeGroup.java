@@ -48,6 +48,7 @@ public enum SQLTypeGroup {
 			case INTEGER:
 			case BIGINT:
 			case DECIMAL:
+			case NUMERIC:
 			case REAL:
 			case FLOAT:
 			case DOUBLE:

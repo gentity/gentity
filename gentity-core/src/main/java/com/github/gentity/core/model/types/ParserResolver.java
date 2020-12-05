@@ -43,6 +43,10 @@ public class ParserResolver {
 		new PatternParserMapping(
 			Pattern.compile("mysql", Pattern.CASE_INSENSITIVE), 
 			new MySQLTypeParser()
+		),
+		new PatternParserMapping(
+			Pattern.compile("sqlserver", Pattern.CASE_INSENSITIVE), 
+			new SQLServerTypeParser()
 		)
 	);
 	

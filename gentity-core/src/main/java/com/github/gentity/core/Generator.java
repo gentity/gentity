@@ -92,11 +92,16 @@ import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.JDBCType;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import javax.persistence.Lob;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -119,6 +124,7 @@ public class Generator {
 	private final SchemaModel sm;
 	
 	JCodeModel cm;
+	List<JType> numericTypes;
 	Map<String, JDefinedClass> tablesToEntities;
 	Map<JDefinedClass, EntityInfo> entities;
 	Map<String, JDefinedClass> tablesToEmbeddables;
@@ -157,6 +163,20 @@ public class Generator {
 	JCodeModel generate() {
 		if(cm == null) {
 			cm = new JCodeModel();
+			// all subclasses of Number, as of Java 7 (and most likely all
+			// future Java versions to come...
+			numericTypes = Arrays.asList(
+				cm.ref(AtomicInteger.class),
+				cm.ref(AtomicLong.class),
+				cm.ref(BigDecimal.class),
+				cm.ref(BigInteger.class),
+				cm.ref(Byte.class),
+				cm.ref(Double.class),
+				cm.ref(Float.class),
+				cm.ref(Integer.class),
+				cm.ref(Long.class),
+				cm.ref(Short.class)
+			);
 		}
 		JPackage p = cm._package(sm.getTargetPackageName());
 		
@@ -510,6 +530,14 @@ public class Generator {
 		if(colType.equals(cm._ref(String.class))) {
 			columnAnnotation.param("length", column.getLength());
 		}
+		if(numericTypes.contains(colType)) {
+			if(column.getPrecision()!=null) {
+				columnAnnotation.param("precision", column.getPrecision());
+			}
+			if(column.getScale()!=null) {
+				columnAnnotation.param("scale", column.getScale());
+			}
+		}
 		if(!column.isNullable() && !sm.isColumnPrimaryKey(table, column)) {
 			columnAnnotation.param("nullable", false);
 		}
@@ -861,6 +889,7 @@ public class Generator {
 		JType jtype;
 		switch(type) {
 			case CHAR:
+			case NCHAR:
 				if(Short.valueOf((short)1).equals(column.getLength())) {
 					jtype = cm.ref(Character.class);
 				} else {
@@ -868,11 +897,13 @@ public class Generator {
 				}
 				break;
 			case VARCHAR:
+			case NVARCHAR:
 				jtype = cm.ref(String.class);
 				break;
 			case BIGINT:
 				jtype = cm.LONG;
 				break;
+			case SMALLINT:
 			case INTEGER:
 				jtype = cm.INT;
 				break;
@@ -886,6 +917,36 @@ public class Generator {
 			case DOUBLE:
 				jtype = cm.DOUBLE;
 				break;
+			case NUMERIC:
+			case DECIMAL: {
+				int p = 0;
+				int s = column.getScale() != null
+					?	column.getScale()
+					:	0;
+				if(s == 0) {
+					if(p<=9) {
+						// fits into Integer.MAX_VALUE
+						jtype = cm.INT;
+					} else if(p<=18) {
+						// fits into Long.MAX_VALUE
+						jtype = cm.LONG;
+					} else {
+						// won't fit anywhere: 
+						jtype = cm.ref(BigInteger.class);
+					}
+				} else {
+					if(p<=7) {
+						// 7 digits fit into float
+						jtype = cm.FLOAT;
+					} else if(p<=14) {
+						// 14 digits it into double
+						jtype = cm.DOUBLE;
+					} else {
+						// everything else is BidDecimal...
+						jtype = cm.ref(BigDecimal.class);
+					}
+				}
+			}
 			case TIMESTAMP_WITH_TIMEZONE:
 				jtype = cm.ref(Timestamp.class);
 				break;

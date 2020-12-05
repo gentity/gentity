@@ -67,5 +67,16 @@ public class MwbColumnModel implements ColumnModel{
 	public SequenceModel getSequence() {
 		return null;
 	}
+
+	@Override
+	public Integer getPrecision() {
+		return column.getPrecision();
+	}
+
+	@Override
+	public Integer getScale() {
+		return column.getScale();
+	}
+	
 	
 }

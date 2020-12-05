@@ -34,7 +34,7 @@ public class MySQLTypeParser extends GenericSQLTypeParser{
 			case "timestamp":
 				// the TIMESTAMP type on MySQL sort-of stores the timezone:
 				// it converts the provided time to UTC and stores it there.
-				// so wriging it in TZ Berlin and reading it in TZ Beijing
+				// so writing it in TZ Berlin and reading it in TZ Beijing
 				// will yield different, TZ specific time representations of
 				// the very same UTC time. 
 				// Therefore, we choose the WITH_TIMEZONE variant. This might

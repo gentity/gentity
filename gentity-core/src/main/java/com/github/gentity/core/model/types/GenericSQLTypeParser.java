@@ -41,9 +41,17 @@ public class GenericSQLTypeParser implements SQLTypeParser {
 			case "char":
 			case "character":
 				return JDBCType.CHAR;
+			case "nchar":
+			case "national character":
+				return JDBCType.NCHAR;
 			case "varchar":
 			case "character varying":
 				return JDBCType.VARCHAR;
+			case "nvarchar":
+			case "national character varying":
+				return JDBCType.NVARCHAR;
+			case "smallint":
+				return JDBCType.SMALLINT;
 			case "bigint":
 				return JDBCType.BIGINT;
 			case "int":
@@ -52,6 +60,10 @@ public class GenericSQLTypeParser implements SQLTypeParser {
 			case "bool":
 			case "boolean":
 				return JDBCType.BOOLEAN;
+			case "numeric":
+				return JDBCType.NUMERIC;
+			case "decimal":
+				return JDBCType.DECIMAL;
 			case "float":
 				return JDBCType.FLOAT;
 			case "bit":
