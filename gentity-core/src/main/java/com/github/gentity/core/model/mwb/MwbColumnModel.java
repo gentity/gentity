@@ -54,7 +54,7 @@ public class MwbColumnModel implements ColumnModel{
 	}
 
 	@Override
-	public int getLength() {
+	public Integer getLength() {
 		return column.getLength();
 	}
 

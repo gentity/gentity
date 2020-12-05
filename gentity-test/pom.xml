@@ -20,7 +20,7 @@
 				<artifactId>gentity-maven-plugin</artifactId>
 				<version>${project.version}</version>
 				<executions>
-<!-- -->
+
 					<execution>
 						<id>entities-test0a-basic-table</id>
 						<goals>
@@ -92,6 +92,16 @@
 							<inputFile>src/main/resources/test0g_basic_table_composite_pk.dbs</inputFile>
 							<mappingConfigFile>src/main/resources/test0g_basic_table_composite_pk.genconfig</mappingConfigFile>
 							<targetPackageName>com.github.gentity.test.test0g_basic_table_composite_pk</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
+						<id>entities-test0h_base_table_numeric_types</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputFile>src/main/resources/test0h_base_table_standard_types.dbs</inputFile>
+							<targetPackageName>com.github.gentity.test.test0h_base_table_standard_types</targetPackageName>
 						</configuration>
 					</execution>
 					<execution>
@@ -277,7 +287,6 @@
 							<mappingConfigFile>src/main/resources/test5a-element-collection-embeddable.genconfig</mappingConfigFile>
 						</configuration>
 					</execution>
-<!-- -->
 					<execution>
 						<id>entities-test5b</id>
 						<goals>
@@ -330,6 +339,16 @@
 							<targetPackageName>com.github.gentity.test.test6a_inheritance_basic_tables</targetPackageName>
 							<inputFile>src/main/resources/test6a-inheritance-basic-tables.dbs</inputFile>
 							<mappingConfigFile>src/main/resources/test6a-inheritance-basic-tables.genconfig</mappingConfigFile>
+						</configuration>
+					</execution>
+					<execution>
+						<id>entities-test9a</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<targetPackageName>com.github.gentity.test.test9a_dbs_sqlserver_types</targetPackageName>
+							<inputFile>src/main/resources/test9a_dbs_sqlserver_types.dbs</inputFile>
 						</configuration>
 					</execution>
 					

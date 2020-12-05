@@ -52,7 +52,7 @@ public class DbsColumnModel implements ColumnModel {
 	}
 
 	@Override
-	public int getLength() {
+	public Integer getLength() {
 		return dbsColumn.getLength();
 	}
 

@@ -30,6 +30,7 @@ limitations under the License.
     <xs:attribute type="xs:byte" name="decimal" use="optional"/>
     <xs:attribute type="xs:string" name="autoincrement" use="optional"/>
     <xs:attribute type="xs:string" name="sequence" use="optional"/>
+    <xs:attribute type="xs:string" name="prior" use="optional"/>
   </xs:complexType>
   <xs:simpleType name="IndexUnique">
 	  <xs:restriction base="xs:string">
@@ -57,6 +58,7 @@ limitations under the License.
       <xs:element type="Column" name="column" maxOccurs="unbounded" minOccurs="0"/>
     </xs:sequence>
     <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:string" name="prior" use="optional"/>
     <xs:attribute type="IndexUnique" name="unique" use="optional"/>
   </xs:complexType>
   <xs:complexType name="Table">
@@ -69,6 +71,7 @@ limitations under the License.
 	  <xs:element type="xs:string" name="options" minOccurs='0' maxOccurs="1"/>
     </xs:sequence>
     <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:string" name="prior" use="optional"/>
   </xs:complexType>
   <xs:complexType name="View">
     <xs:sequence>
@@ -77,6 +80,7 @@ limitations under the License.
       <xs:element name="column" type="Column" maxOccurs="unbounded" minOccurs="0"/>
     </xs:sequence>
     <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:string" name="prior" use="optional"/>
   </xs:complexType>
   <xs:complexType name="ForeignKeyColumn">
     <xs:simpleContent>

@@ -25,7 +25,7 @@ public interface ColumnModel {
 	String getName();
 	boolean isNullable();
 	JDBCType getType();
-	int getLength();
+	Integer getLength();
 	/**
 	 * The precision of a column for {@code NUMERIC} and {@code DECIMAL} types
 	 * (and possibley others). 

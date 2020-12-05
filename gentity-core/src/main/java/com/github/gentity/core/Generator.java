@@ -528,7 +528,9 @@ public class Generator {
 		columnAnnotation
 			.param("name", column.getName());
 		if(colType.equals(cm._ref(String.class))) {
-			columnAnnotation.param("length", column.getLength());
+			if(column.getLength()!=null) {
+				columnAnnotation.param("length", column.getLength());
+			}
 		}
 		if(numericTypes.contains(colType)) {
 			if(column.getPrecision()!=null) {
@@ -919,7 +921,9 @@ public class Generator {
 				break;
 			case NUMERIC:
 			case DECIMAL: {
-				int p = 0;
+				int p = column.getPrecision() != null
+					?	column.getPrecision()
+					:	0;
 				int s = column.getScale() != null
 					?	column.getScale()
 					:	0;
@@ -946,7 +950,7 @@ public class Generator {
 						jtype = cm.ref(BigDecimal.class);
 					}
 				}
-			}
+			}	break;
 			case TIMESTAMP_WITH_TIMEZONE:
 				jtype = cm.ref(Timestamp.class);
 				break;
