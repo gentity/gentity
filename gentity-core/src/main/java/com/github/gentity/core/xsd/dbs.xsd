@@ -24,7 +24,7 @@ limitations under the License.
     </xs:sequence>
     <xs:attribute type="xs:string" name="name" use="optional"/>
     <xs:attribute type="xs:string" name="type" use="optional"/>
-    <xs:attribute type="xs:short" name="length" use="optional"/>
+    <xs:attribute type="xs:int" name="length" use="optional"/>
     <xs:attribute type="xs:int" name="jt" use="optional"/>
     <xs:attribute type="xs:string" name="mandatory" use="optional"/>
     <xs:attribute type="xs:byte" name="decimal" use="optional"/>
@@ -61,12 +61,20 @@ limitations under the License.
   </xs:complexType>
   <xs:complexType name="Table">
     <xs:sequence>
-      <xs:element type="xs:string" name="options" minOccurs="0"/>
       <xs:element type="xs:string" name="comment" minOccurs="0"/>
       <xs:element type="Column" name="column" maxOccurs="unbounded" minOccurs="0"/>
       <xs:element type="Index" name="index" maxOccurs="unbounded" minOccurs="0"/>
       <xs:element type="ForeignKey" name="fk" maxOccurs="unbounded" minOccurs="0"/>
 	  <xs:element type="xs:string" name="storage" minOccurs='0' maxOccurs="1"/>
+	  <xs:element type="xs:string" name="options" minOccurs='0' maxOccurs="1"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="View">
+    <xs:sequence>
+      <xs:element name="comment" type="xs:string" minOccurs="0"/>
+      <xs:element name="view_script" type="xs:string" minOccurs="0"/>
+      <xs:element name="column" type="Column" maxOccurs="unbounded" minOccurs="0"/>
     </xs:sequence>
     <xs:attribute type="xs:string" name="name" use="optional"/>
   </xs:complexType>
@@ -100,6 +108,7 @@ limitations under the License.
     <xs:sequence>
       <xs:element type="Table" name="table" maxOccurs="unbounded" minOccurs="0"/>
       <xs:element type="Sequence" name="sequence" maxOccurs="unbounded" minOccurs="0"/>
+	  <xs:element type="View" name="view" maxOccurs="unbounded" minOccurs="0"/>
     </xs:sequence>
     <xs:attribute type="xs:string" name="name"/>
     <xs:attribute type="xs:string" name="schemaname"/>
@@ -113,11 +122,12 @@ limitations under the License.
         <xs:attribute type="xs:string" name="driver_jar"/>
         <xs:attribute type="xs:string" name="driver_desc"/>
         <xs:attribute type="xs:string" name="host"/>
-        <xs:attribute type="xs:short" name="port"/>
+        <xs:attribute type="xs:unsignedShort" name="port"/>
         <xs:attribute type="xs:string" name="instance"/>
         <xs:attribute type="xs:string" name="url"/>
         <xs:attribute type="xs:string" name="user"/>
         <xs:attribute type="xs:string" name="passwd"/>
+        <xs:attribute type="xs:string" name="schema_mapping"/>
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
