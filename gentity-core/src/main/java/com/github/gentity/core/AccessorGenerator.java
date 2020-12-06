@@ -24,14 +24,17 @@ import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldVar;
+import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JType;
 import com.sun.codemodel.JVar;
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -40,6 +43,7 @@ import java.util.stream.StreamSupport;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
@@ -111,6 +115,8 @@ class AccessorGenerator {
 		
 		JDefinedClass builderClass = genBuilderClass(cls);
 		
+		List<JFieldVar> fixedPrimaryKeyFields = new ArrayList<>();
+		
 		for(JFieldVar field : cls.fields().values()) {
 			if(excludeFieldFromAccessors(field)) {
 				continue;
@@ -120,9 +126,15 @@ class AccessorGenerator {
 				genGetter(cls, field);
 
 				if(!isGeneratedValueColumnField(field)) {
-					genSetter(cls, field);
+					if(annotationUseFor(field, Id.class).isPresent()) {
+						// we collect fields mapped to fixed (non-generated) primary keys
+						// so we can create constructor args from them later
+						fixedPrimaryKeyFields.add(field);
+					} else {
+						genSetter(cls, field);
 
-					genBuilderMethod(builderClass, field);
+						genBuilderMethod(builderClass, field);
+					}
 				}
 			} else {
 				JAnnotationUse au = getEntityAssociationAnnotationUse(field);
@@ -139,6 +151,10 @@ class AccessorGenerator {
 				}
 			}
 		}
+		
+		genConstructor(cls, fixedPrimaryKeyFields);
+		
+		genCreateBuilderMethod(cls, builderClass, fixedPrimaryKeyFields);
 		
 		generateBaseClassBuilderMethods(cls, builderClass);
 	}
@@ -202,7 +218,7 @@ class AccessorGenerator {
 	void genSetter(JDefinedClass cls, JFieldVar field) {
 		genSetterImpl(cls, field, (body,param) -> {
 			// body simply sets the field
-			body.assign(JExpr._this().ref(field), param);			
+			body.assign(JExpr._this().ref(field), param);
 		});
 	}
 	
@@ -210,6 +226,44 @@ class AccessorGenerator {
 		genSetterImpl(cls, field, (body,param) -> {
 			body.directStatement("relationTo$" + field.name() + ".set(this, " + param.name() + ");");
 		});
+	}
+	
+	private JMethod superconstructor(JDefinedClass cls) {
+		JClass supercls = cls._extends();
+		if(!(supercls instanceof JDefinedClass)) {
+			// we cannot look inside classes that we didn't define, therefore
+			// we simply assume they have a no-args constructor
+			return null;
+		}
+		
+		JDefinedClass _super = (JDefinedClass)supercls;
+		
+		// we only defined one constructor, so we expect that one
+		return _super.constructors().next();
+	}
+	
+	private void genConstructor(JDefinedClass cls, List<JFieldVar> fieldsToInitialize) {
+		JMethod ctor = cls.constructor(JMod.PUBLIC);
+		
+		JBlock body = ctor.body();
+		JMethod sctor = superconstructor(cls);
+		if(sctor != null) {
+			if(!sctor.params().isEmpty()) {
+				// call super constructor and pass on params that we collect
+				// for it in this constructor
+				JInvocation superInvocation = JExpr.invoke("super");
+				body.add(superInvocation);
+				
+				for(JVar v : sctor.params()) {
+					JVar param = ctor.param(v.type(), v.name());
+					superInvocation.arg(param);
+				}
+			}
+		}
+		for(JFieldVar f : fieldsToInitialize) {
+			JVar param = ctor.param(f.type(), f.name());
+			body.assign(JExpr._this().ref(f), param);
+		}
 	}
 	
 	private void genBuilderMethod(JDefinedClass builderClass, JFieldVar field) {
@@ -223,7 +277,35 @@ class AccessorGenerator {
 		body._return(JExpr._this());
 		
 	}
-
+	
+	private void genCreateBuilderMethod(JDefinedClass cls, JDefinedClass builderClass, List<JFieldVar> mandatoryInitializedFields) {
+		JFieldVar builderInstanceField = builderClass.fields().get(BUILDER_INSTANCE_NAME);
+		JMethod builderMethod = builderClass.method(JMod.PUBLIC, cls, BUILD_METHOD_NAME);
+		
+		List<JVar> params = new ArrayList<>();
+		for(JFieldVar field : mandatoryInitializedFields) {
+			JVar param = builderMethod.param(field.type(), field.name());
+			params.add(param);
+		}
+		
+		JMethod sctor = superconstructor(cls);
+		if(sctor != null) {
+			for(JVar sparam: sctor.params()) {
+				JVar param = builderMethod.param(sparam.type(), sparam.name());
+				params.add(param);
+			}
+		}
+		
+		JInvocation newexp = JExpr._new(cls);
+		for(JVar p : params) {
+			newexp.arg(p);
+		}
+		builderMethod
+			.body()
+			.assign(JExpr._this().ref(builderInstanceField), newexp)
+			._return(builderInstanceField);
+	}
+	
 	private JDefinedClass genBuilderClass(JDefinedClass cls) {
 		JDefinedClass builderClass;
 		try {
@@ -231,11 +313,7 @@ class AccessorGenerator {
 		} catch (JClassAlreadyExistsException ex) {
 			throw new RuntimeException(ex);
 		}
-		JFieldVar builderInstanceField = builderClass.field(JMod.PRIVATE|JMod.FINAL, cls, BUILDER_INSTANCE_NAME);
-		builderInstanceField.init(JExpr._new(cls));
-		builderClass.method(JMod.PUBLIC, cls, BUILD_METHOD_NAME)
-			.body()
-			._return(builderInstanceField);
+		builderClass.field(JMod.PRIVATE, cls, BUILDER_INSTANCE_NAME);
 		Optional<JDefinedClass> entitySuperclass = Optional.ofNullable(cls._extends())
 			.filter(c -> c instanceof JDefinedClass)
 			.map(JDefinedClass.class::cast)
