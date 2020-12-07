@@ -35,6 +35,7 @@
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
   </persistence-unit>
   <persistence-unit name="Test0g_basic_table_composite_pk" transaction-type="RESOURCE_LOCAL">
+    <class>com.github.gentity.test.test0g_basic_table_composite_pk.Party</class>
     <class>com.github.gentity.test.test0g_basic_table_composite_pk.Partyguest</class>
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
   </persistence-unit>

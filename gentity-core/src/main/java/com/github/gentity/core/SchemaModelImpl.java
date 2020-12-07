@@ -114,8 +114,6 @@ public class SchemaModelImpl implements SchemaModel {
 			}
 		}
 		
-		// TODO: abstract DbsModelReader out so that we finally are independent of the
-		// DBS format
 		databaseModel = reader.read(exclusions);
 		
 		// generate entity infos first that are declared in the mapping configuration file
@@ -212,19 +210,6 @@ public class SchemaModelImpl implements SchemaModel {
 		}
 		
 		initDefaultOneToNRelations();
-		
-		// validate root entity infos so that they either have
-		// a) a single primary key or
-		// b) a composite primary key AND an IdClass set.
-		//
-		// NOTE that we could extend b) in the future so that the IdClass is
-		// no longer a requirement, because without one Gentity could generate
-		// an EmbeddedId
-		for(RootEntityInfo ei : getRootEntityDefinitions()) {
-			if(ei.getTable().getPrimaryKey().size() > 1 && ei.getIdClass() == null) {
-				throw new RuntimeException(String.format("No idClass set for table '%s' which has a composite primary key", ei.getTable().getName()));
-			}
-		}
 		
 	}
 	

@@ -88,8 +88,11 @@ import com.github.gentity.core.model.ModelReader;
 import com.github.gentity.core.model.SequenceModel;
 import com.github.gentity.core.model.TableModel;
 import com.github.gentity.core.util.Tuple;
+import com.sun.codemodel.JBlock;
+import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
+import com.sun.codemodel.JVar;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.math.BigDecimal;
@@ -99,6 +102,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -289,6 +293,13 @@ public class Generator {
 				}
 			}
 				
+			// generate IdClass anotations
+			List<JDefinedClass> roots = entities.keySet().stream()
+				.filter(this::isClassHierarchyRoot)
+				.collect(Collectors.toList());
+			for(JDefinedClass e : roots) {
+				genIdClass(e, entities.get(e));
+			}
 			
 		} catch(JClassAlreadyExistsException caex) {
 			throw new RuntimeException(caex);
@@ -338,11 +349,6 @@ public class Generator {
 	private JDefinedClass genRootEntityClass(JPackage p, String nameCandidate, JDefinedClass superClassEntity, RootEntityInfo einfo) throws JClassAlreadyExistsException {
 		JDefinedClass cls = genEntityClassImpl(p, nameCandidate, superClassEntity, einfo);
 		
-		String idClassFQCN = einfo.getIdClass();
-		if(idClassFQCN != null) {
-			cls.annotate(IdClass.class)
-				.param("value", cm.directClass(idClassFQCN));
-		}
 		return cls;
 	}
 	
@@ -470,6 +476,122 @@ public class Generator {
 		JFieldVar field = cls.field(JMod.PROTECTED, colType, fieldName);
 		
 		annotateBasicField(cls, m, colType, etype, field);
+	}
+	
+	private void genIdClass(JDefinedClass cls, EntityInfo ei) throws JClassAlreadyExistsException {
+		// IdClass can only be generated on root entities
+		RootEntityInfo einfo = (RootEntityInfo)ei;
+		
+		String idClassFQCN = einfo.getIdClass();
+		JClass idClass = null;
+		if(idClassFQCN != null) {
+			// if the 'idClass' attribute was set, assume that class to
+			// exist and use it as IdClass
+			idClass = cm.directClass(idClassFQCN);
+		} else if(einfo.getTable().getPrimaryKey().size() > 1) {
+			// if we have a composite primary key, but no 'idClass' was set
+			// in the gentity file, we generate one
+			JDefinedClass genIdClass = cls._class(JMod.PUBLIC | JMod.STATIC, "Id");
+			List<JFieldVar> idFields = new ArrayList<>();
+			for(JFieldVar f : cls.fields().values()) {
+				boolean hasIdAnnotaiton = f.annotations().stream()
+					.anyMatch(a -> a.getAnnotationClass().equals(cm.ref(Id.class)));
+				if(hasIdAnnotaiton) {
+					JFieldVar idField = genIdClass.field(JMod.PRIVATE|JMod.FINAL, f.type(), f.name());
+					idFields.add(idField);
+				}
+			}
+			
+			genConstrutor(genIdClass, idFields);
+			genEquals(genIdClass, idFields);
+			genHashCode(genIdClass, idFields);
+			idClass = genIdClass;
+		}
+		
+		if(idClass != null) {
+			cls.annotate(IdClass.class)
+				.param("value", idClass);
+		}
+		
+	}
+	
+	private JMethod genConstrutor(JDefinedClass cls, List<JFieldVar> fieldsToInitialze) {
+		JMethod ctor = cls.constructor(JMod.PUBLIC);
+		for(JFieldVar f : fieldsToInitialze) {
+			JVar p = ctor.param(f.type(), f.name());
+			ctor.body().assign(JExpr._this().ref(f), p);
+		}
+		return ctor;
+	}
+	
+	private void genEquals(JDefinedClass cls, List<JFieldVar> equalsFields) {
+		
+		// mainly, the model for this was:
+		// https://www.sitepoint.com/implement-javas-equals-method-correctly/
+		
+		JMethod m = cls.method(JMod.PUBLIC, cm.BOOLEAN, "equals");
+		m.annotate(Override.class);
+		JVar p = m.param(cm._ref(Object.class), "o");
+		
+		JBlock body = m.body();
+		
+		// if(o==this) return true;
+		body._if(JExpr._this().eq(p))
+			._then()._return(JExpr.TRUE);
+		
+		// if(o==null) return false
+		body._if(JExpr._null().eq(p))
+			._then()._return(JExpr.FALSE);
+		
+		// if(getClass() != o.getClass()) return false
+		body._if(JExpr.invoke("getClass").ne(p.invoke("getClass")))
+			._then()._return(JExpr.FALSE);
+		
+		if(equalsFields.isEmpty()) {
+			// the unlikely case that there is nothing to compare, we''e done,
+			// because we say that two empty same-class objects are equal.
+			body._return(JExpr.TRUE);
+		} else {
+			// otherwise, do field-wise comparison..
+			
+			// cast to instance of class
+			// <classname> other = (<classname>)o;
+			JVar v = body.decl(cls, "other", JExpr.cast(cls, p));
+
+			// now make Objects.equals() chain of comparison to return, like this:
+			// return Objects.equals(field1, other.field1)
+			//     && Objects.equals(field2, other.field2)
+			//     ...
+			//     ;
+			JClass objCls = cm.ref(Objects.class);
+
+			JExpression lhs = null;
+			for(JFieldVar f : equalsFields) {
+				JExpression rhs = 
+					objCls.staticInvoke("equals")
+						.arg(f)
+						.arg(JExpr.ref(v, f));
+				if(lhs == null) {
+					lhs = rhs;
+				} else {
+					lhs = lhs.cand(rhs);
+				}
+			}
+			body._return(lhs);
+		}
+	}
+	
+	private void genHashCode(JDefinedClass cls, List<JFieldVar> hashCodeFields) {
+		// mainly, the model for this was:
+		// https://www.sitepoint.com/how-to-implement-javas-hashcode-correctly/
+		
+		JMethod m = cls.method(JMod.PUBLIC, cm.INT, "hashCode");
+		m.annotate(Override.class);
+		JInvocation hashInvocation = cm.ref(Objects.class).staticInvoke("hash");
+		for(JFieldVar f : hashCodeFields) {
+			hashInvocation.arg(f);
+		}
+		m.body()._return(hashInvocation);
 	}
 	
 	private EnumType mapEnumType(JType colType, FieldMapping m) {
