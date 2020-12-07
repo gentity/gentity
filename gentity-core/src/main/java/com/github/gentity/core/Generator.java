@@ -910,6 +910,9 @@ public class Generator {
 				jtype = cm.INT;
 				break;
 			case BOOLEAN:
+			case BIT:	// NOTE: not too sure on this one. Some DBs allow giving
+				// BIT a length > 1, which makes this mapping funky. May consider
+				// mapping BIT(2+) to boolean[] or something like that...
 				jtype = cm.BOOLEAN;
 				break;
 			case FLOAT:
