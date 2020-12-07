@@ -88,7 +88,7 @@ public class ModelReaderFactoryTest {
 		
 		ColumnModel companyName = company.getColumns().findColumn("name");
 		assertEquals(JDBCType.VARCHAR, companyName.getType());
-		assertEquals(100, companyName.getLength());
+		assertEquals(Integer.valueOf(100), companyName.getLength());
 		assertFalse(companyName.isIdentityColumn());
 		assertFalse(companyName.isNullable());
 		
