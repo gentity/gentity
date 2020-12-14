@@ -39,6 +39,10 @@
     <class>com.github.gentity.test.test0g_basic_table_composite_pk.Partyguest</class>
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
   </persistence-unit>
+  <persistence-unit name="Test0h_base_table_standard_types" transaction-type="RESOURCE_LOCAL">
+    <class>com.github.gentity.test.test0h_base_table_standard_types.NumberSample</class>
+    <exclude-unlisted-classes>true</exclude-unlisted-classes>
+  </persistence-unit>
   <persistence-unit name="Test1a_many_to_one" transaction-type="RESOURCE_LOCAL">
     <class>com.github.gentity.test.test1a_many_to_one.Company</class>
     <class>com.github.gentity.test.test1a_many_to_one.Employee</class>

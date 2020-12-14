@@ -24,7 +24,7 @@ import org.junit.Test;
  *
  * @author upachler
  */
-public class Test0h_base_table_standard_types {
+public class Test0h_base_table_standard_types extends AbstractGentityTest{
 	@Test
 	public void test() {
 		// if this compiles we're good
@@ -45,5 +45,7 @@ public class Test0h_base_table_standard_types {
 			.numNumericInt16(Long.MAX_VALUE)      // NUMERIC(16) - ... -> long
 			.numNumericInt32(BigInteger.ONE)      // NUMERIC(32) - 32 digits are too big for long -> BigInteger
 			.build();
+		
+		em.persist(ns);
 	}
 }
