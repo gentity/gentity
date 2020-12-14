@@ -66,10 +66,10 @@ public class Test1e_one_to_one_unidirectional extends AbstractGentityTest{
 			.build();
 		
 		em.persist(cc);
-		em.persist(e11);
-		em.persist(e12);
 		em.persist(d1);
+		em.persist(e11);
 		em.persist(d2);
+		em.persist(e12);
 		
 		Employee john = em.createQuery("SELECT DISTINCT e FROM Employee e WHERE e.firstname = 'John'", Employee.class)
 			.getSingleResult();
