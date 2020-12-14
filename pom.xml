@@ -20,6 +20,7 @@
 		<netbeans.hint.licensePath>${basedir}/license-template-netbeans.ftl</netbeans.hint.licensePath>
 		<netbeans.hint.license>apache20</netbeans.hint.license>
         <netbeans.hint.jdkPlatform>JDK_1.8</netbeans.hint.jdkPlatform>
+		<netbeans.compile.on.save>none</netbeans.compile.on.save>
 	</properties>
 	<organization>
 		<name>The Gentity Project</name>
