@@ -20,6 +20,7 @@ import com.github.gentity.test.test0g_basic_table_composite_pk.Partyguest;
 import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 import com.github.gentity.test.test0g_basic_table_composite_pk.PartyguestId;
+import java.io.Serializable;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
@@ -48,6 +49,10 @@ public class Test0g_basic_table_composite_pk extends AbstractGentityTest {
 		em.persist(p2);
 		
 		Party.Id pid = new Party.Id("Beerfest", "SmallTown");
+		
+		// compile time check that Party.Id is serializable
+		Serializable ser = (Serializable)pid;
+		
 		Party p = em.find(Party.class, pid);
 		assertEquals(pid, new Party.Id(p1.getName(), p1.getTown()));
 		assertFalse(pid.equals(new Party.Id(p2.getName(), p2.getTown())));

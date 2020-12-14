@@ -492,6 +492,7 @@ public class Generator {
 			// if we have a composite primary key, but no 'idClass' was set
 			// in the gentity file, we generate one
 			JDefinedClass genIdClass = cls._class(JMod.PUBLIC | JMod.STATIC, "Id");
+			genIdClass._implements(Serializable.class);
 			List<JFieldVar> idFields = new ArrayList<>();
 			for(JFieldVar f : cls.fields().values()) {
 				boolean hasIdAnnotaiton = f.annotations().stream()
