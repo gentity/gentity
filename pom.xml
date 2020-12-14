@@ -12,6 +12,8 @@
 		<module>gentity-maven-plugin</module>
 		<module>gentity-core</module>
 		<module>gentity-lib</module>
+	 <module>gentity-test-eclipselink</module>
+	 <module>gentity-test-hibernate</module>
 	</modules>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
