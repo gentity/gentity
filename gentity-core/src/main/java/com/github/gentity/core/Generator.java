@@ -498,12 +498,17 @@ public class Generator {
 				boolean hasIdAnnotaiton = f.annotations().stream()
 					.anyMatch(a -> a.getAnnotationClass().equals(cm.ref(Id.class)));
 				if(hasIdAnnotaiton) {
-					JFieldVar idField = genIdClass.field(JMod.PRIVATE|JMod.FINAL, f.type(), f.name());
+					JFieldVar idField = genIdClass.field(JMod.PRIVATE, f.type(), f.name());
 					idFields.add(idField);
 				}
 			}
 			
+			// generate
+			genIdClass.constructor(JMod.NONE);
+				
+			// generate field-initializing constructor
 			genConstrutor(genIdClass, idFields);
+			
 			genEquals(genIdClass, idFields);
 			genHashCode(genIdClass, idFields);
 			idClass = genIdClass;
