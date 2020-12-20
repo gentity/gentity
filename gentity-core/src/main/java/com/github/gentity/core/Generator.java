@@ -88,6 +88,7 @@ import com.github.gentity.core.model.PrimaryKeyModel;
 import com.github.gentity.core.model.SequenceModel;
 import com.github.gentity.core.model.TableModel;
 import com.github.gentity.core.util.Tuple;
+import com.sun.codemodel.JAnnotationValue;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JInvocation;
@@ -554,11 +555,23 @@ public class Generator {
 					} else {
 						targetClass = (JDefinedClass)f.type();
 					}
-
-					JDefinedClass targetIdClass = (JDefinedClass)Arrays.asList(targetClass.listClasses()).stream()
-						.filter(c -> c.name().equals(IDCLASS_NAME))
-						.findFirst()
-						.orElse(null);
+					
+					// find target's IdClass annotation, and deduce the
+					// class that's declared - the @IdClass can be filled with
+					// a generated id class or a custom defined one
+					JClass targetIdClass = null;
+					if(targetClass.annotations().stream()
+						.anyMatch(a -> a.getAnnotationClass().equals(cm.ref(IdClass.class)))) {
+						RootEntityInfo einfo = ((RootEntityInfo)entities.get(targetClass));
+						if(einfo.getIdClass() != null) {
+							targetIdClass = cm.ref(einfo.getIdClass());
+						} else {
+							targetIdClass = (JDefinedClass)Arrays.asList(targetClass.listClasses()).stream()
+								.filter(c -> c.name().equals(IDCLASS_NAME))
+								.findFirst()
+								.get();
+						}
+					}
 
 					if(targetIdClass != null) {
 						idFieldType = targetIdClass;
