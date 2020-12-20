@@ -222,6 +222,16 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>test1k_many_to_one_composite_pk_derived_identity</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputFile>src/main/resources/test1k_many_to_one_composite_pk_derived_identity.dbs</inputFile>
+							<targetPackageName>com.github.gentity.test.test1k_many_to_one_composite_pk_derived_identity</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
 						<id>entities-test2</id>
 						<goals>
 							<goal>generate</goal>

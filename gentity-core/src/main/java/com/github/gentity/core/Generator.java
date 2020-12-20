@@ -26,7 +26,6 @@ import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
-import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JPackage;
 import com.sun.codemodel.JType;
@@ -85,6 +84,7 @@ import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.ForeignKeyModel;
 import com.github.gentity.core.model.ForeignKeyModel.Mapping;
 import com.github.gentity.core.model.ModelReader;
+import com.github.gentity.core.model.PrimaryKeyModel;
 import com.github.gentity.core.model.SequenceModel;
 import com.github.gentity.core.model.TableModel;
 import com.github.gentity.core.util.Tuple;
@@ -101,6 +101,7 @@ import java.sql.JDBCType;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Optional;
@@ -134,6 +135,7 @@ public class Generator {
 	Map<String, JDefinedClass> tablesToEmbeddables;
 	Map<JDefinedClass, CollectionTableDecl> embeddables;
 	
+	private static final String IDCLASS_NAME = "Id";
 	private final EntityRefFactory LIST_ENTITY_REF_FACTORY = new EntityRefFactory() {
 		@Override
 		public JExpression createInitExpression() {
@@ -297,8 +299,21 @@ public class Generator {
 			List<JDefinedClass> roots = entities.keySet().stream()
 				.filter(this::isClassHierarchyRoot)
 				.collect(Collectors.toList());
+			
+			List<JDefinedClass> generatedIdClasses = new ArrayList<>();
 			for(JDefinedClass e : roots) {
-				genIdClass(e, entities.get(e));
+				JClass idClass = genIdClassAnnotation(e, entities.get(e));
+				if(idClass != null && idClass instanceof JDefinedClass) {
+					generatedIdClasses.add((JDefinedClass)idClass);
+				}
+			}
+			
+			// generate class bodies for generated id classes - this needs
+			// to be done after the IdClass annotation generation, because
+			// empty id classes are also generated in the previous step that
+			// we now depend on
+			for(JDefinedClass i : generatedIdClasses) {
+				genIdClassBody(i);
 			}
 			
 		} catch(JClassAlreadyExistsException caex) {
@@ -478,7 +493,7 @@ public class Generator {
 		annotateBasicField(cls, m, colType, etype, field);
 	}
 	
-	private void genIdClass(JDefinedClass cls, EntityInfo ei) throws JClassAlreadyExistsException {
+	private JClass genIdClassAnnotation(JDefinedClass cls, EntityInfo ei) throws JClassAlreadyExistsException {
 		// IdClass can only be generated on root entities
 		RootEntityInfo einfo = (RootEntityInfo)ei;
 		
@@ -491,26 +506,7 @@ public class Generator {
 		} else if(einfo.getTable().getPrimaryKey().size() > 1) {
 			// if we have a composite primary key, but no 'idClass' was set
 			// in the gentity file, we generate one
-			JDefinedClass genIdClass = cls._class(JMod.PUBLIC | JMod.STATIC, "Id");
-			genIdClass._implements(Serializable.class);
-			List<JFieldVar> idFields = new ArrayList<>();
-			for(JFieldVar f : cls.fields().values()) {
-				boolean hasIdAnnotaiton = f.annotations().stream()
-					.anyMatch(a -> a.getAnnotationClass().equals(cm.ref(Id.class)));
-				if(hasIdAnnotaiton) {
-					JFieldVar idField = genIdClass.field(JMod.PRIVATE, f.type(), f.name());
-					idFields.add(idField);
-				}
-			}
-			
-			// generate
-			genIdClass.constructor(JMod.NONE);
-				
-			// generate field-initializing constructor
-			genConstrutor(genIdClass, idFields);
-			
-			genEquals(genIdClass, idFields);
-			genHashCode(genIdClass, idFields);
+			JDefinedClass genIdClass = cls._class(JMod.PUBLIC | JMod.STATIC, IDCLASS_NAME);
 			idClass = genIdClass;
 		}
 		
@@ -519,6 +515,82 @@ public class Generator {
 				.param("value", idClass);
 		}
 		
+		return idClass;
+	}
+	
+	private void genIdClassBody(JDefinedClass genIdClass) {
+		JDefinedClass cls = (JDefinedClass)genIdClass.outer();
+		
+		genIdClass._implements(Serializable.class);
+		List<JFieldVar> idFields = new ArrayList<>();
+		for(JFieldVar f : cls.fields().values()) {
+			boolean hasIdAnnotation = f.annotations().stream()
+				.anyMatch(a -> a.getAnnotationClass().equals(cm.ref(Id.class)));
+			if(hasIdAnnotation) {
+
+				boolean isAssociationField = f.annotations().stream()
+					.map(a -> a.getAnnotationClass())
+					.anyMatch(ac -> 
+							ac.equals(cm.ref(OneToOne.class))
+						||	ac.equals(cm.ref(OneToMany.class))
+						||	ac.equals(cm.ref(ManyToOne.class))
+						||	ac.equals(cm.ref(ManyToMany.class))
+					);
+
+				JType idFieldType;
+
+				if(!isAssociationField) {
+					idFieldType = f.type();
+				} else {
+
+					JDefinedClass targetClass;
+					JClass fieldClass = (JClass)f.type();
+					if(cm.ref(Map.class).isAssignableFrom(fieldClass)) {
+						// Map has the target type as the second type argument
+						targetClass = (JDefinedClass)fieldClass.getTypeParameters().get(1);
+					} else if(cm.ref(Collection.class).isAssignableFrom((JClass)f.type())) {
+						// the other collection types have it as the first type arg
+						targetClass = (JDefinedClass)fieldClass.getTypeParameters().get(0);
+					} else {
+						targetClass = (JDefinedClass)f.type();
+					}
+
+					JDefinedClass targetIdClass = (JDefinedClass)Arrays.asList(targetClass.listClasses()).stream()
+						.filter(c -> c.name().equals(IDCLASS_NAME))
+						.findFirst()
+						.orElse(null);
+
+					if(targetIdClass != null) {
+						idFieldType = targetIdClass;
+					} else {
+						// if we do not have an id class, we assume that
+						// there is only one field representing the primary
+						// key (i.e. one field only has the @Id annotation)
+						List<JFieldVar> targetIdFields = targetClass.fields().values().stream()
+							.filter(tf -> tf.annotations().stream()
+								.anyMatch(a -> a.getAnnotationClass().equals(cm.ref(Id.class)))
+							)
+							.collect(Collectors.toList());
+						assert targetIdFields.size() == 1;
+
+						// the id field type in this case is the type of the
+						// single id field in the target class
+						idFieldType = targetIdFields.get(0).type();
+					}
+				}
+				JFieldVar idField = genIdClass.field(JMod.PRIVATE, idFieldType, f.name());
+				idFields.add(idField);
+			}
+		}
+
+		// generate
+		genIdClass.constructor(JMod.NONE);
+
+		// generate field-initializing constructor
+		genConstrutor(genIdClass, idFields);
+
+		genEquals(genIdClass, idFields);
+		genHashCode(genIdClass, idFields);
 	}
 	
 	private JMethod genConstrutor(JDefinedClass cls, List<JFieldVar> fieldsToInitialze) {
@@ -853,6 +925,20 @@ public class Generator {
 		} else {
 			assert otm.getKind().getFrom() == MANY;
 			childField.annotate(ManyToOne.class);
+		}
+		
+		// annotate with @Id if any column is part of a primary key if we're
+		// not on a collection table embeddable
+		PrimaryKeyModel pk = otm.getTable().getPrimaryKey();
+		if(pk != null && collectionTable==null) {
+			Set<String> pkColNames = pk.stream()
+				.map(ColumnModel::getName)
+				.collect(Collectors.toSet());
+
+			if(otm.getForeignKey().getColumns().stream()
+				.anyMatch(c -> pkColNames.contains(c.getName()))) {
+				childField.annotate(Id.class);
+			}
 		}
 		
 		annotateJoinColumns(childField::annotate, () -> childField.annotate(JoinColumns.class).paramArray("value"), fkCols);

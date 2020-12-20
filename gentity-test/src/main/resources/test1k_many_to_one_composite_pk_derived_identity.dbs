@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="test1k_many_to_one_composite_pk_derived_identity" id="Project_9f3d60" template="Default" database="MySql" >
+	<schema name="test1k" schemaname="test1k" >
+		<table name="order_item" >
+			<column name="order_id" type="bigint" jt="-5" mandatory="y" />
+			<column name="pos" type="int" jt="4" mandatory="y" />
+			<column name="sku" type="bigint" jt="-5" mandatory="y" />
+			<index name="pk_order_item_pos" unique="PRIMARY_KEY" >
+				<column name="order_id" />
+				<column name="pos" />
+			</index>
+			<fk name="fk_order_item_orderhead" to_schema="test1k" to_table="orderhead" >
+				<fk_column name="order_id" pk="id" />
+			</fk>
+			<storage><![CDATA[engine=InnoDB]]></storage>
+		</table>
+		<table name="order_item_extra" >
+			<column name="order_id" type="bigint" jt="-5" mandatory="y" />
+			<column name="pos" type="int" jt="4" mandatory="y" />
+			<column name="extra_code" type="int" jt="4" mandatory="y" />
+			<column name="description" type="varchar" length="100" jt="12" mandatory="y" />
+			<index name="pk_order_item_extra_order_id" unique="PRIMARY_KEY" >
+				<column name="order_id" />
+				<column name="pos" />
+				<column name="extra_code" />
+			</index>
+			<fk name="fk_order_item_extra_order_item" to_schema="test1k" to_table="order_item" >
+				<fk_column name="order_id" pk="order_id" />
+				<fk_column name="pos" pk="pos" />
+			</fk>
+			<storage><![CDATA[engine=InnoDB]]></storage>
+		</table>
+		<table name="orderhead" >
+			<column name="id" type="int" jt="4" mandatory="y" />
+			<column name="description" type="varchar" length="200" jt="12" mandatory="y" />
+			<index name="pk_orderhead_id" unique="PRIMARY_KEY" >
+				<column name="id" />
+			</index>
+			<storage><![CDATA[engine=InnoDB]]></storage>
+		</table>
+	</schema>
+	<layout name="Default Layout" id="Layout_fbdec3" show_relation="columns" >
+		<entity schema="test1k" name="order_item" color="C1D8EE" x="240" y="128" />
+		<entity schema="test1k" name="order_item_extra" color="C1D8EE" x="512" y="176" />
+		<entity schema="test1k" name="orderhead" color="C1D8EE" x="48" y="128" />
+		<callout x="128" y="48" pointer="NO" >
+			<comment><![CDATA[This project is in offline mode.
+Design the schema and save the design to project file. Later create or upgrade the schema on any database.
+Right-click the layout to add new tables. Drop this callout from its right-click pop-up menu.]]></comment>
+		</callout>
+	</layout>
+</project>

@@ -95,6 +95,12 @@
 	<class>com.github.gentity.test.test1j_many_to_one_bid_update_delete.Employee</class>
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
   </persistence-unit>
+  <persistence-unit name="Test1k_many_to_one_composite_pk_derived_identity" transaction-type="RESOURCE_LOCAL">
+    <class>com.github.gentity.test.test1k_many_to_one_composite_pk_derived_identity.Orderhead</class>
+	<class>com.github.gentity.test.test1k_many_to_one_composite_pk_derived_identity.OrderItem</class>
+	<class>com.github.gentity.test.test1k_many_to_one_composite_pk_derived_identity.OrderItemExtra</class>
+    <exclude-unlisted-classes>true</exclude-unlisted-classes>
+  </persistence-unit>
   <persistence-unit name="Test1" transaction-type="RESOURCE_LOCAL">
     <class>com.github.gentity.test.test1.Customer</class>
     <class>com.github.gentity.test.test1.User</class>
