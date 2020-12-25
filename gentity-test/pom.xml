@@ -232,6 +232,16 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>Test1l_n_to_m_cascade</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputFile>src/main/resources/Test1l_n_to_m_cascade.dbs</inputFile>
+							<targetPackageName>com.github.gentity.test.test1l_n_to_m_cascade</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
 						<id>entities-test2</id>
 						<goals>
 							<goal>generate</goal>

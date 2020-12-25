@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="test1l_n_to_m_cascade" id="Project_1f0c1f" template="Default" database="MySql" >
+	<schema name="test1l_n_to_m_cascade" schemaname="test1l_n_to_m_cascade" >
+		<table name="pizza_order" >
+			<column name="id" type="bigint" jt="-5" mandatory="y" autoincrement="y" />
+			<index name="pk_pizza_order_id" unique="PRIMARY_KEY" >
+				<column name="id" />
+			</index>
+			<storage><![CDATA[engine=InnoDB]]></storage>
+		</table>
+		<table name="pizza_order_item" >
+			<column name="id" type="bigint" jt="-5" mandatory="y" />
+			<column name="pizza_order_id" type="bigint" jt="-5" mandatory="y" />
+			<column name="product_id" type="int" jt="4" mandatory="y" />
+			<column name="amount" type="int" jt="4" mandatory="y" />
+			<index name="pk_pizza_order_item_id" unique="PRIMARY_KEY" >
+				<column name="id" />
+			</index>
+			<fk name="fk_pizza_order_item_pizza_order" to_schema="test1l_n_to_m_cascade" to_table="pizza_order" >
+				<fk_column name="pizza_order_id" pk="id" />
+			</fk>
+			<fk name="fk_pizza_order_item_product" to_schema="test1l_n_to_m_cascade" to_table="product" >
+				<fk_column name="product_id" pk="id" />
+			</fk>
+			<storage><![CDATA[engine=InnoDB]]></storage>
+		</table>
+		<table name="pizza_recipe" >
+			<column name="name" type="varchar" length="100" jt="12" mandatory="y" />
+			<index name="pk_pizza_recipe_name" unique="PRIMARY_KEY" >
+				<column name="name" />
+			</index>
+			<storage><![CDATA[engine=InnoDB]]></storage>
+		</table>
+		<table name="pizza_recipe_topping" >
+			<column name="pizza_recipe_name" type="varchar" length="100" jt="12" />
+			<column name="topping_name" type="varchar" length="100" jt="12" />
+			<index name="unq_pizza_recipe_topping_pizza_recipe_name" unique="UNIQUE" >
+				<column name="pizza_recipe_name" />
+			</index>
+			<fk name="fk_pizza_recipe_topping_topping" to_schema="test1l_n_to_m_cascade" to_table="topping" >
+				<fk_column name="pizza_recipe_name" pk="name" />
+			</fk>
+			<fk name="fk_pizza_recipe_topping_pizza_recipe" to_schema="test1l_n_to_m_cascade" to_table="pizza_recipe" >
+				<fk_column name="topping_name" pk="name" />
+			</fk>
+			<storage><![CDATA[engine=InnoDB]]></storage>
+		</table>
+		<table name="product" >
+			<column name="id" type="int" jt="4" mandatory="y" />
+			<column name="pizza_recipe_name" type="varchar" length="100" jt="12" />
+			<index name="pk_product_id" unique="PRIMARY_KEY" >
+				<column name="id" />
+			</index>
+			<index name="uq_product_recipe_name" unique="UNIQUE" >
+				<column name="pizza_recipe_name" />
+			</index>
+			<fk name="fk_product_pizza_recipe" to_schema="test1l_n_to_m_cascade" to_table="pizza_recipe" >
+				<fk_column name="pizza_recipe_name" pk="name" />
+			</fk>
+			<storage><![CDATA[engine=InnoDB]]></storage>
+		</table>
+		<table name="topping" >
+			<column name="name" type="varchar" length="100" jt="12" mandatory="y" />
+			<index name="pk_topping_name" unique="PRIMARY_KEY" >
+				<column name="name" />
+			</index>
+			<storage><![CDATA[engine=InnoDB]]></storage>
+		</table>
+	</schema>
+	<layout name="Default Layout" id="Layout_fc84bc" show_relation="columns" >
+		<entity schema="test1l_n_to_m_cascade" name="topping" color="C1D8EE" x="896" y="176" />
+		<entity schema="test1l_n_to_m_cascade" name="pizza_recipe" color="C1D8EE" x="496" y="176" />
+		<entity schema="test1l_n_to_m_cascade" name="product" color="C1D8EE" x="208" y="176" />
+		<entity schema="test1l_n_to_m_cascade" name="pizza_order" color="C1D8EE" x="48" y="432" />
+		<entity schema="test1l_n_to_m_cascade" name="pizza_order_item" color="C1D8EE" x="224" y="432" />
+		<entity schema="test1l_n_to_m_cascade" name="pizza_recipe_topping" color="C1D8EE" x="672" y="176" />
+		<callout x="64" y="48" pointer="NO" >
+			<comment><![CDATA[This project is in offline mode.
+Design the schema and save the design to project file. Later create or upgrade the schema on any database.
+Right-click the layout to add new tables. Drop this callout from its right-click pop-up menu.]]></comment>
+		</callout>
+	</layout>
+</project>

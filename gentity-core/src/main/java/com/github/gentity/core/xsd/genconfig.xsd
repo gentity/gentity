@@ -438,8 +438,22 @@ limitations under the License.
 	</xs:complexType>
 	
 	<xs:complexType name="Relation">
-		<xs:attribute name="foreignKey" type="xs:string"/>
+		<xs:attribute name="foreignKey" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>
+					The foreign key to identify this relation
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="cascade" type="tns:CascadeTypeList" default="">
+			<xs:annotation>
+				<xs:documentation>
+					Specifies the cascade types to use on this side of the relation. Defaults to the empty list.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
 	</xs:complexType>
+	
 	<xs:complexType name="OwnerTargetRelation">
 		<xs:complexContent>
 			<xs:extension base="tns:Relation">
@@ -485,6 +499,20 @@ limitations under the License.
 		</xs:complexContent>
 	</xs:complexType>
 	
+	<xs:simpleType name="CascadeType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="ALL"/>
+			<xs:enumeration value="PERSIST"/>
+			<xs:enumeration value="MERGE"/>
+			<xs:enumeration value="REMOVE"/>
+			<xs:enumeration value="REFRESH"/>
+			<xs:enumeration value="DETACH"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="CascadeTypeList">
+		<xs:list itemType="tns:CascadeType"/>
+	</xs:simpleType>
+	
 	<xs:complexType name="XToOneRelation">
 		<xs:complexContent>
 			<xs:extension base="tns:InverseTargetRelation">
@@ -494,6 +522,13 @@ limitations under the License.
 						<xs:documentation>
 							Specifies if the association is bidirectional or
 							unidirectional.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="cascadeInverse" type="tns:CascadeTypeList" default="">
+					<xs:annotation>
+						<xs:documentation>
+							Specifies the cascade types to use for the inverse side of the relation. Defaults to the empty list.
 						</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
