@@ -22,6 +22,7 @@ import java.util.EnumSet;
 import java.util.Set;
 import static javax.persistence.CascadeType.*;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import org.junit.Assert;
 import org.junit.Test;
@@ -42,10 +43,16 @@ public class Test1l_n_to_m_cascade extends AbstractGentityTest {
 	
 	@Test
 	public void test() throws NoSuchFieldException {
-		OneToMany orderItemMTO = PizzaOrder.class.getDeclaredField("pizzaOrderItem").getAnnotation(OneToMany.class);
-		Assert.assertEquals(EnumSet.of(PERSIST, MERGE), setOf(orderItemMTO.cascade()));
+		OneToMany orderItemOTM = PizzaOrder.class.getDeclaredField("pizzaOrderItem").getAnnotation(OneToMany.class);
+		Assert.assertEquals(EnumSet.of(PERSIST, MERGE), setOf(orderItemOTM.cascade()));
 		
-		ManyToMany recipeMTO = PizzaRecipe.class.getDeclaredField("topping").getAnnotation(ManyToMany.class);
-		Assert.assertEquals(EnumSet.of(PERSIST), setOf(recipeMTO.cascade()));
+		ManyToOne orderMTO = PizzaOrderItem.class.getDeclaredField("pizzaOrder").getAnnotation(ManyToOne.class);
+		Assert.assertEquals(EnumSet.of(ALL), setOf(orderMTO.cascade()));
+		
+		ManyToMany recipeMTM = PizzaRecipe.class.getDeclaredField("topping").getAnnotation(ManyToMany.class);
+		Assert.assertEquals(EnumSet.of(PERSIST), setOf(recipeMTM.cascade()));
+		
+		ManyToMany toppingMTO = Topping.class.getDeclaredField("pizzaRecipe").getAnnotation(ManyToMany.class);
+		Assert.assertEquals(EnumSet.of(REMOVE), setOf(toppingMTO.cascade()));
 	}
 }

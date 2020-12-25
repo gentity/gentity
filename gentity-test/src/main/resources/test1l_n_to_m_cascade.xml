@@ -22,11 +22,12 @@ limitations under the License.
 			../../../../gentity-core/src/main/java/com/github/gentity/core/xsd/genconfig.xsd
 	"
 >
-	<entityTable table="pizza_order_item">
-		<manyToOne foreignKey="fk_pizza_order_item_pizza_order" cascadeInverse="PERSIST MERGE"/>
-	</entityTable>
-	
 	<joinTable table="pizza_recipe_topping">
 		<ownerRelation foreignKey="fk_pizza_recipe_topping_pizza_recipe" cascade="PERSIST"/>
+		<inverseRelation cascade="REMOVE"/>
 	</joinTable>
+	
+	<entityTable table="pizza_order_item">
+		<manyToOne foreignKey="fk_pizza_order_item_pizza_order" cascade="ALL" cascadeInverse="PERSIST MERGE"/>
+	</entityTable>
 </mappingConfig>

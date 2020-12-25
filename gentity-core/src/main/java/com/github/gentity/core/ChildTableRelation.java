@@ -21,8 +21,10 @@ import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.ForeignKeyModel;
 import com.github.gentity.core.model.IndexModel;
 import com.github.gentity.core.model.TableModel;
+import java.util.EnumSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.persistence.CascadeType;
 
 /**
  * represents a one-to-many or one-to-one relation
@@ -71,11 +73,11 @@ public class ChildTableRelation extends Relation{
 	}
 	
 	public ChildTableRelation(TableModel table, ForeignKeyModel foreignKey, Directionality directionality) {
-		this(deriveKind(table, foreignKey, directionality), table, foreignKey, null, null);
+		this(deriveKind(table, foreignKey, directionality), table, foreignKey, null, null, null, null);
 	}
 	
-	public ChildTableRelation(Kind kind, TableModel table, ForeignKeyModel foreignKey, String owningEntityName, String inverseEntityName) {
-		super(table);
+	public ChildTableRelation(Kind kind, TableModel table, ForeignKeyModel foreignKey, String owningEntityName, EnumSet<CascadeType> ownerCascade, String inverseEntityName, EnumSet<CascadeType> inverseCascade) {
+		super(table, ownerCascade, inverseCascade);
 		this.kind = kind;
 		this.foreignKey = foreignKey;
 		this.owningEntityName = owningEntityName;

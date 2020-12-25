@@ -16,6 +16,8 @@
 package com.github.gentity.core;
 
 import com.github.gentity.core.model.TableModel;
+import java.util.EnumSet;
+import javax.persistence.CascadeType;
 
 /**
  *
@@ -24,12 +26,27 @@ import com.github.gentity.core.model.TableModel;
 public abstract class Relation {
 
 	protected final TableModel table;
+	protected final EnumSet<CascadeType> ownerCascadeTypes;
+	protected final EnumSet<CascadeType> inverseCascadeTypes;
 	
-	protected Relation(TableModel table) {
+	protected Relation(TableModel table, EnumSet<CascadeType> ownerCascadeTypes, EnumSet<CascadeType> inverseCascadeTypes) {
 		this.table = table;
+		this.ownerCascadeTypes = ownerCascadeTypes==null
+			?	EnumSet.noneOf(CascadeType.class)
+			:	ownerCascadeTypes;
+		this.inverseCascadeTypes = inverseCascadeTypes==null
+			?	EnumSet.noneOf(CascadeType.class)
+			:	inverseCascadeTypes;
 	}
 	public TableModel getTable() {
 		return table;
+	}
+	public EnumSet<CascadeType> getOwnerCascadeTypes() {
+		return ownerCascadeTypes;
+	}
+
+	public EnumSet<CascadeType> getInverseCascadeTypes() {
+		return inverseCascadeTypes;
 	}
 	
 }

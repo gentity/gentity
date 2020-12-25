@@ -88,7 +88,6 @@ import com.github.gentity.core.model.PrimaryKeyModel;
 import com.github.gentity.core.model.SequenceModel;
 import com.github.gentity.core.model.TableModel;
 import com.github.gentity.core.util.Tuple;
-import com.sun.codemodel.JAnnotationValue;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JInvocation;
@@ -111,6 +110,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.persistence.Lob;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.ElementCollection;
 import javax.persistence.Embeddable;
@@ -933,12 +933,14 @@ public class Generator {
 		JFieldVar childField = childTableClass.field(JMod.PROTECTED, parentTableEntity, fieldName);
 		
 		// @ManyToOne / @OneToOne
+		JAnnotationUse toManyAnno;
 		if(otm.getKind().getFrom() == ONE) {
-			childField.annotate(OneToOne.class);
+			toManyAnno = childField.annotate(OneToOne.class);
 		} else {
 			assert otm.getKind().getFrom() == MANY;
-			childField.annotate(ManyToOne.class);
+			toManyAnno = childField.annotate(ManyToOne.class);
 		}
+		genCascadeAnnotationParam(toManyAnno, otm.getOwnerCascadeTypes());
 		
 		// annotate with @Id if any column is part of a primary key if we're
 		// not on a collection table embeddable
@@ -960,12 +962,14 @@ public class Generator {
 		JFieldVar parentField = null;
 		if(otm.getKind() == ONE_TO_ONE) {
 			parentField = parentTableEntity.field(JMod.PROTECTED, childTableClass, toFieldName(parentTableEntity, otm.getTable().getName()));
-			parentField.annotate(OneToOne.class)
-				.param("mappedBy", childField.name());
+			JAnnotationUse anno = parentField.annotate(OneToOne.class);
+			anno.param("mappedBy", childField.name());
+			genCascadeAnnotationParam(anno, otm.getInverseCascadeTypes());
 		} else if(otm.getKind() == MANY_TO_ONE){
 			parentField = genCollectionFieldVar(parentTableEntity, childTableClass);
-			parentField.annotate(OneToMany.class)
-				.param("mappedBy", childField.name());
+			JAnnotationUse anno = parentField.annotate(OneToMany.class);
+			anno.param("mappedBy", childField.name());
+			genCascadeAnnotationParam(anno, otm.getInverseCascadeTypes());
 		}
 		
 		if(isAutomaticBidirectionalUpdateEnabled()) {
@@ -977,6 +981,15 @@ public class Generator {
 			}
 		}
 
+	}
+	
+	private void genCascadeAnnotationParam(JAnnotationUse anno, EnumSet<CascadeType> cascadeTypes) {
+		if(!cascadeTypes.isEmpty()) {
+			JAnnotationArrayMember cascadeArray = anno.paramArray("cascade");
+			for(CascadeType ct : cascadeTypes) {
+				cascadeArray.param(cm.ref(CascadeType.class).staticRef(ct.name()));
+			}
+		}
 	}
 	
 	private void genRelationSideField(JDefinedClass entity, JFieldVar field, Cardinality toCardinality, JClass otherEntity, JFieldVar otherField) {
@@ -1059,7 +1072,8 @@ public class Generator {
 	private void genJoinTableRelation(JDefinedClass ownerClass, JDefinedClass inverseClass, JoinTableRelation jtr) {
 		JFieldVar ownerField = genCollectionFieldVar(ownerClass, inverseClass);
 		
-		ownerField.annotate(ManyToMany.class);
+		JAnnotationUse onwerAnno = ownerField.annotate(ManyToMany.class);
+		genCascadeAnnotationParam(onwerAnno, jtr.getOwnerCascadeTypes());
 		
 		JAnnotationUse joinTableAnnotation = ownerField.annotate(JoinTable.class)
 			.param("name", jtr.getTable().getName());
@@ -1076,8 +1090,9 @@ public class Generator {
 		if(jtr.getKind().getDirectionality() == BIDIRECTIONAL) {
 			inverseField = genCollectionFieldVar(inverseClass, ownerClass);
 
-			inverseField.annotate(ManyToMany.class)
-				.param("mappedBy", ownerField.name());
+			JAnnotationUse inverseAnno = inverseField.annotate(ManyToMany.class);
+			inverseAnno.param("mappedBy", ownerField.name());
+			genCascadeAnnotationParam(inverseAnno, jtr.getInverseCascadeTypes());
 		}
 		
 		if(isAutomaticBidirectionalUpdateEnabled()) {
