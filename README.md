@@ -3,7 +3,7 @@
 JPA Entity class generator from MySQL Workbench (*.mwb) and DBSchema (*.dbs) database models. 
 
 The Workflow:
-1. Create/modify database model in modeller took (DbSchema)
+1. Create/modify database model in modeller tool (MySQL Workbench / DbSchema)
 2. Run gentity from Maven or directly from command line to generate entity classes
 
 So, Gentity doesn't need a running database; entity classes are generated directly from the modeller file. Perfect for build automation!
