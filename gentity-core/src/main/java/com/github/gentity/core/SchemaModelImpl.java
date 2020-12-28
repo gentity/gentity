@@ -15,6 +15,7 @@
  */
 package com.github.gentity.core;
 
+import com.github.gentity.core.config.dto.CascadeTypeDto;
 import com.github.gentity.core.entities.CollectionTableDecl;
 import com.github.gentity.core.config.dto.CollectionTableDto;
 import com.sun.codemodel.JAnnotationUse;
@@ -55,9 +56,6 @@ import com.github.gentity.core.entities.HierarchyRootEntityInfo;
 import com.github.gentity.core.entities.RootEntityInfo;
 import com.github.gentity.core.entities.SingleTableRootEntityInfo;
 import com.github.gentity.core.entities.SingleTableSubEntityInfo;
-import com.github.gentity.core.fields.PlainTableFieldColumnSource;
-import com.github.gentity.core.fields.SingleTableFieldColumnSource;
-import com.github.gentity.core.fields.SingleTableRootFieldColumnSource;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.DatabaseModel;
 import com.github.gentity.core.model.ForeignKeyModel;
@@ -67,9 +65,11 @@ import com.github.gentity.core.model.TableModel;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import javax.persistence.ForeignKey;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import javax.persistence.CascadeType;
 
 
 /**
@@ -114,8 +114,6 @@ public class SchemaModelImpl implements SchemaModel {
 			}
 		}
 		
-		// TODO: abstract DbsModelReader out so that we finally are independent of the
-		// DBS format
 		databaseModel = reader.read(exclusions);
 		
 		// generate entity infos first that are declared in the mapping configuration file
@@ -212,19 +210,6 @@ public class SchemaModelImpl implements SchemaModel {
 		}
 		
 		initDefaultOneToNRelations();
-		
-		// validate root entity infos so that they either have
-		// a) a single primary key or
-		// b) a composite primary key AND an IdClass set.
-		//
-		// NOTE that we could extend b) in the future so that the IdClass is
-		// no longer a requirement, because without one Gentity could generate
-		// an EmbeddedId
-		for(RootEntityInfo ei : getRootEntityDefinitions()) {
-			if(ei.getTable().getPrimaryKey().size() > 1 && ei.getIdClass() == null) {
-				throw new RuntimeException(String.format("No idClass set for table '%s' which has a composite primary key", ei.getTable().getName()));
-			}
-		}
 		
 	}
 	
@@ -567,6 +552,15 @@ public class SchemaModelImpl implements SchemaModel {
 			.orElse(null);
 	}
 	
+	private EnumSet<CascadeType> toCascadeTypes(List<CascadeTypeDto> cascade) {
+		EnumSet<CascadeType> result = EnumSet.noneOf(CascadeType.class);
+		for(CascadeTypeDto c : cascade) {
+			// we simply map the DTO to the actual cascade type by name
+			result.add(CascadeType.valueOf(c.name()));
+		}
+		return result;
+	}
+	
 	private ChildTableRelation toChildTableRelation(ChildTableRelation.Kind kind, String tableName, String entityName, XToOneRelationDto xToMany) {
 		if(isTableExcluded(tableName)) {
 			throw new RuntimeException(String.format("table %s is excluded, cannot add relation for foreign key %s", tableName, xToMany.getForeignKey()));
@@ -579,8 +573,10 @@ public class SchemaModelImpl implements SchemaModel {
 		if(containsExcludedTableColumns(tableName, fk)) {
 			throw new RuntimeException(String.format("foreign key %s of table %s contains excluded column(s)", fk.getName(), tableName));
 		};
-
-		return new ChildTableRelation(kind, table, fk, entityName, xToMany.getInverseEntity());
+		
+		EnumSet<CascadeType> cascade = toCascadeTypes(xToMany.getCascade());
+		EnumSet<CascadeType> inverseCascade = toCascadeTypes(xToMany.getCascadeInverse());
+		return new ChildTableRelation(kind, table, fk, entityName, cascade, xToMany.getInverseEntity(), inverseCascade);
 	}
 	
 	private boolean containsExcludedTableColumns(String tableName, ForeignKeyModel fk) {
@@ -600,15 +596,22 @@ public class SchemaModelImpl implements SchemaModel {
 		String ownerEntityName = ownerRelation
 			.map(r -> r.getOwningEntity())
 			.orElse(null);
+		EnumSet<CascadeType> ownerCascade = toCascadeTypes(ownerRelation
+			.map(r -> r.getCascade())
+			.orElse(Collections.EMPTY_LIST)
+		);
 		
 		Optional<InverseTargetRelationDto> inverseRelation = Optional.ofNullable(manyToMany.getInverseRelation());
 		String inverseFkName = inverseRelation
 			.map(r -> r.getForeignKey())
 			.orElse(null);
-		
 		String inverseEntityName = inverseRelation
 			.map(r -> r.getInverseEntity())
 			.orElse(null);
+		EnumSet<CascadeType> inverseCascade = toCascadeTypes(inverseRelation
+			.map(r -> r.getCascade())
+			.orElse(Collections.EMPTY_LIST)
+		);
 		
 		ForeignKeyModel ownerFk = null;
 		ForeignKeyModel inverseFk = null;
@@ -641,7 +644,7 @@ public class SchemaModelImpl implements SchemaModel {
 		
 		assert ownerFk != null && inverseFk != null;
 		
-		return new JoinTableRelation(kind, table, ownerFk, ownerEntityName, inverseFk, inverseEntityName);
+		return new JoinTableRelation(kind, table, ownerFk, ownerEntityName, ownerCascade, inverseFk, inverseEntityName, inverseCascade);
 	}
 	
 	private ForeignKeyModel findOtherFk(TableModel table, ForeignKeyModel existingFk) {

@@ -15,37 +15,33 @@
  */
 package com.github.gentity.test;
 
-import com.github.gentity.test.test0g_basic_table_composite_pk.Partyguest;
-import static org.junit.Assert.assertNotNull;
+import com.github.gentity.test.test5d_element_collection_embeddable_composite_pk.Partyguest;
+import java.util.Arrays;
+import static org.junit.Assert.*;
 import org.junit.Test;
-import com.github.gentity.test.test0g_basic_table_composite_pk.PartyguestId;
 
 /**
  *
  * @author count
  */
-public class Test0g_basic_table_composite_pk extends AbstractGentityTest {
+public class Test5d_element_collection_embeddable_composite_pk extends AbstractGentityTest {
 	@Test
 	public void test() {
-		
 		Partyguest guest1 = Partyguest.builder()
-			.firstname("Mick")
-			.surname("Tan")
-			.build();
+			.primaryinvitee(true)
+			.phoneNumber(Arrays.asList(
+				"2222222",
+				"666"
+			))
+			.buildWithId("Scarlett", "Johansson");
 		em.persist(guest1);
-		Partyguest guest2 = Partyguest.builder()
-			.firstname("Michiko")
-			.surname("Tan")
-			.build();
-		em.persist(guest2);
 		
-		Partyguest result;
-		result = em.createQuery("SELECT g FROM Partyguest g WHERE g.firstname='Mick'", Partyguest.class)
+		Partyguest result = em.createQuery("SELECT g FROM Partyguest g WHERE g.firstname='Scarlett'", Partyguest.class)
 			.getSingleResult();
 		
-		result = em.find(Partyguest.class, PartyguestId.of("Mick", "Tan"));
-		assertNotNull(result);
+		assertEquals(2, result.getPhoneNumber().size());
+		assertTrue(result.getPhoneNumber().contains("2222222"));
+		assertTrue(result.getPhoneNumber().contains("666"));
 			
 	}
-	
 }

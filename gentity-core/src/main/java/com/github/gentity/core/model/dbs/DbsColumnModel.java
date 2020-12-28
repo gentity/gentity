@@ -52,7 +52,7 @@ public class DbsColumnModel implements ColumnModel {
 	}
 
 	@Override
-	public int getLength() {
+	public Integer getLength() {
 		return dbsColumn.getLength();
 	}
 
@@ -66,5 +66,17 @@ public class DbsColumnModel implements ColumnModel {
 		return parentTable.getDbsDatabaseModel().getSequence(dbsColumn.getSequence());
 	}
 
-	
+	@Override
+	public Integer getPrecision() {
+		// there is no separate precision field in DBSchema, so we use the
+		// length field
+		return dbsColumn.getLength();
+	}
+
+	@Override
+	public Integer getScale() {
+		return dbsColumn.getDecimal() != null
+			?	dbsColumn.getDecimal().intValue()
+			:	null;
+	}
 }

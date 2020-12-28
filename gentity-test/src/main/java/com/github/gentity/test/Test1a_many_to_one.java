@@ -40,8 +40,12 @@ public class Test1a_many_to_one extends AbstractGentityTest{
 			.build();
 		e.setCompany(c);
 		
-		em.persist(e);
+		// NOTE: hibernate is quite picky about the order entities are persisted
+		// in our case here: In a relationship, the owning side entity (Employee)
+		// must be persisted AFTER the inverse side (Company).
+		// EclipseLink doesn't seem to care about that
 		em.persist(c);
+		em.persist(e);
 
 
 		// NOTE: The original test code is left here to give a little bit of 

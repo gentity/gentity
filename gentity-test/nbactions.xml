@@ -17,4 +17,13 @@
                 <goal>generate-sources</goal>
             </goals>
         </action>
+         <action>
+            <actionName>CUSTOM--e -X generate-sources</actionName>
+            <displayName>-e -X generate-sources</displayName>
+            <goals>
+                <goal>-e</goal>
+                <goal>-X</goal>
+                <goal>generate-sources</goal>
+            </goals>
+        </action>
     </actions>

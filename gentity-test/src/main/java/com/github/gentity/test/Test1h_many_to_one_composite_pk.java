@@ -27,33 +27,25 @@ public class Test1h_many_to_one_composite_pk extends AbstractGentityTest {
 	@Test
 	public void test() {
 		Partyguest guest1 = Partyguest.builder()
-			.firstname("Fred")
-			.surname("Astaire")
 			.primaryinvitee(true)
-			.build();
+			.buildWithId("Fred", "Astaire");
 		Partyguest guest2 = Partyguest.builder()
-			.firstname("Elizabeth")
-			.surname("Windsor")
 			.primaryinvitee(true)
-			.build();
+			.buildWithId("Elizabeth", "Windsor");
 		Partyguest guest3 = Partyguest.builder()
-			.firstname("Philipp")
-			.surname("Windsor")
 			.primaryinvitee(false)
-			.build();
+			.buildWithId("Philipp", "Windsor");
 		em.persist(guest1);
 		em.persist(guest2);
 		em.persist(guest3);
 		
 		Cloakroomitem item1 = Cloakroomitem.builder()
-			.name("Crown of England")
 			.partyguest(guest2)
-			.build();
+			.buildWithId("Crown of England");
 		em.persist(item1);
 		Cloakroomitem item2 = Cloakroomitem.builder()
-			.name("Fancy Hat")
 			.partyguest(guest2)
-			.build();
+			.buildWithId("Fancy Hat");
 		em.persist(item2);
 		
 		Partyguest guest = em.createQuery("SELECT g FROM Partyguest g WHERE :item MEMBER OF g.cloakroomitem", Partyguest.class)

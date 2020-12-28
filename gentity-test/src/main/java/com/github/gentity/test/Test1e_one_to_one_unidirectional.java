@@ -15,33 +15,40 @@
  */
 package com.github.gentity.test;
 
-import com.github.gentity.test.test1b_one_to_one.Companycar;
-import com.github.gentity.test.test1b_one_to_one.Desk;
-import com.github.gentity.test.test1b_one_to_one.Employee;
+import com.github.gentity.test.test1e_one_to_one_unidirectional.Companycar;
+import com.github.gentity.test.test1e_one_to_one_unidirectional.Desk;
+import com.github.gentity.test.test1e_one_to_one_unidirectional.Employee;
 import org.junit.Assert;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 /**
  *
  * @author upachler
  */
-public class Test1b_one_to_one extends AbstractGentityTest{
+public class Test1e_one_to_one_unidirectional extends AbstractGentityTest{
+	
 	
 	@Test
 	public void test() {
+		
+		assertTrue(hasClassDeclaredField(Employee.class, "companycar"));
+		assertTrue(hasClassDeclaredField(Employee.class, "desk"));
+		
+		assertFalse(hasClassDeclaredField(Desk.class, "employee"));
+		assertFalse(hasClassDeclaredField(Companycar.class, "employee"));
 		
 		Companycar cc = Companycar.builder()
 			.registration("S-1234")
 			.build();
 		
 		Desk d1 = Desk.builder()
-			.invno("A-123-567")
 			.model("NiceDesk")
-			.build();
+			.buildWithId("A-123-567");
 		Desk d2 = Desk.builder()
-			.invno("B-678-900")
 			.model("UglyDesk")
-			.build();
+			.buildWithId("B-678-900");
 		
 		Employee e11 = Employee.builder()
 			.firstname("John")
@@ -57,10 +64,10 @@ public class Test1b_one_to_one extends AbstractGentityTest{
 			.build();
 		
 		em.persist(cc);
-		em.persist(e11);
-		em.persist(e12);
 		em.persist(d1);
+		em.persist(e11);
 		em.persist(d2);
+		em.persist(e12);
 		
 		Employee john = em.createQuery("SELECT DISTINCT e FROM Employee e WHERE e.firstname = 'John'", Employee.class)
 			.getSingleResult();

@@ -15,7 +15,7 @@
  */
 package com.github.gentity.test;
 
-import com.github.gentity.test.test5c_element_collection_embeddable_relations.*;
+import com.github.gentity.test.test5e_element_collection_embeddable_customization.*;
 import java.util.Arrays;
 import javax.persistence.Embeddable;
 import static org.junit.Assert.*;
@@ -25,36 +25,36 @@ import org.junit.Test;
  *
  * @author upachler
  */
-public class Test5c_element_collection_embeddable_relations extends AbstractGentityTest{
+public class Test5e_element_collection_embeddable_customization extends AbstractGentityTest{
 	
 	
 	@Test
 	public void test() {
+		// in this test we're checking if collection tables can be properly
+		// customized in the gentity file - on the field level as well as
+		// on the embeddable class level. In this example, PizzaOrderItem is
+		// generated as an embeddable class that we're customizing. To check we:
+		// * customize the generated embeddable class to implement the interface
+		//   OrderFragment
+		// * customize the field 'size' to carry an enum rather than a String
 		
 		// make sure that OrderItem is an embeddable with a reference to Product
 		assertTrue(hasClassAnnotation(PizzaOrderItem.class, Embeddable.class));
 		assertTrue(hasClassDeclaredField(PizzaOrderItem.class, "product"));
+		assertTrue(OrderFragment.class.isAssignableFrom(PizzaOrderItem.class));
 		
 		String PIZZA_MARGERITA = "Pizza Margerita";
-		String PIZZA_QUATTRO = "Pizza Quattro";
 		Product pizzaMargerita = Product.builder()
-			.id("123-001")
 			.name(PIZZA_MARGERITA)
-			.build();
-		Product pizzaQuattro = Product.builder()
-			.id("123-002")
-			.name(PIZZA_QUATTRO)
-			.build();
+			.buildWithId("123-001");
 		
 		PizzaOrder order = PizzaOrder.builder()
 			.customerName("Max")
 			.pizzaOrderItem(Arrays.asList(
 				PizzaOrderItem.builder()
-				.amount(2)
-				.product(pizzaQuattro)
-				.build(),
-				PizzaOrderItem.builder()
 				.amount(1)
+				// NOTE: The size field is customized as enum
+				.size(PizzaSize.LARGE)
 				.product(pizzaMargerita)
 				.build()
 			))
@@ -62,24 +62,19 @@ public class Test5c_element_collection_embeddable_relations extends AbstractGent
 		
 		em.persist(order);
 		em.persist(pizzaMargerita);
-		em.persist(pizzaQuattro);
 		
 		// we flush and detach, so that the ORM will provide us with freshly
 		// read objects from the database
 		em.flush();
 		
 		em.detach(pizzaMargerita);
-		em.detach(pizzaQuattro);
 		em.detach(order);
 		
 		order = em.createQuery("SELECT o FROM PizzaOrder o", PizzaOrder.class).getSingleResult();
 		
-		assertEquals(2, order.getPizzaOrderItem().size());
+		assertEquals(1, order.getPizzaOrderItem().size());
 		assertTrue(order.getPizzaOrderItem().stream()
 			.anyMatch(item -> item.getProduct().getName().equals(PIZZA_MARGERITA))
-		);
-		assertTrue(order.getPizzaOrderItem().stream()
-			.anyMatch(item -> item.getProduct().getName().equals(PIZZA_QUATTRO))
 		);
 		
 	}

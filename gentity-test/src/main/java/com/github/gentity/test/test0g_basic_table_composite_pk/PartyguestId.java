@@ -23,9 +23,15 @@ import java.util.Objects;
  * @author count
  */
 public class PartyguestId implements Serializable{
-	private final String firstname;
-	private final String surname;
-
+	private String firstname;
+	private String surname;
+	
+	// not sure if the JPA spec needs a default constructor
+	// for idclasses, but hibernate seems to need that.
+	// a package private constructor seems to suffice
+	PartyguestId(){
+	}
+	
 	public PartyguestId(String firstname, String surname) {
 		this.firstname = firstname;
 		this.surname = surname;

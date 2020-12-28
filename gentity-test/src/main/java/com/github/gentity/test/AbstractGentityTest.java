@@ -80,6 +80,7 @@ public class AbstractGentityTest {
 				put("javax.persistence.jdbc.user", "SA");
 				put("javax.persistence.jdbc.password", "");
 				put("eclipselink.ddl-generation", "create-tables");
+				put("hibernate.hbm2ddl.auto", "create");
 			}
 		};
 		emf = Persistence.createEntityManagerFactory(persistenceUnitName, emProperties);

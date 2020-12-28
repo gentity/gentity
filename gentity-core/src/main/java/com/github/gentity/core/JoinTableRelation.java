@@ -19,13 +19,15 @@ import static com.github.gentity.core.Cardinality.*;
 import static com.github.gentity.core.Directionality.*;
 import com.github.gentity.core.model.ForeignKeyModel;
 import com.github.gentity.core.model.TableModel;
+import java.util.EnumSet;
+import javax.persistence.CascadeType;
 
 /**
  *
  * @author upachler
  */
 public class JoinTableRelation extends Relation {
-	
+
 	public enum Kind implements RelationKind{
 		MANY_TO_MANY(BIDIRECTIONAL, MANY, MANY),
 		UNI_ONE_TO_MANY(UNIDIRECTIONAL, ONE, MANY),
@@ -64,13 +66,17 @@ public class JoinTableRelation extends Relation {
 	private final String ownerEntityName;
 	private final String inverseEntityName;
 	
-	public JoinTableRelation(Kind kind, TableModel table, ForeignKeyModel foreignKey1, String ownerEntityName, ForeignKeyModel foreignKey2, String inverseEntityName) {
-		super(table);
+	public JoinTableRelation(Kind kind, TableModel table, ForeignKeyModel foreignKey1, String ownerEntityName, EnumSet<CascadeType> ownerCascade, ForeignKeyModel foreignKey2, String inverseEntityName, EnumSet<CascadeType> inverseCascade) {
+		super(table, ownerCascade, inverseCascade);
 		this.kind = kind;
 		this.foreignKey1 = foreignKey1;
 		this.foreignKey2 = foreignKey2;
 		this.ownerEntityName = ownerEntityName;
 		this.inverseEntityName = inverseEntityName;
+	}
+	
+	public JoinTableRelation(Kind kind, TableModel table, ForeignKeyModel foreignKey1, String ownerEntityName, ForeignKeyModel foreignKey2, String inverseEntityName) {
+		this(kind, table, foreignKey1, ownerEntityName, null, foreignKey2, inverseEntityName, null);
 	}
 
 	public Kind getKind() {

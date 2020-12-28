@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.gentity</groupId>
 	<artifactId>gentity</artifactId>
-	<version>0.22-SNAPSHOT</version>
+	<version>0.25-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>gentity</name>
 	<description>JPA Entity class generator from DBSchema (*.dbs) database models (see https://www.dbschema.com)</description>
@@ -12,6 +12,8 @@
 		<module>gentity-maven-plugin</module>
 		<module>gentity-core</module>
 		<module>gentity-lib</module>
+	 <module>gentity-test-eclipselink</module>
+	 <module>gentity-test-hibernate</module>
 	</modules>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -20,6 +22,7 @@
 		<netbeans.hint.licensePath>${basedir}/license-template-netbeans.ftl</netbeans.hint.licensePath>
 		<netbeans.hint.license>apache20</netbeans.hint.license>
         <netbeans.hint.jdkPlatform>JDK_1.8</netbeans.hint.jdkPlatform>
+		<netbeans.compile.on.save>none</netbeans.compile.on.save>
 	</properties>
 	<organization>
 		<name>The Gentity Project</name>

@@ -28,33 +28,25 @@ public class Test1i_many_to_many_composite_pk extends AbstractGentityTest {
 	@Test
 	public void test() {
 		Partyguest guest1 = Partyguest.builder()
-			.firstname("Fred")
-			.surname("Astaire")
 			.primaryinvitee(true)
-			.build();
+			.buildWithId("Fred", "Astaire");
 		Partyguest guest2 = Partyguest.builder()
-			.firstname("Elizabeth")
-			.surname("Windsor")
 			.primaryinvitee(true)
-			.build();
+			.buildWithId("Elizabeth", "Windsor");
 		Partyguest guest3 = Partyguest.builder()
-			.firstname("Philipp")
-			.surname("Windsor")
 			.primaryinvitee(false)
-			.build();
+			.buildWithId("Philipp", "Windsor");
 		em.persist(guest1);
 		em.persist(guest2);
 		em.persist(guest3);
 		
 		Choffeur choffeur1 = Choffeur.builder()
-			.name("Stan")
 			.licenseNumber("08/15")
-			.build();
+			.buildWithId("Stan");
 		em.persist(choffeur1);
 		Choffeur choffeur2 = Choffeur.builder()
-			.name("Ollie")
 			.licenseNumber("4711")
-			.build();
+			.buildWithId("Ollie");
 		em.persist(choffeur2);
 		
 		choffeur1.getPartyguest().addAll(Arrays.asList(guest1, guest2));

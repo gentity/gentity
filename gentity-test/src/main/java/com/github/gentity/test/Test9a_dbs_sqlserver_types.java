@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 The Gentity Project. All rights reserved.
+ * Copyright 2020 The Gentity Project. All rights reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,21 @@
  */
 package com.github.gentity.test;
 
-import com.github.gentity.test.test1.Customer;
+import com.github.gentity.test.test9a_dbs_sqlserver_types.SqlserverSpecific;
 import org.junit.Test;
 
 /**
  *
- * @author count
+ * @author upachler
  */
-
-public class Test1 extends AbstractGentityTest{
-
+public class Test9a_dbs_sqlserver_types {
 	@Test
 	public void test() {
-		em.persist(Customer.builder()
-			.id(1L)
-			.name("Albert Einstein")
-			.build()
-		);
-		
-		em().flush();
+		// if this compiles we're good.
+		SqlserverSpecific sss = new SqlserverSpecific.Builder()
+			.strNtext("föö_bär")
+			.strText("foo_bar")
+			.binImage(new byte[]{(byte)0xaf, (byte)0xf3})
+			.build();
 	}
 }

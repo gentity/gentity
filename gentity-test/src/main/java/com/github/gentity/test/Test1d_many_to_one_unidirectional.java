@@ -30,29 +30,24 @@ public class Test1d_many_to_one_unidirectional extends AbstractGentityTest{
 	@Test
 	public void test() {
 		Parent p1 = Parent.builder()
-			.id(1)
 			.name("parent_1")
-			.build();
+			.buildWithId(1);
 		Parent p2 = Parent.builder()
-			.id(2)
 			.name("parent_2")
-			.build();
+			.buildWithId(2);
 		
 		Child c1 = Child.builder()
-			.id(1)
 			.name("child_1")
 			.parent(p1)
-			.build();
+			.buildWithId(1);
 		Child c2 = Child.builder()
-			.id(2)
 			.name("child_2")
 			.parent(p1)
-			.build();
+			.buildWithId(2);
 		Child c3 = Child.builder()
-			.id(3)
 			.name("child_3")
 			.parent(p1)
-			.build();
+			.buildWithId(3);
 		
 		em.persist(p1);
 		em.persist(p2);

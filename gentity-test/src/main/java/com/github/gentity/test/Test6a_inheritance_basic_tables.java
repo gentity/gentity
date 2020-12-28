@@ -56,7 +56,7 @@ public class Test6a_inheritance_basic_tables  extends AbstractGentityTest {
 		VehicleBase vehicle = Car.builder()
 			.manufacturer("Ford")
 			.model("Fiesta")
-			.build();
+			.buildWithId(1);
 		assertTrue(vehicle instanceof Thing);
 		assertFalse(vehicle instanceof Human);
 		assertFalse(vehicle instanceof Taxpayer);

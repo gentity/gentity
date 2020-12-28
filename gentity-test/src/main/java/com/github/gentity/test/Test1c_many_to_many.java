@@ -36,26 +36,21 @@ public class Test1c_many_to_many extends AbstractGentityTest{
 		assertTrue(hasClassDeclaredField(Author.class, "book"));
 		
 		Book book1 = Book.builder()
-			.id(1L)
 			.title("book1")
-			.build();
+			.buildWithId(1L);
 		Book book2 = Book.builder()
-			.id(2L)
 			.title("book2")
-			.build();
+			.buildWithId(2L);
 		
 		Author author1 = Author.builder()
-			.id(1L)
 			.name("Maier")
-			.build();
+			.buildWithId(1L);
 		Author author2 = Author.builder()
-			.id(2L)
 			.name("Müller")
-			.build();
+			.buildWithId(2L);
 		Author author3 = Author.builder()
-			.id(3L)
 			.name("Schulz")
-			.build();
+			.buildWithId(3L);
 		
 		book1.getAuthor().addAll(Arrays.asList(author1, author2));
 		book2.getAuthor().addAll(Arrays.asList(author2, author3));

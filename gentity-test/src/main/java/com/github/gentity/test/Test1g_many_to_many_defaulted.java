@@ -15,45 +15,50 @@
  */
 package com.github.gentity.test;
 
-import com.github.gentity.test.test1f_many_to_many_unidirectional.Ghostwriter;
-import com.github.gentity.test.test1f_many_to_many_unidirectional.Book;
+import com.github.gentity.test.test1g_many_to_many_defaulted.*;
 import java.util.Arrays;
 import java.util.HashSet;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 /**
  *
  * @author upachler
  */
-public class Test1f_many_to_many_unidirectional extends AbstractGentityTest{
+public class Test1g_many_to_many_defaulted extends AbstractGentityTest{
 	
 	@Test
 	public void test() {
-		assertTrue(hasClassDeclaredField(Ghostwriter.class, "book"));
-		assertFalse(hasClassDeclaredField(Book.class, "ghostwriter"));
+		
+		/**
+		 * Note: this is the same as test1c, but we use defaulting here for the
+		 * many-to-many relations' inverses foreign keys.
+		 */
+		
+		// ensure fields for a bidirectional relationship were generated
+		assertTrue(hasClassDeclaredField(Book.class, "author"));
+		assertTrue(hasClassDeclaredField(Author.class, "book"));
 		
 		Book book1 = Book.builder()
-			.id(1L)
 			.title("book1")
-			.build();
+			.buildWithId(1L);
 		Book book2 = Book.builder()
-			.id(2L)
 			.title("book2")
-			.build();
+			.buildWithId(2L);
 		
-		Ghostwriter author1 = Ghostwriter.builder()
-			.id(1L)
+		Author author1 = Author.builder()
 			.name("Maier")
-			.build();
-		Ghostwriter author2 = Ghostwriter.builder()
-			.id(2L)
+			.buildWithId(1L);
+		Author author2 = Author.builder()
 			.name("Müller")
-			.build();
-		Ghostwriter author3 = Ghostwriter.builder()
-			.id(3L)
+			.buildWithId(2L);
+		Author author3 = Author.builder()
 			.name("Schulz")
-			.build();
+			.buildWithId(3L);
+		
+		book1.getAuthor().addAll(Arrays.asList(author1, author2));
+		book2.getAuthor().addAll(Arrays.asList(author2, author3));
 		
 		em.persist(book1);
 		em.persist(book2);
@@ -62,16 +67,12 @@ public class Test1f_many_to_many_unidirectional extends AbstractGentityTest{
 		em.persist(author2);
 		em.persist(author3);
 		
-		author1.getBook().addAll(Arrays.asList(book1));
-		author2.getBook().addAll(Arrays.asList(book1, book2));
-		author3.getBook().addAll(Arrays.asList(book2));
-		
 		assertEquals(
 			new HashSet<>(
-				Arrays.asList("Maier", "Müller")
+				Arrays.asList("book1", "book2")
 			),
 			new HashSet<>(
-				em.createQuery("SELECT g.name FROM Ghostwriter g JOIN g.book b WHERE b.title='book1'", String.class)
+				em.createQuery("SELECT b.title FROM Book b JOIN b.author a WHERE a.name='Müller'", String.class)
 				.getResultList()
 			)
 		);
@@ -81,7 +82,7 @@ public class Test1f_many_to_many_unidirectional extends AbstractGentityTest{
 				Arrays.asList("Müller", "Schulz")
 			),
 			new HashSet<>(
-				em.createQuery("SELECT g.name FROM Ghostwriter g JOIN g.book b WHERE b.title='book2'", String.class)
+				em.createQuery("SELECT a.name FROM Author a JOIN a.book b WHERE b.title='book2'", String.class)
 				.getResultList()
 			)
 		);

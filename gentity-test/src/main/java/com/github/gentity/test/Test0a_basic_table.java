@@ -35,24 +35,21 @@ public class Test0a_basic_table extends AbstractGentityTest {
 
 		em.persist(
 			Person.builder()
-			.id(1L)
 			.firstname("Albert")
 			.surname("Einstein")
-			.build()
+			.buildWithId(1L)
 		);
 		em.persist(
 			Person.builder()
-			.id(2L)
 			.firstname("Max")
 			.surname("Planck")
-			.build()
+			.buildWithId(2L)
 		);
 		em.persist(
 			Person.builder()
-			.id(3L)
 			.firstname("Nils")
 			.surname("Bohr")
-			.build()
+			.buildWithId(3L)
 		);
 		
 		em.flush();

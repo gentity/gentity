@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.github.gentity</groupId>
 		<artifactId>gentity</artifactId>
-		<version>0.22-SNAPSHOT</version>
+		<version>0.25-SNAPSHOT</version>
 	</parent>
 	<artifactId>gentity-test</artifactId>
 	<packaging>jar</packaging>
@@ -20,7 +20,7 @@
 				<artifactId>gentity-maven-plugin</artifactId>
 				<version>${project.version}</version>
 				<executions>
-<!-- -->
+
 					<execution>
 						<id>entities-test0a-basic-table</id>
 						<goals>
@@ -92,6 +92,16 @@
 							<inputFile>src/main/resources/test0g_basic_table_composite_pk.dbs</inputFile>
 							<mappingConfigFile>src/main/resources/test0g_basic_table_composite_pk.genconfig</mappingConfigFile>
 							<targetPackageName>com.github.gentity.test.test0g_basic_table_composite_pk</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
+						<id>entities-test0h_base_table_numeric_types</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputFile>src/main/resources/test0h_base_table_standard_types.dbs</inputFile>
+							<targetPackageName>com.github.gentity.test.test0h_base_table_standard_types</targetPackageName>
 						</configuration>
 					</execution>
 					<execution>
@@ -212,6 +222,27 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>test1k_many_to_one_composite_pk_derived_identity</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputFile>src/main/resources/test1k_many_to_one_composite_pk_derived_identity.dbs</inputFile>
+							<targetPackageName>com.github.gentity.test.test1k_many_to_one_composite_pk_derived_identity</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
+						<id>Test1l_n_to_m_cascade</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputFile>src/main/resources/test1l_n_to_m_cascade.dbs</inputFile>
+							<mappingConfigFile>src/main/resources/test1l_n_to_m_cascade.xml</mappingConfigFile>
+							<targetPackageName>com.github.gentity.test.test1l_n_to_m_cascade</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
 						<id>entities-test2</id>
 						<goals>
 							<goal>generate</goal>
@@ -277,7 +308,6 @@
 							<mappingConfigFile>src/main/resources/test5a-element-collection-embeddable.genconfig</mappingConfigFile>
 						</configuration>
 					</execution>
-<!-- -->
 					<execution>
 						<id>entities-test5b</id>
 						<goals>
@@ -330,6 +360,16 @@
 							<targetPackageName>com.github.gentity.test.test6a_inheritance_basic_tables</targetPackageName>
 							<inputFile>src/main/resources/test6a-inheritance-basic-tables.dbs</inputFile>
 							<mappingConfigFile>src/main/resources/test6a-inheritance-basic-tables.genconfig</mappingConfigFile>
+						</configuration>
+					</execution>
+					<execution>
+						<id>entities-test9a</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<targetPackageName>com.github.gentity.test.test9a_dbs_sqlserver_types</targetPackageName>
+							<inputFile>src/main/resources/test9a_dbs_sqlserver_types.dbs</inputFile>
 						</configuration>
 					</execution>
 					
@@ -392,8 +432,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.12</version>
-			<scope>test</scope>
+			<version>4.13.1</version>
 			<type>jar</type>
 		</dependency>
 		<dependency>
@@ -406,7 +445,6 @@
 			<groupId>org.hsqldb</groupId>
 			<artifactId>hsqldb</artifactId>
 			<version>2.4.0</version>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>

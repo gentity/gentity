@@ -29,3 +29,5 @@ hs_err_pid*
 /gentity-lib/nbproject/
 /gentity-lib/target/
 /gentity-core/nbactions.xml
+/gentity-test-hibernate/target/
+/gentity-test-eclipselink/target/

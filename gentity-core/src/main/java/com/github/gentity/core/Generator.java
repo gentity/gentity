@@ -26,7 +26,6 @@ import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
-import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JPackage;
 import com.sun.codemodel.JType;
@@ -85,21 +84,33 @@ import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.ForeignKeyModel;
 import com.github.gentity.core.model.ForeignKeyModel.Mapping;
 import com.github.gentity.core.model.ModelReader;
+import com.github.gentity.core.model.PrimaryKeyModel;
 import com.github.gentity.core.model.SequenceModel;
 import com.github.gentity.core.model.TableModel;
 import com.github.gentity.core.util.Tuple;
+import com.sun.codemodel.JBlock;
+import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
+import com.sun.codemodel.JVar;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.JDBCType;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.EnumSet;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import javax.persistence.Lob;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.ElementCollection;
 import javax.persistence.Embeddable;
@@ -119,11 +130,13 @@ public class Generator {
 	private final SchemaModel sm;
 	
 	JCodeModel cm;
+	List<JType> numericTypes;
 	Map<String, JDefinedClass> tablesToEntities;
 	Map<JDefinedClass, EntityInfo> entities;
 	Map<String, JDefinedClass> tablesToEmbeddables;
 	Map<JDefinedClass, CollectionTableDecl> embeddables;
 	
+	private static final String IDCLASS_NAME = "Id";
 	private final EntityRefFactory LIST_ENTITY_REF_FACTORY = new EntityRefFactory() {
 		@Override
 		public JExpression createInitExpression() {
@@ -157,6 +170,20 @@ public class Generator {
 	JCodeModel generate() {
 		if(cm == null) {
 			cm = new JCodeModel();
+			// all subclasses of Number, as of Java 7 (and most likely all
+			// future Java versions to come...
+			numericTypes = Arrays.asList(
+				cm.ref(AtomicInteger.class),
+				cm.ref(AtomicLong.class),
+				cm.ref(BigDecimal.class),
+				cm.ref(BigInteger.class),
+				cm.ref(Byte.class),
+				cm.ref(Double.class),
+				cm.ref(Float.class),
+				cm.ref(Integer.class),
+				cm.ref(Long.class),
+				cm.ref(Short.class)
+			);
 		}
 		JPackage p = cm._package(sm.getTargetPackageName());
 		
@@ -269,6 +296,26 @@ public class Generator {
 				}
 			}
 				
+			// generate IdClass anotations
+			List<JDefinedClass> roots = entities.keySet().stream()
+				.filter(this::isClassHierarchyRoot)
+				.collect(Collectors.toList());
+			
+			List<JDefinedClass> generatedIdClasses = new ArrayList<>();
+			for(JDefinedClass e : roots) {
+				JClass idClass = genIdClassAnnotation(e, entities.get(e));
+				if(idClass != null && idClass instanceof JDefinedClass) {
+					generatedIdClasses.add((JDefinedClass)idClass);
+				}
+			}
+			
+			// generate class bodies for generated id classes - this needs
+			// to be done after the IdClass annotation generation, because
+			// empty id classes are also generated in the previous step that
+			// we now depend on
+			for(JDefinedClass i : generatedIdClasses) {
+				genIdClassBody(i);
+			}
 			
 		} catch(JClassAlreadyExistsException caex) {
 			throw new RuntimeException(caex);
@@ -318,11 +365,6 @@ public class Generator {
 	private JDefinedClass genRootEntityClass(JPackage p, String nameCandidate, JDefinedClass superClassEntity, RootEntityInfo einfo) throws JClassAlreadyExistsException {
 		JDefinedClass cls = genEntityClassImpl(p, nameCandidate, superClassEntity, einfo);
 		
-		String idClassFQCN = einfo.getIdClass();
-		if(idClassFQCN != null) {
-			cls.annotate(IdClass.class)
-				.param("value", cm.directClass(idClassFQCN));
-		}
 		return cls;
 	}
 	
@@ -452,6 +494,197 @@ public class Generator {
 		annotateBasicField(cls, m, colType, etype, field);
 	}
 	
+	private JClass genIdClassAnnotation(JDefinedClass cls, EntityInfo ei) throws JClassAlreadyExistsException {
+		// IdClass can only be generated on root entities
+		RootEntityInfo einfo = (RootEntityInfo)ei;
+		
+		String idClassFQCN = einfo.getIdClass();
+		JClass idClass = null;
+		if(idClassFQCN != null) {
+			// if the 'idClass' attribute was set, assume that class to
+			// exist and use it as IdClass
+			idClass = cm.directClass(idClassFQCN);
+		} else if(einfo.getTable().getPrimaryKey().size() > 1) {
+			// if we have a composite primary key, but no 'idClass' was set
+			// in the gentity file, we generate one
+			JDefinedClass genIdClass = cls._class(JMod.PUBLIC | JMod.STATIC, IDCLASS_NAME);
+			idClass = genIdClass;
+		}
+		
+		if(idClass != null) {
+			cls.annotate(IdClass.class)
+				.param("value", idClass);
+		}
+		
+		return idClass;
+	}
+	
+	private void genIdClassBody(JDefinedClass genIdClass) {
+		JDefinedClass cls = (JDefinedClass)genIdClass.outer();
+		
+		genIdClass._implements(Serializable.class);
+		List<JFieldVar> idFields = new ArrayList<>();
+		for(JFieldVar f : cls.fields().values()) {
+			boolean hasIdAnnotation = f.annotations().stream()
+				.anyMatch(a -> a.getAnnotationClass().equals(cm.ref(Id.class)));
+			if(hasIdAnnotation) {
+
+				boolean isAssociationField = f.annotations().stream()
+					.map(a -> a.getAnnotationClass())
+					.anyMatch(ac -> 
+							ac.equals(cm.ref(OneToOne.class))
+						||	ac.equals(cm.ref(OneToMany.class))
+						||	ac.equals(cm.ref(ManyToOne.class))
+						||	ac.equals(cm.ref(ManyToMany.class))
+					);
+
+				JType idFieldType;
+
+				if(!isAssociationField) {
+					idFieldType = f.type();
+				} else {
+
+					JDefinedClass targetClass;
+					JClass fieldClass = (JClass)f.type();
+					if(cm.ref(Map.class).isAssignableFrom(fieldClass)) {
+						// Map has the target type as the second type argument
+						targetClass = (JDefinedClass)fieldClass.getTypeParameters().get(1);
+					} else if(cm.ref(Collection.class).isAssignableFrom((JClass)f.type())) {
+						// the other collection types have it as the first type arg
+						targetClass = (JDefinedClass)fieldClass.getTypeParameters().get(0);
+					} else {
+						targetClass = (JDefinedClass)f.type();
+					}
+					
+					// find target's IdClass annotation, and deduce the
+					// class that's declared - the @IdClass can be filled with
+					// a generated id class or a custom defined one
+					JClass targetIdClass = null;
+					if(targetClass.annotations().stream()
+						.anyMatch(a -> a.getAnnotationClass().equals(cm.ref(IdClass.class)))) {
+						RootEntityInfo einfo = ((RootEntityInfo)entities.get(targetClass));
+						if(einfo.getIdClass() != null) {
+							targetIdClass = cm.ref(einfo.getIdClass());
+						} else {
+							targetIdClass = (JDefinedClass)Arrays.asList(targetClass.listClasses()).stream()
+								.filter(c -> c.name().equals(IDCLASS_NAME))
+								.findFirst()
+								.get();
+						}
+					}
+
+					if(targetIdClass != null) {
+						idFieldType = targetIdClass;
+					} else {
+						// if we do not have an id class, we assume that
+						// there is only one field representing the primary
+						// key (i.e. one field only has the @Id annotation)
+						List<JFieldVar> targetIdFields = targetClass.fields().values().stream()
+							.filter(tf -> tf.annotations().stream()
+								.anyMatch(a -> a.getAnnotationClass().equals(cm.ref(Id.class)))
+							)
+							.collect(Collectors.toList());
+						assert targetIdFields.size() == 1;
+
+						// the id field type in this case is the type of the
+						// single id field in the target class
+						idFieldType = targetIdFields.get(0).type();
+					}
+				}
+				JFieldVar idField = genIdClass.field(JMod.PRIVATE, idFieldType, f.name());
+				idFields.add(idField);
+			}
+		}
+
+		// generate
+		genIdClass.constructor(JMod.NONE);
+
+		// generate field-initializing constructor
+		genConstrutor(genIdClass, idFields);
+
+		genEquals(genIdClass, idFields);
+		genHashCode(genIdClass, idFields);
+	}
+	
+	private JMethod genConstrutor(JDefinedClass cls, List<JFieldVar> fieldsToInitialze) {
+		JMethod ctor = cls.constructor(JMod.PUBLIC);
+		for(JFieldVar f : fieldsToInitialze) {
+			JVar p = ctor.param(f.type(), f.name());
+			ctor.body().assign(JExpr._this().ref(f), p);
+		}
+		return ctor;
+	}
+	
+	private void genEquals(JDefinedClass cls, List<JFieldVar> equalsFields) {
+		
+		// mainly, the model for this was:
+		// https://www.sitepoint.com/implement-javas-equals-method-correctly/
+		
+		JMethod m = cls.method(JMod.PUBLIC, cm.BOOLEAN, "equals");
+		m.annotate(Override.class);
+		JVar p = m.param(cm._ref(Object.class), "o");
+		
+		JBlock body = m.body();
+		
+		// if(o==this) return true;
+		body._if(JExpr._this().eq(p))
+			._then()._return(JExpr.TRUE);
+		
+		// if(o==null) return false
+		body._if(JExpr._null().eq(p))
+			._then()._return(JExpr.FALSE);
+		
+		// if(getClass() != o.getClass()) return false
+		body._if(JExpr.invoke("getClass").ne(p.invoke("getClass")))
+			._then()._return(JExpr.FALSE);
+		
+		if(equalsFields.isEmpty()) {
+			// the unlikely case that there is nothing to compare, we''e done,
+			// because we say that two empty same-class objects are equal.
+			body._return(JExpr.TRUE);
+		} else {
+			// otherwise, do field-wise comparison..
+			
+			// cast to instance of class
+			// <classname> other = (<classname>)o;
+			JVar v = body.decl(cls, "other", JExpr.cast(cls, p));
+
+			// now make Objects.equals() chain of comparison to return, like this:
+			// return Objects.equals(field1, other.field1)
+			//     && Objects.equals(field2, other.field2)
+			//     ...
+			//     ;
+			JClass objCls = cm.ref(Objects.class);
+
+			JExpression lhs = null;
+			for(JFieldVar f : equalsFields) {
+				JExpression rhs = 
+					objCls.staticInvoke("equals")
+						.arg(f)
+						.arg(JExpr.ref(v, f));
+				if(lhs == null) {
+					lhs = rhs;
+				} else {
+					lhs = lhs.cand(rhs);
+				}
+			}
+			body._return(lhs);
+		}
+	}
+	
+	private void genHashCode(JDefinedClass cls, List<JFieldVar> hashCodeFields) {
+		// mainly, the model for this was:
+		// https://www.sitepoint.com/how-to-implement-javas-hashcode-correctly/
+		
+		JMethod m = cls.method(JMod.PUBLIC, cm.INT, "hashCode");
+		m.annotate(Override.class);
+		JInvocation hashInvocation = cm.ref(Objects.class).staticInvoke("hash");
+		for(JFieldVar f : hashCodeFields) {
+			hashInvocation.arg(f);
+		}
+		m.body()._return(hashInvocation);
+	}
+	
 	private EnumType mapEnumType(JType colType, FieldMapping m) {
 		if(m.getEnumType() != null) {
 			
@@ -508,7 +741,17 @@ public class Generator {
 		columnAnnotation
 			.param("name", column.getName());
 		if(colType.equals(cm._ref(String.class))) {
-			columnAnnotation.param("length", column.getLength());
+			if(column.getLength()!=null) {
+				columnAnnotation.param("length", column.getLength());
+			}
+		}
+		if(numericTypes.contains(colType)) {
+			if(column.getPrecision()!=null) {
+				columnAnnotation.param("precision", column.getPrecision());
+			}
+			if(column.getScale()!=null) {
+				columnAnnotation.param("scale", column.getScale());
+			}
 		}
 		if(!column.isNullable() && !sm.isColumnPrimaryKey(table, column)) {
 			columnAnnotation.param("nullable", false);
@@ -690,11 +933,27 @@ public class Generator {
 		JFieldVar childField = childTableClass.field(JMod.PROTECTED, parentTableEntity, fieldName);
 		
 		// @ManyToOne / @OneToOne
+		JAnnotationUse toManyAnno;
 		if(otm.getKind().getFrom() == ONE) {
-			childField.annotate(OneToOne.class);
+			toManyAnno = childField.annotate(OneToOne.class);
 		} else {
 			assert otm.getKind().getFrom() == MANY;
-			childField.annotate(ManyToOne.class);
+			toManyAnno = childField.annotate(ManyToOne.class);
+		}
+		genCascadeAnnotationParam(toManyAnno, otm.getOwnerCascadeTypes());
+		
+		// annotate with @Id if any column is part of a primary key if we're
+		// not on a collection table embeddable
+		PrimaryKeyModel pk = otm.getTable().getPrimaryKey();
+		if(pk != null && collectionTable==null) {
+			Set<String> pkColNames = pk.stream()
+				.map(ColumnModel::getName)
+				.collect(Collectors.toSet());
+
+			if(otm.getForeignKey().getColumns().stream()
+				.anyMatch(c -> pkColNames.contains(c.getName()))) {
+				childField.annotate(Id.class);
+			}
 		}
 		
 		annotateJoinColumns(childField::annotate, () -> childField.annotate(JoinColumns.class).paramArray("value"), fkCols);
@@ -703,12 +962,14 @@ public class Generator {
 		JFieldVar parentField = null;
 		if(otm.getKind() == ONE_TO_ONE) {
 			parentField = parentTableEntity.field(JMod.PROTECTED, childTableClass, toFieldName(parentTableEntity, otm.getTable().getName()));
-			parentField.annotate(OneToOne.class)
-				.param("mappedBy", childField.name());
+			JAnnotationUse anno = parentField.annotate(OneToOne.class);
+			anno.param("mappedBy", childField.name());
+			genCascadeAnnotationParam(anno, otm.getInverseCascadeTypes());
 		} else if(otm.getKind() == MANY_TO_ONE){
 			parentField = genCollectionFieldVar(parentTableEntity, childTableClass);
-			parentField.annotate(OneToMany.class)
-				.param("mappedBy", childField.name());
+			JAnnotationUse anno = parentField.annotate(OneToMany.class);
+			anno.param("mappedBy", childField.name());
+			genCascadeAnnotationParam(anno, otm.getInverseCascadeTypes());
 		}
 		
 		if(isAutomaticBidirectionalUpdateEnabled()) {
@@ -720,6 +981,15 @@ public class Generator {
 			}
 		}
 
+	}
+	
+	private void genCascadeAnnotationParam(JAnnotationUse anno, EnumSet<CascadeType> cascadeTypes) {
+		if(!cascadeTypes.isEmpty()) {
+			JAnnotationArrayMember cascadeArray = anno.paramArray("cascade");
+			for(CascadeType ct : cascadeTypes) {
+				cascadeArray.param(cm.ref(CascadeType.class).staticRef(ct.name()));
+			}
+		}
 	}
 	
 	private void genRelationSideField(JDefinedClass entity, JFieldVar field, Cardinality toCardinality, JClass otherEntity, JFieldVar otherField) {
@@ -802,7 +1072,8 @@ public class Generator {
 	private void genJoinTableRelation(JDefinedClass ownerClass, JDefinedClass inverseClass, JoinTableRelation jtr) {
 		JFieldVar ownerField = genCollectionFieldVar(ownerClass, inverseClass);
 		
-		ownerField.annotate(ManyToMany.class);
+		JAnnotationUse onwerAnno = ownerField.annotate(ManyToMany.class);
+		genCascadeAnnotationParam(onwerAnno, jtr.getOwnerCascadeTypes());
 		
 		JAnnotationUse joinTableAnnotation = ownerField.annotate(JoinTable.class)
 			.param("name", jtr.getTable().getName());
@@ -819,8 +1090,9 @@ public class Generator {
 		if(jtr.getKind().getDirectionality() == BIDIRECTIONAL) {
 			inverseField = genCollectionFieldVar(inverseClass, ownerClass);
 
-			inverseField.annotate(ManyToMany.class)
-				.param("mappedBy", ownerField.name());
+			JAnnotationUse inverseAnno = inverseField.annotate(ManyToMany.class);
+			inverseAnno.param("mappedBy", ownerField.name());
+			genCascadeAnnotationParam(inverseAnno, jtr.getInverseCascadeTypes());
 		}
 		
 		if(isAutomaticBidirectionalUpdateEnabled()) {
@@ -861,6 +1133,7 @@ public class Generator {
 		JType jtype;
 		switch(type) {
 			case CHAR:
+			case NCHAR:
 				if(Short.valueOf((short)1).equals(column.getLength())) {
 					jtype = cm.ref(Character.class);
 				} else {
@@ -868,15 +1141,20 @@ public class Generator {
 				}
 				break;
 			case VARCHAR:
+			case NVARCHAR:
 				jtype = cm.ref(String.class);
 				break;
 			case BIGINT:
 				jtype = cm.LONG;
 				break;
+			case SMALLINT:
 			case INTEGER:
 				jtype = cm.INT;
 				break;
 			case BOOLEAN:
+			case BIT:	// NOTE: not too sure on this one. Some DBs allow giving
+				// BIT a length > 1, which makes this mapping funky. May consider
+				// mapping BIT(2+) to boolean[] or something like that...
 				jtype = cm.BOOLEAN;
 				break;
 			case FLOAT:
@@ -886,6 +1164,38 @@ public class Generator {
 			case DOUBLE:
 				jtype = cm.DOUBLE;
 				break;
+			case NUMERIC:
+			case DECIMAL: {
+				int p = column.getPrecision() != null
+					?	column.getPrecision()
+					:	0;
+				int s = column.getScale() != null
+					?	column.getScale()
+					:	0;
+				if(s == 0) {
+					if(p<=9) {
+						// fits into Integer.MAX_VALUE
+						jtype = cm.INT;
+					} else if(p<=18) {
+						// fits into Long.MAX_VALUE
+						jtype = cm.LONG;
+					} else {
+						// won't fit anywhere: 
+						jtype = cm.ref(BigInteger.class);
+					}
+				} else {
+					if(p<=7) {
+						// 7 digits fit into float
+						jtype = cm.FLOAT;
+					} else if(p<=14) {
+						// 14 digits it into double
+						jtype = cm.DOUBLE;
+					} else {
+						// everything else is BidDecimal...
+						jtype = cm.ref(BigDecimal.class);
+					}
+				}
+			}	break;
 			case TIMESTAMP_WITH_TIMEZONE:
 				jtype = cm.ref(Timestamp.class);
 				break;

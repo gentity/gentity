@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="test9_dbs_sqlserver_types" id="Project_15fe" database="SqlServer" >
+	<schema name="test9_dbs_sqlserver" >
+		<table name="sqlserver_specific" prior="Tbl" >
+			<column name="id" type="int" jt="4" mandatory="y" autoincrement="y" />
+			<column name="str_text" prior="text1" type="text" jt="-1" mandatory="y" />
+			<column name="str_ntext" prior="text2" type="ntext" jt="-1" mandatory="y" />
+			<column name="bin_image" prior="image1" type="image" jt="-4" mandatory="y" />
+			<index name="Pk_sqlserver_specific_id" unique="PRIMARY_KEY" >
+				<column name="id" />
+			</index>
+		</table>
+	</schema>
+	<layout name="Default Layout" id="Layout_1c22" show_relation="columns" >
+		<entity schema="test9_dbs_sqlserver" name="sqlserver_specific" color="C1D8EE" x="176" y="288" />
+		<callout x="48" y="48" pointer="Round" >
+			<comment><![CDATA[DbSchema is in offline mode.
+New designed tables will be saved to model file and later can be create in any database.
+Right-click the layout to create new tables. Drop this callout from its context menu.]]></comment>
+		</callout>
+	</layout>
+</project>

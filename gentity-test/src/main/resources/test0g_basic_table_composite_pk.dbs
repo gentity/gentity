@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <project name="Test0g_basic_table_composite_pk" id="Project_9b4a79" template="Default" database="HSql" >
 	<schema name="TEST0G_BASIC_TABLE_COMPOSITE_PK" schemaname="TEST0G_BASIC_TABLE_COMPOSITE_PK" >
+		<table name="PARTY" >
+			<column name="NAME" type="varchar" length="100" jt="12" mandatory="y" />
+			<column name="TOWN" type="varchar" length="100" jt="12" mandatory="y" />
+			<column name="THEME" type="varchar" length="120" jt="12" mandatory="y" />
+			<column name="DESCRIPTION" type="varchar" length="1000" jt="12" />
+			<index name="PK_PARTY" unique="PRIMARY_KEY" >
+				<column name="NAME" />
+				<column name="TOWN" />
+			</index>
+		</table>
 		<table name="PARTYGUEST" >
 			<column name="FIRSTNAME" type="varchar" length="100" jt="12" mandatory="y" />
 			<column name="SURNAME" type="varchar" length="100" jt="12" mandatory="y" />
@@ -15,5 +25,6 @@
 	</schema>
 	<layout name="Default Layout" id="Layout_5bc8f0" show_relation="columns" >
 		<entity schema="TEST0G_BASIC_TABLE_COMPOSITE_PK" name="PARTYGUEST" color="C1D8EE" x="48" y="48" />
+		<entity schema="TEST0G_BASIC_TABLE_COMPOSITE_PK" name="PARTY" color="C1D8EE" x="272" y="64" />
 	</layout>
 </project>

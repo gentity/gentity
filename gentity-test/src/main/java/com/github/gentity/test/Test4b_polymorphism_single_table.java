@@ -15,9 +15,7 @@
  */
 package com.github.gentity.test;
 
-import com.github.gentity.test.test4a_polymorphism_joined.Insect;
-import com.github.gentity.test.test4a_polymorphism_joined.Lifeform;
-import com.github.gentity.test.test4a_polymorphism_joined.Mammal;
+import com.github.gentity.test.test4b_polymorphism_single_table.*;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
@@ -25,34 +23,31 @@ import org.junit.Test;
  *
  * @author upachler
  */
-public class Test4a_polymorphism_joined extends AbstractGentityTest{
+public class Test4b_polymorphism_single_table extends AbstractGentityTest{
 	
 
 	@Test
 	public void test() {
 		
 		em.persist(Mammal.builder()
-			.id(1L)
 			.furry(true)
 			.name("ginea pig")
 			.weight(0.2)
-			.build()
+			.build(1L)
 		);
 		
 		em.persist(Mammal.builder()
-			.id(2L)
 			.furry(false)
 			.name("elephant")
-			.weight(1000)
-			.build()
+			.weight(1000.0)
+			.buildWithId(2L)
 		);
 		
 		em.persist(Insect.builder()
-			.id(3L)
 			.name("bee")
 			.stingy(true)
 			.weight(0.001)
-			.build()
+			.buildWithId(3L)
 		);
 		
 		Lifeform bee = em.createQuery("SELECT l FROM Lifeform l WHERE l.name='bee'", Lifeform.class)
