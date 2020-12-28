@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+        <action>
+            <actionName>CUSTOM-Debug generate-sources</actionName>
+            <displayName>Debug generate-sources</displayName>
+            <goals>
+                <goal>generate-sources</goal>
+            </goals>
+            <properties>
+                <jpda.listen>maven</jpda.listen>
+            </properties>
+        </action>
+        <action>
+            <actionName>CUSTOM-debug tests</actionName>
+            <displayName>debug tests</displayName>
+            <goals>
+                <goal>test</goal>
+            </goals>
+            <properties>
+                <forkMode>once</forkMode>
+                <maven.surefire.debug>-agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address}</maven.surefire.debug>
+                <jpda.listen>true</jpda.listen>
+            </properties>
+        </action>
+    </actions>

@@ -34,24 +34,19 @@ public class Test1f_many_to_many_unidirectional extends AbstractGentityTest{
 		assertFalse(hasClassDeclaredField(Book.class, "ghostwriter"));
 		
 		Book book1 = Book.builder()
-			.id(1L)
 			.title("book1")
 			.buildWithId(1L);
 		Book book2 = Book.builder()
-			.id(2L)
 			.title("book2")
 			.buildWithId(2L);
 		
 		Ghostwriter author1 = Ghostwriter.builder()
-			.id(1L)
 			.name("Maier")
 			.buildWithId(1L);
 		Ghostwriter author2 = Ghostwriter.builder()
-			.id(2L)
 			.name("Müller")
 			.buildWithId(2L);
 		Ghostwriter author3 = Ghostwriter.builder()
-			.id(3L)
 			.name("Schulz")
 			.buildWithId(3L);
 		

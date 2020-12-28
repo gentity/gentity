@@ -60,6 +60,7 @@ class AccessorGenerator {
 	private final boolean mutualUpdateEnabled;
 	private static final String BUILDER_INSTANCE_NAME = "instance";
 	private static final String BUILD_METHOD_NAME = "build";
+	private static final String INIT_INSTANCE_METHOD_NAME = "_initInstance";
 	private static final String BUILD_WITH_ID_METHOD_NAME = "buildWithId";
 	private static final String BUILDER_IMPL_CLASS_NAME = "Builder";
 	private static final String BUILDER_FACTORY_METHOD_NAME = "builder";
@@ -141,16 +142,20 @@ class AccessorGenerator {
 				// side
 				genAssociationGetter(cls, field);
 				if(isOwningSideOfSingleValuedAssociation(field)) {
-					genSingleValuedAssociationSetter(cls, field);
+					if(annotationUseFor(field, Id.class).isPresent()) {
+						fixedPrimaryKeyFields.add(field);
+					} else {
+						genSingleValuedAssociationSetter(cls, field);
+					}
 				}
 			}
 		}
 		
 		genConstructor(cls, fixedPrimaryKeyFields);
 		
-		genCreateBuilderMethod(cls, builderClass, fixedPrimaryKeyFields);
+		JMethod initInstanceMethod = generateBuilderBody(cls, builderClass);
 		
-		generateBuilderMethods(cls, builderClass);
+		genCreateBuilderMethod(cls, builderClass, initInstanceMethod, fixedPrimaryKeyFields);
 	}
 	
 	private boolean isOwningSideOfSingleValuedAssociation(JFieldVar field) {
@@ -181,29 +186,44 @@ class AccessorGenerator {
 			.orElse(null);
 	}
 	
-	private void generateBuilderMethods(JDefinedClass cls, JDefinedClass builderClass) {
+	private JMethod generateBuilderBody(JDefinedClass cls, JDefinedClass builderClass) {
+		
+		JMethod initInstanceMethod = builderClass.method(JMod.PROTECTED, cls, INIT_INSTANCE_METHOD_NAME);
+		JVar initInstanceParam = initInstanceMethod.param(cls, BUILDER_INSTANCE_NAME);
+		
+		generateBuilderBodyImpl(cls, builderClass, initInstanceMethod);
+		
+		initInstanceMethod.body()._return(initInstanceParam);
+		
+		return initInstanceMethod;
+	}
+	
+	private void generateBuilderBodyImpl(JDefinedClass cls, JDefinedClass builderClass, JMethod initInstanceMethod) {
+		JBlock initInstanceBody = initInstanceMethod.body();
+		JVar initInstanceParam = initInstanceMethod.params().get(0);
 		
 		for(JFieldVar field : cls.fields().values()) {
-			FieldKind fkind = determineFieldKind(field);
-			if(excludeFieldFromAccessors(field) || isGeneratedValueColumnField(field)) {
+			if(excludeFieldFromAccessors(field) || annotationUseFor(field, Id.class).isPresent()) {
 				continue;
 			}
 			
+			JFieldVar builderField = builderClass.field(JMod.PRIVATE, field.type(), field.name());
+
+			genBuilderMethod(builderClass, field, (body,param) -> {
+				body.assign(JExpr._this().ref(builderField), param);
+			});
+			
+			FieldKind fkind = determineFieldKind(field);
 			if(!mutualUpdateEnabled || fkind!=FieldKind.ENTITY_ASSOCIATION) {
-				JFieldVar builderInstanceField = builderClass.fields().get(BUILDER_INSTANCE_NAME);
-				genBuilderMethod(builderClass, field, (body,param) -> {
-					body.assign(builderInstanceField.ref(field), param);
-				});
+				initInstanceBody.assign(initInstanceParam.ref(field), JExpr._this().ref(builderField));
 			} else if (isOwningSideOfSingleValuedAssociation(field)){
-				genBuilderMethod(builderClass, field, (body,param) -> {
-					body.directStatement(BUILDER_INSTANCE_NAME + ".relationTo$" + field.name() + ".set("+BUILDER_INSTANCE_NAME+", " + param.name() + ");");
-				});
+				initInstanceBody.directStatement(BUILDER_INSTANCE_NAME + ".relationTo$" + field.name() + ".set("+BUILDER_INSTANCE_NAME+", this." + builderField.name() + ");");
 			}
 		}
 		
 		cls = findEntityBaseClass(cls);
 		if(cls != null) {
-			generateBuilderMethods(cls, builderClass);
+			generateBuilderBodyImpl(cls, builderClass, initInstanceMethod);
 		}
 	}
 		
@@ -282,6 +302,12 @@ class AccessorGenerator {
 			JVar param = ctor.param(f.type(), f.name());
 			body.assign(JExpr._this().ref(f), param);
 		}
+		if(!ctor.params().isEmpty()) {
+			// in case we just generated a constructor with arguments, also
+			// generate one without arguments that is protected to meet JPA's
+			// requirement to have a public or private no-arg constructor
+			cls.constructor(JMod.PROTECTED);
+		}
 	}
 	
 	private void genBuilderMethod(JDefinedClass builderClass, JFieldVar field, BiConsumer<JBlock, JVar> assignmentImplementor) {
@@ -295,13 +321,8 @@ class AccessorGenerator {
 		
 	}
 	
-	private void genCreateBuilderMethod(JDefinedClass cls, JDefinedClass builderClass, List<JFieldVar> mandatoryInitializedFields) {
-		JFieldVar builderInstanceField = builderClass.fields().get(BUILDER_INSTANCE_NAME);
-		String mname = mandatoryInitializedFields.isEmpty()
-			?	BUILD_METHOD_NAME
-			:	BUILD_WITH_ID_METHOD_NAME;
-		JMethod builderMethod = builderClass.method(JMod.PUBLIC, cls, mname);
-		
+	private void genCreateBuilderMethod(JDefinedClass cls, JDefinedClass builderClass, JMethod initMethod, List<JFieldVar> mandatoryInitializedFields) {
+		JMethod builderMethod = builderClass.method(JMod.PUBLIC, cls, "dummy");
 		List<JVar> params = new ArrayList<>();
 		for(JFieldVar field : mandatoryInitializedFields) {
 			JVar param = builderMethod.param(field.type(), field.name());
@@ -316,14 +337,19 @@ class AccessorGenerator {
 			}
 		}
 		
+		if(builderMethod.params().isEmpty()) {
+			builderMethod.name(BUILD_METHOD_NAME);
+		} else {
+			builderMethod.name(BUILD_WITH_ID_METHOD_NAME);
+		}
+		
 		JInvocation newexp = JExpr._new(cls);
 		for(JVar p : params) {
 			newexp.arg(p);
 		}
 		builderMethod
 			.body()
-			.assign(JExpr._this().ref(builderInstanceField), newexp)
-			._return(builderInstanceField);
+			._return(JExpr._this().invoke(initMethod).arg(newexp));
 	}
 	
 	private JDefinedClass genBuilderClass(JDefinedClass cls) {

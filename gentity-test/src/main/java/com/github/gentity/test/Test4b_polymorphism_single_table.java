@@ -33,7 +33,7 @@ public class Test4b_polymorphism_single_table extends AbstractGentityTest{
 			.furry(true)
 			.name("ginea pig")
 			.weight(0.2)
-			.build(1L)
+			.buildWithId(1L)
 		);
 		
 		em.persist(Mammal.builder()

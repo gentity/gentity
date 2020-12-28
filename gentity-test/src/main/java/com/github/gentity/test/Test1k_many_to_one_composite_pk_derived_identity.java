@@ -57,15 +57,13 @@ public class Test1k_many_to_one_composite_pk_derived_identity extends AbstractGe
 		em.persist(o);
 		
 		OrderItem i = OrderItem.builder()
-			.order(o)
 			.sku(4711L)
-			.buildWithId(1);
+			.buildWithId(1, o);
 		em.persist(i);
 		
 		OrderItemExtra e = OrderItemExtra.builder()
 			.description("some more")
-			.orderItem(i)
-			.buildWithId(22);
+			.buildWithId(22, i);
 		em.persist(e);
 			
 	}
