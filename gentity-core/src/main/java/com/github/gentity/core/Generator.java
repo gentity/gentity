@@ -89,6 +89,7 @@ import com.github.gentity.core.model.SequenceModel;
 import com.github.gentity.core.model.TableModel;
 import com.github.gentity.core.util.Tuple;
 import com.sun.codemodel.JBlock;
+import com.sun.codemodel.JClassContainer;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
@@ -604,6 +605,7 @@ public class Generator {
 
 		genEquals(genIdClass, idFields);
 		genHashCode(genIdClass, idFields);
+		genToString(genIdClass, idFields);
 	}
 	
 	private JMethod genConstrutor(JDefinedClass cls, List<JFieldVar> fieldsToInitialze) {
@@ -683,6 +685,39 @@ public class Generator {
 			hashInvocation.arg(f);
 		}
 		m.body()._return(hashInvocation);
+	}
+	
+	private void genToString(JDefinedClass cls, List<JFieldVar> toStringCodeFields) {
+		JMethod m = cls.method(JMod.PUBLIC, cm.ref(String.class), "toString");
+		m.annotate(Override.class);
+		
+		// generate class name to print
+		String simpleName = "";
+		JClassContainer container = cls.parentContainer();
+		while(container instanceof JClass) {
+			simpleName = ((JClass)container).name()+"$"+simpleName;
+			container = container.parentContainer();
+		}
+		simpleName += cls.name();
+		
+		// generate toString() body, calling Objects.toString() on each field
+		JClass objCls = cm.ref(Objects.class);
+		JExpression exp = JExpr.lit(simpleName + "{");
+		boolean first = true;
+		for(JFieldVar f : toStringCodeFields) {
+			String nextFieldString;
+			if(!first) {
+				nextFieldString = ",";
+			} else {
+				nextFieldString = "";
+				first = false;
+			}
+			nextFieldString += f.name()+"=";
+			exp = exp.plus(JExpr.lit(nextFieldString));
+			exp = exp.plus(objCls.staticInvoke("toString").arg(f));
+		}
+		exp = exp.plus(JExpr.lit("}"));
+		m.body()._return(exp);
 	}
 	
 	private EnumType mapEnumType(JType colType, FieldMapping m) {

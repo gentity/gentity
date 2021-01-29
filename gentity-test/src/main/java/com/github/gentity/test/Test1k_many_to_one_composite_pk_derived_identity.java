@@ -65,6 +65,12 @@ public class Test1k_many_to_one_composite_pk_derived_identity extends AbstractGe
 			.description("some more")
 			.buildWithId(22, i);
 		em.persist(e);
-			
+		
+		// test *.Id.toString()
+		OrderItem.Id orderItemId = new OrderItem.Id(42, 4711);
+		assertEquals("OrderItem$Id{pos=42,order=4711}", orderItemId.toString());
+		
+		OrderItemExtra.Id orderItemExtraId = new OrderItemExtra.Id(333, orderItemId);
+		assertEquals("OrderItemExtra$Id{extraCode=333,orderItem=OrderItem$Id{pos=42,order=4711}}", orderItemExtraId.toString());
 	}
 }
