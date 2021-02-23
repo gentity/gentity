@@ -300,7 +300,12 @@ class AccessorGenerator {
 		}
 		for(JFieldVar f : fieldsToInitialize) {
 			JVar param = ctor.param(f.type(), f.name());
-			body.assign(JExpr._this().ref(f), param);
+			String relationToFieldName = "relationTo$"+f.name();
+			if(cls.fields().containsKey(relationToFieldName)) {
+				body.directStatement(relationToFieldName + ".set(this, " + param.name() + ");");
+			} else {
+				body.assign(JExpr._this().ref(f), param);
+			}
 		}
 		if(!ctor.params().isEmpty()) {
 			// in case we just generated a constructor with arguments, also

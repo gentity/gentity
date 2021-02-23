@@ -61,6 +61,12 @@ public class Test1k_many_to_one_composite_pk_derived_identity extends AbstractGe
 			.buildWithId(1, o);
 		em.persist(i);
 		
+		// check if OrderItem.order was initilized correctly by executing
+		// bidirectional update - both sides of the relationship between
+		// Order and OrderItem must be updated
+		assertSame(i.getOrder(), o);
+		assertSame(i, o.getOrderItem().get(0));
+
 		OrderItemExtra e = OrderItemExtra.builder()
 			.description("some more")
 			.buildWithId(22, i);
