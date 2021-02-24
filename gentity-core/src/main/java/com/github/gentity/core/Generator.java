@@ -183,7 +183,13 @@ public class Generator {
 				cm.ref(Float.class),
 				cm.ref(Integer.class),
 				cm.ref(Long.class),
-				cm.ref(Short.class)
+				cm.ref(Short.class),
+				cm.BYTE,
+				cm.SHORT,
+				cm.INT,
+				cm.LONG,
+				cm.FLOAT,
+				cm.DOUBLE
 			);
 		}
 		JPackage p = cm._package(sm.getTargetPackageName());
