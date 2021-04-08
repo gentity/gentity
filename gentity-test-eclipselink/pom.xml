@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.github.gentity</groupId>
         <artifactId>gentity</artifactId>
-        <version>0.26-SNAPSHOT</version>
+        <version>0.26</version>
     </parent>
     <artifactId>gentity-test-eclipselink</artifactId>
     <packaging>jar</packaging>
