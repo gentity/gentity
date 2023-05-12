@@ -35,10 +35,16 @@ public class ModelReaderFactoryTest {
 	private final DbsModelReaderFactory DBS_FACTORY = new DbsModelReaderFactory();
 	private final MwbModelReaderFactory MWB_FACTORY = new MwbModelReaderFactory();
 	
+	// file stored with Db Schema 8.x
 	private final String COMPANY_DBS_FILENAME = "company.dbs";
+	
+	// file stored with Db Schema 9.3.0
+	private final String COMPANY_DBS_9_3_0_FILENAME = "company_9_3_0.dbs";
+	
 	private final String COMPANY_MWB_FILENAME = "company.mwb";
 	
 	private final ReaderContext COMPANY_DBS_SS = new ResourceReaderContextImpl(getClass(), COMPANY_DBS_FILENAME);
+	private final ReaderContext COMPANY_DBS_9_3_0_SS = new ResourceReaderContextImpl(getClass(), COMPANY_DBS_9_3_0_FILENAME);
 	private final ReaderContext COMPANY_MWB_SS = new ResourceReaderContextImpl(getClass(), COMPANY_MWB_FILENAME);
 	
 	/**
@@ -51,6 +57,7 @@ public class ModelReaderFactoryTest {
 		// check if factories recognize file formats correctly
 		
 		assertTrue(DBS_FACTORY.supportsReading(COMPANY_DBS_FILENAME, COMPANY_DBS_SS));
+		assertTrue(DBS_FACTORY.supportsReading(COMPANY_DBS_9_3_0_FILENAME, COMPANY_DBS_9_3_0_SS));
 		assertFalse(DBS_FACTORY.supportsReading(COMPANY_MWB_FILENAME, COMPANY_MWB_SS));
 		
 		assertTrue(MWB_FACTORY.supportsReading(COMPANY_MWB_FILENAME, COMPANY_MWB_SS));
@@ -64,6 +71,15 @@ public class ModelReaderFactoryTest {
 	public void testRead_DBS() throws IOException {
 		System.out.println("testRead_DBS");
 		testReadCompanyModel(DBS_FACTORY, COMPANY_DBS_FILENAME, COMPANY_DBS_SS);
+	}
+	
+	/**
+	 * Test reading a DbSchema 9.3.0 file.
+	 */
+	@Test
+	public void testRead_9_3_0_DBS() throws IOException {
+		System.out.println("testRead_DBS");
+		testReadCompanyModel(DBS_FACTORY, COMPANY_DBS_9_3_0_FILENAME, COMPANY_DBS_9_3_0_SS);
 	}
 	
 	@Test

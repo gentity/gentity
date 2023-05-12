@@ -19,6 +19,7 @@ limitations under the License.
   <xs:element name="project" type="Project"/>
   <xs:complexType name="Column" mixed="true">
     <xs:sequence>
+      <xs:element type="xs:string" name="identity" minOccurs="0"/>
       <xs:element type="xs:string" name="defo" minOccurs="0"/>
       <xs:element type="xs:string" name="comment" minOccurs="0"/>
     </xs:sequence>
@@ -133,6 +134,7 @@ limitations under the License.
         <xs:attribute type="xs:string" name="user"/>
         <xs:attribute type="xs:string" name="passwd"/>
         <xs:attribute type="xs:string" name="schema_mapping"/>
+        <xs:attribute type="xs:boolean" name="useSystemProxy"/>
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>

@@ -18,8 +18,10 @@ package com.github.gentity.core.model.dbs;
 import com.github.gentity.core.model.dbs.dto.ColumnDto;
 import com.github.gentity.core.model.ColumnModel;
 import com.github.gentity.core.model.SequenceModel;
-import com.github.gentity.core.model.types.GenericSQLTypeParser;
+import java.io.Serializable;
 import java.sql.JDBCType;
+import java.util.List;
+import javax.xml.bind.JAXBElement;
 
 /**
  *
@@ -55,10 +57,19 @@ public class DbsColumnModel implements ColumnModel {
 	public Integer getLength() {
 		return dbsColumn.getLength();
 	}
-
+	
+	private JAXBElement findXmlElement(String name, List<Serializable> content) {
+		return content.stream()
+			.filter(JAXBElement.class::isInstance)
+			.map(JAXBElement.class::cast)
+			.filter(e -> name.equals(e.getName().getLocalPart()))
+			.findAny()
+			.orElse(null);
+	}
+	
 	@Override
 	public boolean isIdentityColumn() {
-		return "y".equals(dbsColumn.getAutoincrement());
+		return "y".equals(dbsColumn.getAutoincrement()) || null != findXmlElement("identity", dbsColumn.getContent());
 	}
 
 	@Override
