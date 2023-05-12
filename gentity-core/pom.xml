@@ -81,7 +81,7 @@
 			<plugin>
 				<groupId>com.github.davidmoten</groupId>
 				<artifactId>jax-maven-plugin</artifactId>
-				<version>0.1.5</version>
+				<version>0.1.8</version>
 				<executions>
 					<execution>
 						<id>xjc</id>
