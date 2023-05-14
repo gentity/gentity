@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.github.gentity</groupId>
         <artifactId>gentity</artifactId>
-        <version>0.27</version>
+        <version>0.28-SNAPSHOT</version>
     </parent>
     <artifactId>gentity-lib</artifactId>
     <packaging>jar</packaging>
