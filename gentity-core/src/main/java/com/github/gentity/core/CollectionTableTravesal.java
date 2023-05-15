@@ -102,7 +102,11 @@ public class CollectionTableTravesal<T> {
 	}
 	
 	private void traverseRoot(Consumer<Context<T>> ctConsumer) {
-		for(RootEntityTableDto et : cfg.getEntityTable()) {
+		for(Object o : cfg.getExcludeOrJoinTableOrEntityTable()) {
+			if(!(o instanceof RootEntityTableDto)) {
+				continue;
+			}
+			RootEntityTableDto et = (RootEntityTableDto)o;
 			T parent = rootContextProvider.apply(et);
 			et.getCollectionTable().stream()
 				.forEach(ct -> ctConsumer.accept(new ContextImpl(ct, parent)));

@@ -43,16 +43,6 @@ limitations under the License.
 	
 	<xs:complexType name="MappingConfig">
 		<xs:sequence>
-			<xs:element name='exclude' type='tns:Exclusion' minOccurs="0" maxOccurs="unbounded">
-				<xs:annotation>
-					<xs:documentation>
-						Defines tables and/or specific columns to exclude from
-						entity generation. Gentity will pretend that the database
-						structures declared here will not exist in the database
-						schema, and therefore not generate any code for them.
-					</xs:documentation>
-				</xs:annotation>
-			</xs:element>
 			<xs:element name="configuration" type='tns:GlobalConfiguration' minOccurs="0" maxOccurs="1">
 				<xs:annotation>
 					<xs:documentation>
@@ -60,38 +50,49 @@ limitations under the License.
 					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element name="joinTable" type='tns:JoinTable' minOccurs="0" maxOccurs="unbounded">
-				<xs:annotation>
-					<xs:documentation>
-						Explicitely classifies the table as the join table of a 
-						many-to-many relationship between two entities. 
-						The table must have at least two foreign key relations,
-						one identifiying owning entity's table,
-						the other the inverse entity's table. The foreign keys 
-						can be specified explicitely via the ownerRelation 
-						and inverseRelation tags. 
-						
-						If not specified, owner-relation and inverse-relation are picked
-						from the first two foreign keys declared on the table. If only one of the two is specified, the other is picked
-						from the first remaining foreign key of the table, again in declaration order.
-					</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			<xs:element name="entityTable" type='tns:RootEntityTable' minOccurs="0" maxOccurs="unbounded">
-				<xs:annotation>
-					<xs:documentation>
-						Explicitely classifies the table as entity table. The
-						table is required to have a primary key definition.
-						If not specified explicitely, gentity classifies 
-						tables by introspecting their structure. Tables with a
-						primary key are classfied as entity tables by default.
-						This declaration is generally used to specify further
-						explicit definitions for that entity table, such as 
-						fields, associations or collections.
-					</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			
+			<xs:choice minOccurs='0' maxOccurs='unbounded'>
+				<xs:element name='exclude' type='tns:Exclusion'>
+					<xs:annotation>
+						<xs:documentation>
+							Defines tables and/or specific columns to exclude from
+							entity generation. Gentity will pretend that the database
+							structures declared here will not exist in the database
+							schema, and therefore not generate any code for them.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="joinTable" type='tns:JoinTable'>
+					<xs:annotation>
+						<xs:documentation>
+							Explicitely classifies the table as the join table of a 
+							many-to-many relationship between two entities. 
+							The table must have at least two foreign key relations,
+							one identifiying owning entity's table,
+							the other the inverse entity's table. The foreign keys 
+							can be specified explicitely via the ownerRelation 
+							and inverseRelation tags. 
+
+							If not specified, owner-relation and inverse-relation are picked
+							from the first two foreign keys declared on the table. If only one of the two is specified, the other is picked
+							from the first remaining foreign key of the table, again in declaration order.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="entityTable" type='tns:RootEntityTable'>
+					<xs:annotation>
+						<xs:documentation>
+							Explicitely classifies the table as entity table. The
+							table is required to have a primary key definition.
+							If not specified explicitely, gentity classifies 
+							tables by introspecting their structure. Tables with a
+							primary key are classfied as entity tables by default.
+							This declaration is generally used to specify further
+							explicit definitions for that entity table, such as 
+							fields, associations or collections.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:choice>
 		</xs:sequence>
 		
 		<xs:attribute name="targetPackageName" default="" type="xs:string">

@@ -95,6 +95,10 @@ public class SchemaModelImpl implements SchemaModel {
 	private final List<RootEntityInfo> entityInfos = new ArrayList<>();
 	private final DatabaseModel databaseModel;
 	
+	private List<RootEntityTableDto> entityTables;
+	private List<JoinTableDto> joinTables;
+	private List<ExclusionDto> exclusions;
+	
 	public SchemaModelImpl(MappingConfigDto cfg, ModelReader reader, ShellLogger logger) throws IOException {
 		this.cfg = cfg;
 		this.logger = logger;
@@ -104,7 +108,7 @@ public class SchemaModelImpl implements SchemaModel {
 		Map<String,Set<String>> excludedTableColumns = new HashMap<>();
 		
 		Exclusions exclusions = new Exclusions();
-		for(ExclusionDto ex : cfg.getExclude()) {
+		for(ExclusionDto ex : getExclusions()) {
 			if(ex.getTable()!=null) {
 				if(ex.getColumn() == null) {
 					exclusions.addTable(ex.getTable());
@@ -117,7 +121,7 @@ public class SchemaModelImpl implements SchemaModel {
 		databaseModel = reader.read(exclusions);
 		
 		// generate entity infos first that are declared in the mapping configuration file
-		for(RootEntityTableDto et : cfg.getEntityTable()) {
+		for(RootEntityTableDto et : getEntityTables()) {
 			if(exclusions.isTableExcluded(et.getTable())) {
 				throw new RuntimeException("configuration found for excluded table '"+et.getTable()+"'");
 			}
@@ -135,7 +139,7 @@ public class SchemaModelImpl implements SchemaModel {
 		}
 		
 		
-		joinTableRelations = cfg.getJoinTable().stream()
+		joinTableRelations = getJoinTables().stream()
 			.map(this::toJoinTableRelation)
 			.collect(Collectors.toCollection(ArrayList::new));
 		initDeclaredOneToNRelations();
@@ -211,6 +215,34 @@ public class SchemaModelImpl implements SchemaModel {
 		
 		initDefaultOneToNRelations();
 		
+	}
+	
+	private <T> List<T> filterAssignableClass(List<?> list, Class<T> clazz) {
+		return list.stream()
+			.filter(clazz::isInstance)
+			.map(clazz::cast)
+			.collect(Collectors.toList());
+	}
+	
+	private List<RootEntityTableDto> getEntityTables() {
+		if(entityTables == null) {
+			entityTables = filterAssignableClass(cfg.getExcludeOrJoinTableOrEntityTable(), RootEntityTableDto.class);
+		}
+		return entityTables;
+	}
+	
+	private List<JoinTableDto> getJoinTables() {
+		if(joinTables == null) {
+			joinTables = filterAssignableClass(cfg.getExcludeOrJoinTableOrEntityTable(), JoinTableDto.class);
+		}
+		return joinTables;
+	}
+	
+	private List<ExclusionDto> getExclusions() {
+		if(exclusions == null) {
+			exclusions = filterAssignableClass(cfg.getExcludeOrJoinTableOrEntityTable(), ExclusionDto.class);
+		}
+		return exclusions;
 	}
 	
 	List<ForeignKeyModel> sortedFks(TableModel table, ForeignKeyModel... fks) {
@@ -394,7 +426,7 @@ public class SchemaModelImpl implements SchemaModel {
 	}
 	
 	private boolean isSubclassTableInJoinedHierarchy(TableModel table) {
-		return cfg.getEntityTable().stream()
+		return getEntityTables().stream()
 			.filter(et -> et.getJoinedHierarchy() != null)
 			.flatMap(et -> et.getJoinedHierarchy().getEntityTable().stream())
 			.anyMatch(jt -> containsJoinedHierarchySubclassTable(jt, table.getName()));
@@ -417,8 +449,8 @@ public class SchemaModelImpl implements SchemaModel {
 	public ConfigurationDto findClassOptions(String name) {
 		if(tableConfigurations == null) {
 			tableConfigurations = new HashMap<>(Stream.of(
-				cfg.getJoinTable().stream(),
-				cfg.getEntityTable().stream()
+				getJoinTables().stream(),
+				getEntityTables().stream()
 			)
 			.flatMap(t -> t)
 			.collect(Collectors.toMap(TableConfigurationDto::getTable, cfg -> cfg)));
@@ -438,7 +470,7 @@ public class SchemaModelImpl implements SchemaModel {
 	
 	public boolean isTableExcluded(String tableName) {
 		if(excludedTables == null) {
-			excludedTables = cfg.getExclude().stream()
+			excludedTables = getExclusions().stream()
 				.filter( x -> x.getColumn() == null)
 				.map(ExclusionDto::getTable)
 				.collect(Collectors.toSet());
@@ -453,7 +485,7 @@ public class SchemaModelImpl implements SchemaModel {
 	@Override
 	public boolean isColumnExcluded(String tableName, String columnName) {
 		if(excludedTableColumns == null) {
-			excludedTableColumns = cfg.getExclude().stream()
+			excludedTableColumns = getExclusions().stream()
 				.filter(x -> x.getColumn() != null)
 				.map(x -> toTableColumnKey(x.getTable(), x.getColumn()))
 				.collect(Collectors.toSet());
@@ -475,14 +507,14 @@ public class SchemaModelImpl implements SchemaModel {
 		// see if there is a hierarchy containing this table (root or subclass)
 		// that has the given column name as discriminator
 		
-		return cfg.getEntityTable().stream()
+		return getEntityTables().stream()
 			.filter(j -> j.getJoinedHierarchy()!=null)
 			.filter(j -> j.getJoinedHierarchy().getRootEntity().getDiscriminatorColumn().equals(columnName))
 			.anyMatch(j -> 
 				j.getTable().equals(table.getName())
 			)
 			||
-			cfg.getEntityTable().stream()
+			getEntityTables().stream()
 			.filter(h -> h.getSingleTableHierarchy()!= null)
 			.filter(s -> s.getSingleTableHierarchy().getRootEntity().getDiscriminatorColumn().equals(columnName))
 			.anyMatch(h -> 
@@ -509,7 +541,7 @@ public class SchemaModelImpl implements SchemaModel {
 		// check if table is part of a joined hierarchy's join relations
 		// and if one of them contains the given table in its foreign key 
 		// declaration
-		return cfg.getEntityTable().stream()
+		return getEntityTables().stream()
 			.filter(h -> h.getJoinedHierarchy()!= null)
 			.flatMap(h -> h.getJoinedHierarchy().getEntityTable().stream())
 			.anyMatch(et -> containsSupertableJoinRelation(et, table.getName(), foreignKeyName));
@@ -534,7 +566,7 @@ public class SchemaModelImpl implements SchemaModel {
 	public RootEntityTableDto findParentRootEntityTable(SingleTableEntityDto singleTableEntity) {
 		if(singleTableRootMap == null) {
 			singleTableRootMap = new HashMap<>();
-			for(RootEntityTableDto et : cfg.getEntityTable()) {
+			for(RootEntityTableDto et : getEntityTables()) {
 				if(et.getSingleTableHierarchy() == null) {
 					continue;
 				}
@@ -707,7 +739,7 @@ public class SchemaModelImpl implements SchemaModel {
 		// collect declared one-to-many et. al. relations
 		childTableRelations = new ArrayList();
 		
-		for(RootEntityTableDto rt : cfg.getEntityTable()) {
+		for(RootEntityTableDto rt : getEntityTables()) {
 			childTableRelations.addAll(toChildTableRelations(rt.getTable(), null, rt.getManyToOne(), rt.getOneToOne()));
 			if(rt.getJoinedHierarchy() != null) {
 				rt.getJoinedHierarchy().getEntityTable().stream()
