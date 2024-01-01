@@ -315,36 +315,38 @@ limitations under the License.
 		</xs:complexContent>
 	</xs:complexType>
 	
+	<!-- 
+	OneToMany/ManyToOne and OneToOne Relationships in JPA; see Section 2.9 in the JPA 2.2 spec:
+	http://download.oracle.com/otn-pub/jcp/persistence-2_2-mrel-spec/JavaPersistence.pdf
+	-->
+	<xs:element name="oneToOne" type="tns:XToOneRelation">
+		<xs:annotation>
+			<xs:documentation>
+				Explicitely specifies a one-to-one association
+				to another entity. 
+				Note that gentity derives associations automatcally
+				from the database schema; specifying one will
+				override this mechanism.
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="manyToOne" type="tns:XToOneRelation">
+		<xs:annotation>
+			<xs:documentation>
+				Explicitely specifies a many-to-one association
+				to another entity. 
+				Note that gentity derives associations automatcally
+				from the database schema; specifying one will
+				override this mechanism.
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
 	<xs:complexType name="EntityTable">
 		<xs:complexContent>
 			<xs:extension base="tns:TableConfiguration">
 				<xs:sequence>
-					<!-- 
-					OneToMany/ManyToOne and OneToOne Relationships in JPA; see Section 2.9 in the JPA 2.2 spec:
-					http://download.oracle.com/otn-pub/jcp/persistence-2_2-mrel-spec/JavaPersistence.pdf
-					-->
-					<xs:element name="oneToOne" type="tns:XToOneRelation" minOccurs='0' maxOccurs='unbounded'>
-						<xs:annotation>
-							<xs:documentation>
-								Explicitely specifies a one-to-one association
-								to another entity. 
-								Note that gentity derives associations automatcally
-								from the database schema; specifying one will
-								override this mechanism.
-							</xs:documentation>
-						</xs:annotation>
-					</xs:element>
-					<xs:element name="manyToOne" type="tns:XToOneRelation" minOccurs='0' maxOccurs='unbounded'>
-						<xs:annotation>
-							<xs:documentation>
-								Explicitely specifies a many-to-one association
-								to another entity. 
-								Note that gentity derives associations automatcally
-								from the database schema; specifying one will
-								override this mechanism.
-							</xs:documentation>
-						</xs:annotation>
-					</xs:element>
+					<xs:element ref="tns:oneToOne" minOccurs='0' maxOccurs='unbounded' />
+					<xs:element ref="tns:manyToOne" minOccurs='0' maxOccurs='unbounded' />
 					<xs:element name="collectionTable" type="tns:CollectionTable" minOccurs='0' maxOccurs='unbounded'>
 						<xs:annotation>
 							<xs:documentation>
