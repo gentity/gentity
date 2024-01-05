@@ -132,18 +132,6 @@
 								<argument>-npa</argument>
 								
 							</arguments>
-							<dependencies>
-								<dependency>
-									<groupId>org.glassfish.jaxb</groupId>
-									<artifactId>jaxb-xjc</artifactId>
-									<version>2.3.2</version>
-								</dependency>
-								<dependency>
-									<groupId>com.sun.activation</groupId>
-									<artifactId>jakarta.activation</artifactId>
-									<version>1.2.1</version>
-								</dependency>
-							</dependencies>
 						</configuration>
 					</execution>
 				</executions>
@@ -195,5 +183,4 @@
 			<version>1.0</version>
 		</dependency>
 	</dependencies>
-	<groupId>com.github.gentity</groupId>
 </project>
