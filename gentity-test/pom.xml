@@ -105,6 +105,17 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>entities-test0i_base_table_numeric_types_coerced</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputFile>src/main/resources/test0i_base_table_standard_types_coerced.dbs</inputFile>
+                            <mappingConfigFile>src/main/resources/test0i_base_table_standard_types_coerced.genconfig</mappingConfigFile>
+							<targetPackageName>com.github.gentity.test.test0i_base_table_standard_types_coerced</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
 						<id>entities-test1</id>
 						<goals>
 							<goal>generate</goal>

@@ -192,6 +192,24 @@ limitations under the License.
 						</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+                <xs:attribute name='coerceDecimalTypes' type='xs:boolean' default="false">
+                    <xs:annotation>
+                        <xs:documentation>
+                            If enabled, automatically map DECIMAL(s,p) or NUMERIC(s,p) 
+                            column types into java built-in number types that
+                            will hold the number of digits specified in the
+                            s (scale) and p (precision) proprerties. For instance,
+                            DECIMAL(4) has a maximum value of 9999, which can
+                            be held in a Java short variable (max value 32767).
+                            If scale > 0 a float or double value will be selected.
+                            
+                            By default, coercion is disabled, therefore all
+                            NUMERIC or DECIMAL columns will be mapped using the 
+                            BigDecimal type.
+                        </xs:documentation>
+                    </xs:annotation>
+                        
+                </xs:attribute>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>

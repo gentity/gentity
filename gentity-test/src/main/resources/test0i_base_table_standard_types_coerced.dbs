@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="test0h_base_table_standard_types" id="Project_9ad" database="MySql" >
+	<schema name="test0h_base_table_numeric_types" >
+		<table name="number_sample" prior="number" >
+			<column name="id" type="int" jt="4" mandatory="y" autoincrement="y" />
+			<column name="num_smallint" type="smallint" jt="5" mandatory="y" />
+			<column name="num_int" type="int" jt="4" mandatory="y" />
+			<column name="num_bigint" type="bigint" jt="-5" mandatory="y" />
+			<column name="num_numeric_default" prior="num_numeric_int_8_0" type="numeric" jt="2" mandatory="y" />
+			<column name="num_numeric_int_8_0" type="numeric" length="8" decimal="0" jt="2" mandatory="y" />
+			<column name="num_numeric_int_12" prior="num_numeric_int_8" type="numeric" length="12" jt="2" mandatory="y" />
+			<column name="num_numeric_int_16" type="numeric" length="16" jt="2" mandatory="y" />
+			<column name="num_numeric_int_32" prior="num_real" type="numeric" length="32" jt="2" mandatory="y" />
+			<column name="num_numeric_float_8_3" prior="num_numeric_float_8_4" type="numeric" length="8" decimal="3" jt="2" mandatory="y" />
+			<column name="num_numeric_float_14_3" prior="num_numeric_float_7_3" type="numeric" length="14" decimal="3" jt="2" mandatory="y" />
+			<column name="num_numeric_float_28_3" type="numeric" length="28" decimal="3" jt="2" mandatory="y" />
+			<column name="num_decimal" type="decimal" jt="3" mandatory="y" />
+			<column name="num_float" type="float" jt="7" mandatory="y" />
+			<column name="num_double" type="double" jt="8" mandatory="y" />
+			<column name="num_real" type="real" jt="8" mandatory="y" />
+			<index name="pk_number_sample_id" unique="PRIMARY_KEY" >
+				<column name="id" />
+			</index>
+			<options><![CDATA[engine=InnoDB]]></options>
+		</table>
+	</schema>
+	<layout name="Default Layout" id="Layout_ea4" show_relation="columns" >
+		<entity schema="test0h_base_table_numeric_types" name="number_sample" color="C1D8EE" x="160" y="192" />
+		<callout x="48" y="48" pointer="Round" >
+			<comment><![CDATA[DbSchema is in offline mode.
+New designed tables will be saved to model file and later can be create in any database.
+Right-click the layout to create new tables. Drop this callout from its context menu.]]></comment>
+		</callout>
+	</layout>
+</project>
