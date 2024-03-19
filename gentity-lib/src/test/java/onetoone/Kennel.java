@@ -16,7 +16,7 @@
 package onetoone;
 
 import com.github.gentity.ToOneSide;
-import javax.persistence.PreRemove;
+import jakarta.persistence.PreRemove;
 
 /**
  *

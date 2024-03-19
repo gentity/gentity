@@ -18,7 +18,7 @@ package com.github.gentity.test;
 import com.github.gentity.test.test0h_base_table_standard_types.NumberSample;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import javax.persistence.Column;
+import jakarta.persistence.Column;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import org.junit.Test;

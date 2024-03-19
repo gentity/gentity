@@ -17,7 +17,7 @@ package com.github.gentity.test.uni.onetomany;
 
 import com.github.gentity.ToOneSide;
 import com.github.gentity.test.NamedObject;
-import javax.persistence.PreRemove;
+import jakarta.persistence.PreRemove;
 
 /**
  * Multiple inhabitants may live in a House. An Inhabitant knows which house he/she

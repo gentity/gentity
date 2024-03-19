@@ -28,7 +28,7 @@ import com.github.gentity.core.model.ForeignKeyModel;
 import com.github.gentity.core.model.TableModel;
 import java.util.List;
 import java.util.function.Function;
-import javax.persistence.GenerationType;
+import jakarta.persistence.GenerationType;
 
 /**
  *

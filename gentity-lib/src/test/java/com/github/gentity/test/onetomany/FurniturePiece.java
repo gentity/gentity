@@ -17,7 +17,7 @@ package com.github.gentity.test.onetomany;
 
 import com.github.gentity.test.NamedObject;
 import com.github.gentity.ToOneSide;
-import javax.persistence.PreRemove;
+import jakarta.persistence.PreRemove;
 
 /**
  *

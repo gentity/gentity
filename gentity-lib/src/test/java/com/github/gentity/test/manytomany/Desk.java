@@ -19,7 +19,7 @@ import com.github.gentity.test.NamedObject;
 import com.github.gentity.ToManySide;
 import java.util.ArrayList;
 import java.util.List;
-import javax.persistence.PreRemove;
+import jakarta.persistence.PreRemove;
 
 /**
  * Owning side of a many-to-many relation. The owning side initializes the

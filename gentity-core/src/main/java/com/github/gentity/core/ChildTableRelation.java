@@ -24,7 +24,7 @@ import com.github.gentity.core.model.TableModel;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.persistence.CascadeType;
+import jakarta.persistence.CascadeType;
 
 /**
  * represents a one-to-many or one-to-one relation

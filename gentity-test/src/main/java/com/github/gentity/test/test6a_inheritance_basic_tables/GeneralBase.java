@@ -16,9 +16,9 @@
 package com.github.gentity.test.test6a_inheritance_basic_tables;
 
 import static com.github.gentity.test.test6a_inheritance_basic_tables.GeneralBase.*;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
 
 /**
  * Mapped superclass for entities, configured as default superclass for entities

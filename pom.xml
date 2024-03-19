@@ -64,6 +64,15 @@
 			<organizationUrl>https://github.com/gentity/gentity</organizationUrl>
 		</developer>
 	</developers>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>jakarta.persistence</groupId>
+				<artifactId>jakarta.persistence-api</artifactId>
+				<version>3.1.0</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 	<build>
 		<pluginManagement>
 			<plugins>

@@ -17,7 +17,7 @@ package com.github.gentity.test;
 
 import com.github.gentity.test.test5e_element_collection_embeddable_customization.*;
 import java.util.Arrays;
-import javax.persistence.Embeddable;
+import jakarta.persistence.Embeddable;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
