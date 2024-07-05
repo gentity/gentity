@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.gentity</groupId>
 	<artifactId>gentity</artifactId>
-	<version>0.28-SNAPSHOT</version>
+	<version>1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>gentity</name>
 	<description>JPA Entity class generator from DBSchema (*.dbs) or MySQL Workbench (*.mwb) database models (see https://www.dbschema.com)</description>
