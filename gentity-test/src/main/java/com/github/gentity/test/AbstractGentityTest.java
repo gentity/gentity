@@ -21,9 +21,9 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
 import org.hsqldb.jdbc.JDBCDriver;
 import org.junit.After;
 import org.junit.Before;
@@ -75,10 +75,10 @@ public class AbstractGentityTest {
 		String jdbcUrl = EXTERNAL_HSQLDB_ENABLED ? EXTERNAL_HSQLDB_URL : String.format(INTERNAL_HSQLDB_URL_FORMAT, persistenceUnitName);
 		Map<String, String> emProperties = new HashMap<String, String>() {
 			{
-				put("javax.persistence.jdbc.driver", JDBCDriver.class.getName());
-				put("javax.persistence.jdbc.url", jdbcUrl);
-				put("javax.persistence.jdbc.user", "SA");
-				put("javax.persistence.jdbc.password", "");
+				put("jakarta.persistence.jdbc.driver", JDBCDriver.class.getName());
+				put("jakarta.persistence.jdbc.url", jdbcUrl);
+				put("jakarta.persistence.jdbc.user", "SA");
+				put("jakarta.persistence.jdbc.password", "");
 				put("eclipselink.ddl-generation", "create-tables");
 				put("hibernate.hbm2ddl.auto", "create");
 			}

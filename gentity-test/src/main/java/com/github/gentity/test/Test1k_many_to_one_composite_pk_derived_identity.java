@@ -16,7 +16,7 @@
 package com.github.gentity.test;
 
 import com.github.gentity.test.test1k_many_to_one_composite_pk_derived_identity.*;
-import javax.persistence.Id;
+import jakarta.persistence.Id;
 import org.junit.Test;
 import static org.junit.Assert.*;
 /**

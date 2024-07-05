@@ -28,7 +28,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.persistence.GenerationType;
+import jakarta.persistence.GenerationType;
 import com.github.gentity.core.config.dto.ConfigurationDto;
 import com.github.gentity.core.config.dto.EntityTableDto;
 import com.github.gentity.core.config.dto.ExclusionDto;
@@ -66,10 +66,10 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
-import javax.persistence.ForeignKey;
+import jakarta.persistence.ForeignKey;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import javax.persistence.CascadeType;
+import jakarta.persistence.CascadeType;
 
 
 /**

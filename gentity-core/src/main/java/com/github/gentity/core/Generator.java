@@ -41,21 +41,21 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.SequenceGenerators;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinColumns;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.SequenceGenerators;
+import jakarta.persistence.Table;
 import com.github.gentity.core.config.dto.ConfigurationDto;
 import com.github.gentity.core.config.dto.MappingConfigDto;
 import com.github.gentity.ToManySide;
@@ -63,13 +63,13 @@ import com.github.gentity.ToOneSide;
 import static com.github.gentity.core.Cardinality.*;
 import static com.github.gentity.core.Directionality.*;
 import static com.github.gentity.core.ChildTableRelation.Kind.*;
-import javax.persistence.DiscriminatorColumn;
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.ForeignKey;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.PrimaryKeyJoinColumn;
-import javax.persistence.PrimaryKeyJoinColumns;
+import jakarta.persistence.DiscriminatorColumn;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
+import jakarta.persistence.PrimaryKeyJoinColumn;
+import jakarta.persistence.PrimaryKeyJoinColumns;
 import static com.github.gentity.core.ChildTableRelation.Kind.MANY_TO_ONE;
 import com.github.gentity.core.entities.JoinedRootEntityInfo;
 import com.github.gentity.core.entities.JoinedSubEntityInfo;
@@ -108,18 +108,18 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import javax.persistence.Lob;
+import jakarta.persistence.Lob;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import javax.persistence.CascadeType;
-import javax.persistence.CollectionTable;
-import javax.persistence.ElementCollection;
-import javax.persistence.Embeddable;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.IdClass;
-import javax.persistence.PrePersist;
-import javax.persistence.PreRemove;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreRemove;
 
 
 /**
@@ -131,7 +131,7 @@ public class Generator {
 	private final SchemaModel sm;
 	
 	JCodeModel cm;
-	List<JType> numericTypes;
+	JType bigDecimalType;
 	Map<String, JDefinedClass> tablesToEntities;
 	Map<JDefinedClass, EntityInfo> entities;
 	Map<String, JDefinedClass> tablesToEmbeddables;
@@ -173,24 +173,7 @@ public class Generator {
 			cm = new JCodeModel();
 			// all subclasses of Number, as of Java 7 (and most likely all
 			// future Java versions to come...
-			numericTypes = Arrays.asList(
-				cm.ref(AtomicInteger.class),
-				cm.ref(AtomicLong.class),
-				cm.ref(BigDecimal.class),
-				cm.ref(BigInteger.class),
-				cm.ref(Byte.class),
-				cm.ref(Double.class),
-				cm.ref(Float.class),
-				cm.ref(Integer.class),
-				cm.ref(Long.class),
-				cm.ref(Short.class),
-				cm.BYTE,
-				cm.SHORT,
-				cm.INT,
-				cm.LONG,
-				cm.FLOAT,
-				cm.DOUBLE
-			);
+			bigDecimalType = cm.ref(BigDecimal.class);
 		}
 		JPackage p = cm._package(sm.getTargetPackageName());
 		
@@ -786,7 +769,7 @@ public class Generator {
 				columnAnnotation.param("length", column.getLength());
 			}
 		}
-		if(numericTypes.contains(colType)) {
+		if(colType.equals(bigDecimalType)) {
 			if(column.getPrecision()!=null) {
 				columnAnnotation.param("precision", column.getPrecision());
 			}
@@ -1207,35 +1190,46 @@ public class Generator {
 				break;
 			case NUMERIC:
 			case DECIMAL: {
-				int p = column.getPrecision() != null
-					?	column.getPrecision()
-					:	0;
-				int s = column.getScale() != null
-					?	column.getScale()
-					:	0;
-				if(s == 0) {
-					if(p<=9) {
-						// fits into Integer.MAX_VALUE
-						jtype = cm.INT;
-					} else if(p<=18) {
-						// fits into Long.MAX_VALUE
-						jtype = cm.LONG;
-					} else {
-						// won't fit anywhere: 
-						jtype = cm.ref(BigInteger.class);
-					}
-				} else {
-					if(p<=7) {
-						// 7 digits fit into float
-						jtype = cm.FLOAT;
-					} else if(p<=14) {
-						// 14 digits it into double
-						jtype = cm.DOUBLE;
-					} else {
-						// everything else is BidDecimal...
-						jtype = cm.ref(BigDecimal.class);
-					}
-				}
+                if (cfg.getConfiguration() ==  null || !cfg.getConfiguration().isCoerceDecimalTypes()) {
+                    // by default, NUMERIC/DECIMAL are mapped to BigDecimal
+                    jtype = bigDecimalType;
+                } else {
+                    // if number type coercion is enabled, a Java type is 
+                    // determined that can hold the value range specified in
+                    // the precision and scale parameters
+                    int p = column.getPrecision() != null
+                        ?	column.getPrecision()
+                        :	0;
+                    int s = column.getScale() != null
+                        ?	column.getScale()
+                        :	0;
+                    if(s == 0) {
+                        if(p==0) {
+                            // s==0,p==0: no spec, assuming the most general type
+                            jtype = cm.ref(BigDecimal.class);
+                        } else if(p<=9) {
+                            // fits into Integer.MAX_VALUE
+                            jtype = cm.INT;
+                        } else if(p<=18) {
+                            // fits into Long.MAX_VALUE
+                            jtype = cm.LONG;
+                        } else {
+                            // won't fit anywhere: 
+                            jtype = cm.ref(BigInteger.class);
+                        }
+                    } else {
+                        if(p<=7) {
+                            // 7 digits fit into float
+                            jtype = cm.FLOAT;
+                        } else if(p<=14) {
+                            // 14 digits it into double
+                            jtype = cm.DOUBLE;
+                        } else {
+                            // everything else is BidDecimal...
+                            jtype = cm.ref(BigDecimal.class);
+                        }
+                    }
+                }
 			}	break;
 			case TIMESTAMP_WITH_TIMEZONE:
 				jtype = cm.ref(Timestamp.class);

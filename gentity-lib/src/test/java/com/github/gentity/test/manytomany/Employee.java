@@ -19,7 +19,7 @@ import com.github.gentity.ToManySide;
 import com.github.gentity.test.NamedObject;
 import java.util.ArrayList;
 import java.util.List;
-import javax.persistence.PreRemove;
+import jakarta.persistence.PreRemove;
 
 /**
  *

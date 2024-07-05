@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.github.gentity</groupId>
 		<artifactId>gentity</artifactId>
-		<version>0.28-SNAPSHOT</version>
+		<version>1.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>gentity-test</artifactId>
 	<packaging>jar</packaging>
@@ -102,6 +102,17 @@
 						<configuration>
 							<inputFile>src/main/resources/test0h_base_table_standard_types.dbs</inputFile>
 							<targetPackageName>com.github.gentity.test.test0h_base_table_standard_types</targetPackageName>
+						</configuration>
+					</execution>
+					<execution>
+						<id>entities-test0i_base_table_numeric_types_coerced</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputFile>src/main/resources/test0i_base_table_standard_types_coerced.dbs</inputFile>
+                            <mappingConfigFile>src/main/resources/test0i_base_table_standard_types_coerced.genconfig</mappingConfigFile>
+							<targetPackageName>com.github.gentity.test.test0i_base_table_standard_types_coerced</targetPackageName>
 						</configuration>
 					</execution>
 					<execution>
@@ -425,9 +436,8 @@
 	
 	<dependencies>
 		<dependency>
-			<groupId>javax.persistence</groupId>
-			<artifactId>javax.persistence-api</artifactId>
-			<version>2.2</version>
+			<groupId>jakarta.persistence</groupId>
+			<artifactId>jakarta.persistence-api</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -436,15 +446,8 @@
 			<type>jar</type>
 		</dependency>
 		<dependency>
-			<groupId>org.eclipse.persistence</groupId>
-			<artifactId>eclipselink</artifactId>
-			<version>2.7.5</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.hsqldb</groupId>
 			<artifactId>hsqldb</artifactId>
-			<version>2.4.0</version>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>

@@ -15,7 +15,7 @@
  */
 package com.github.gentity.test;
 
-import com.github.gentity.test.test0h_base_table_standard_types.NumberSample;
+import com.github.gentity.test.test0i_base_table_standard_types_coerced.NumberSample;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import jakarta.persistence.Column;
@@ -27,9 +27,15 @@ import org.junit.Test;
  *
  * @author upachler
  */
-public class Test0h_base_table_standard_types extends AbstractGentityTest{
+public class Test0i_base_table_standard_types_coerced extends AbstractGentityTest{
 	@Test
 	public void test() throws NoSuchFieldException {
+        // In this test, we check the DECIMAL coercion feature: For 
+        // DECIMAL/NUMERIC columns, gentity tries to find a Java basic type 
+        // that can hold the value range described by DECIMAL(precision,scale)
+        // and NUMERIC(precision,scale). See the mappingConfig.xsd file for 
+        // details.
+        
 		// if this compiles we're good
 		NumberSample ns = new NumberSample.Builder()
 			.numBigint(Long.MAX_VALUE)            // BIGINT -> long
@@ -39,15 +45,15 @@ public class Test0h_base_table_standard_types extends AbstractGentityTest{
 			.numReal(1.0f)                        // REAL -> float
 			.numInt(Integer.MAX_VALUE)            // INT -> int
             
-            // all NUMERIC/DECIMAL columns, regardless of what scale is configured, are mapped to BigDecimal
-			.numNumericDefault(BigDecimal.ONE)  
-			.numNumericFloat83(BigDecimal.ONE) 
-			.numNumericFloat143(BigDecimal.ONE)
-			.numNumericFloat283(BigDecimal.ONE)
-			.numNumericInt80(BigDecimal.ONE)
-			.numNumericInt12(BigDecimal.ONE)
-			.numNumericInt16(BigDecimal.ONE)
-			.numNumericInt32(BigDecimal.ONE) 
+            // each of these NUMERIC columns are coerced into types that can hold the specified value range
+            .numNumericDefault(BigDecimal.ONE)    // NUMERIC without precision/scale -> BigDecimal
+			.numNumericFloat83(1.0f)              // NUMERIC(8,3) - eight digits of which three are after the dot -> float
+			.numNumericFloat143(1.0d)             // NUMERIC(14,3) - ... -> double
+			.numNumericFloat283(BigDecimal.ONE)   // NUMERIC(28,9) - too large for double to hold -> BigDecimal
+			.numNumericInt80(Integer.MAX_VALUE)   // NUMERIC(8,0) - ... -> int
+			.numNumericInt12(Integer.MAX_VALUE)   // NUMERIC(12) - twelve digits, zero dots behind the dot (or unspecified) -> int
+			.numNumericInt16(Long.MAX_VALUE)      // NUMERIC(16) - ... -> long
+			.numNumericInt32(BigInteger.ONE)      // NUMERIC(32) - 32 digits are too big for long -> BigInteger
 			.build();
 		
 		// no scale or precision set for numBigint, numDecimal, numDouble, numReal, numInt and numNumericDefault fields
@@ -64,27 +70,30 @@ public class Test0h_base_table_standard_types extends AbstractGentityTest{
 		assertEquals(0, columnOf(NumberSample.class, "numNumericDefault").scale());
 		assertEquals(0, columnOf(NumberSample.class, "numNumericDefault").precision());
 		
-		// check whether scale and precision are set according to the specification in the model
-		assertEquals(8, columnOf(NumberSample.class, "numNumericFloat83").precision());
-		assertEquals(3, columnOf(NumberSample.class, "numNumericFloat83").scale());
+		// scale and precision are not set for coerced types, as they do not by
+        // default represent a DECIMAL column (even if they actually do because
+        // we coerced a DECIMAL column into them)
+		assertEquals(0, columnOf(NumberSample.class, "numNumericFloat83").precision());
+		assertEquals(0, columnOf(NumberSample.class, "numNumericFloat83").scale());
 		
-		assertEquals(14, columnOf(NumberSample.class, "numNumericFloat143").precision());
-		assertEquals(3, columnOf(NumberSample.class, "numNumericFloat143").scale());
-		
-		assertEquals(28, columnOf(NumberSample.class, "numNumericFloat283").precision());
-		assertEquals(3, columnOf(NumberSample.class, "numNumericFloat283").scale());
-		
-		assertEquals(8, columnOf(NumberSample.class, "numNumericInt80").precision());
+		assertEquals(0, columnOf(NumberSample.class, "numNumericFloat143").precision());
+		assertEquals(0, columnOf(NumberSample.class, "numNumericFloat143").scale());
+		        
+		assertEquals(0, columnOf(NumberSample.class, "numNumericInt80").precision());
 		assertEquals(0, columnOf(NumberSample.class, "numNumericInt80").scale());
 		
-		assertEquals(12, columnOf(NumberSample.class, "numNumericInt12").precision());
-		assertEquals( 0, columnOf(NumberSample.class, "numNumericInt12").scale());
+		assertEquals(0, columnOf(NumberSample.class, "numNumericInt12").precision());
+		assertEquals(0, columnOf(NumberSample.class, "numNumericInt12").scale());
 		
-		assertEquals(16, columnOf(NumberSample.class, "numNumericInt16").precision());
-		assertEquals( 0, columnOf(NumberSample.class, "numNumericInt16").scale());
+		assertEquals(0, columnOf(NumberSample.class, "numNumericInt16").precision());
+		assertEquals(0, columnOf(NumberSample.class, "numNumericInt16").scale());
 		
-		assertEquals(32, columnOf(NumberSample.class, "numNumericInt32").precision());
+		assertEquals(0, columnOf(NumberSample.class, "numNumericInt32").precision());
 		assertEquals(0, columnOf(NumberSample.class, "numNumericInt32").scale());
+		
+        // this BigDecimal number retains its precision and scale properties
+		assertEquals(28, columnOf(NumberSample.class, "numNumericFloat283").precision());
+		assertEquals(3, columnOf(NumberSample.class, "numNumericFloat283").scale());
 		
 		em.persist(ns);
 	}

@@ -20,7 +20,7 @@ import static com.github.gentity.core.Directionality.*;
 import com.github.gentity.core.model.ForeignKeyModel;
 import com.github.gentity.core.model.TableModel;
 import java.util.EnumSet;
-import javax.persistence.CascadeType;
+import jakarta.persistence.CascadeType;
 
 /**
  *
