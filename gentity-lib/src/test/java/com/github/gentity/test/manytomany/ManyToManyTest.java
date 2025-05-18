@@ -24,6 +24,14 @@ import org.junit.Test;
  * @author count
  */
 public class ManyToManyTest {
+    
+    @Test
+    public void testBothSidesConnected() {
+        assertSame(Desk.relationTo$employees.getOther(), Employee.relationTo$desks);
+        assertNotNull(Desk.relationTo$employees.getOther());
+        assertSame(Employee.relationTo$desks.getOther(), Desk.relationTo$employees);
+    }
+    
 	@Test
 	public void test() {
 		// four employees share three desks

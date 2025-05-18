@@ -24,7 +24,13 @@ import org.junit.Test;
  */
 public class UniOneToManyTest {
 
-	@Test
+    @Test
+    public void testUniSideNotConnected() {
+        // House has no relation, so Inahbitant is not connected to an other side
+        Assert.assertNull(Inhabitant.relationTo$house.getOther());
+    }
+    
+    @Test
 	public void test() {
 		House h = new House("our house");
 		

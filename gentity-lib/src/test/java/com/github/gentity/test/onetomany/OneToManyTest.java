@@ -25,10 +25,12 @@ import org.junit.Test;
  */
 public class OneToManyTest {
 	
-	public OneToManyTest() {
-		
-	}
-
+    @Test
+    public void testBothSidesConnected() {
+        assertSame(FurniturePiece.relationTo$room.getOther(), Room.relationTo$furniture);
+        assertSame(Room.relationTo$furniture.getOther(), FurniturePiece.relationTo$room);
+    }
+    
 	@Test
 	public void test() {
 		FurniturePiece chair1 = new FurniturePiece("chair1");
