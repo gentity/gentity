@@ -37,6 +37,7 @@ import com.github.gentity.core.model.types.SQLTypeParser;
 import com.github.gentity.core.util.UnmarshallerFactory;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -137,7 +138,12 @@ public class DbsModelReader implements ModelReader {
 		Map<String, DbsTableModel> tables = dbSchema.getTable().stream()
 				.filter(t -> !exclusions.isTableExcluded(t.getName()))
 				.map(this::toTable)
-				.collect(Collectors.toMap(TableModel::getName, Function.identity()));
+				.collect(Collectors.toMap(
+					TableModel::getName,
+					Function.identity(),
+					(a, b) -> {throw new IllegalStateException("duplicate table name '" + a.getName() + "' in model");},
+					LinkedHashMap::new
+				));
 		
 		for(DbsTableModel table : tables.values()) {
 			

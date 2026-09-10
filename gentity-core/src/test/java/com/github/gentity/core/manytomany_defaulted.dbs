@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="manytomany_defaulted" id="Project_2f1a44c" template="Default" database="HSql" >
+	<schema name="TESTM2M" schemaname="TESTM2M" >
+		<table name="AUTHOR" >
+			<column name="ID" type="bigint" jt="-5" mandatory="y" />
+			<column name="NAME" type="varchar" length="100" jt="12" />
+			<index name="PK_AUTHOR_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+		</table>
+		<table name="BOOK" >
+			<column name="ID" type="bigint" jt="-5" mandatory="y" />
+			<column name="TITLE" type="varchar" length="100" jt="12" mandatory="y" />
+			<index name="PK_BOOK_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+		</table>
+		<table name="PUBLISHER" >
+			<column name="ID" type="bigint" jt="-5" mandatory="y" />
+			<column name="NAME" type="varchar" length="100" jt="12" />
+			<index name="PK_PUBLISHER_ID" unique="PRIMARY_KEY" >
+				<column name="ID" />
+			</index>
+		</table>
+		<table name="BOOK_AUTHOR" >
+			<column name="BOOK_ID" type="bigint" jt="-5" mandatory="y" />
+			<column name="AUTHOR_ID" type="bigint" jt="-5" mandatory="y" />
+			<index name="IDX_BOOK_AUTHOR_BOOK_ID" unique="NORMAL" >
+				<column name="BOOK_ID" />
+			</index>
+			<index name="IDX_BOOK_AUTHOR_AUTHOR_ID" unique="NORMAL" >
+				<column name="AUTHOR_ID" />
+			</index>
+			<fk name="FK_BOOK_AUTHOR_BOOK" to_schema="TESTM2M" to_table="BOOK" >
+				<fk_column name="BOOK_ID" pk="ID" />
+			</fk>
+			<fk name="FK_BOOK_AUTHOR_AUTHOR" to_schema="TESTM2M" to_table="AUTHOR" >
+				<fk_column name="AUTHOR_ID" pk="ID" />
+			</fk>
+		</table>
+		<table name="AUTHOR_PUBLISHER" >
+			<column name="AUTHOR_ID" type="bigint" jt="-5" mandatory="y" />
+			<column name="PUBLISHER_ID" type="bigint" jt="-5" mandatory="y" />
+			<index name="IDX_AUTHOR_PUBLISHER_AUTHOR_ID" unique="NORMAL" >
+				<column name="AUTHOR_ID" />
+			</index>
+			<index name="IDX_AUTHOR_PUBLISHER_PUBLISHER_ID" unique="NORMAL" >
+				<column name="PUBLISHER_ID" />
+			</index>
+			<fk name="FK_AUTHOR_PUBLISHER_AUTHOR" to_schema="TESTM2M" to_table="AUTHOR" >
+				<fk_column name="AUTHOR_ID" pk="ID" />
+			</fk>
+			<fk name="FK_AUTHOR_PUBLISHER_PUBLISHER" to_schema="TESTM2M" to_table="PUBLISHER" >
+				<fk_column name="PUBLISHER_ID" pk="ID" />
+			</fk>
+		</table>
+		<table name="BOOK_PUBLISHER" >
+			<column name="BOOK_ID" type="bigint" jt="-5" mandatory="y" />
+			<column name="PUBLISHER_ID" type="bigint" jt="-5" mandatory="y" />
+			<index name="IDX_BOOK_PUBLISHER_BOOK_ID" unique="NORMAL" >
+				<column name="BOOK_ID" />
+			</index>
+			<index name="IDX_BOOK_PUBLISHER_PUBLISHER_ID" unique="NORMAL" >
+				<column name="PUBLISHER_ID" />
+			</index>
+			<fk name="FK_BOOK_PUBLISHER_BOOK" to_schema="TESTM2M" to_table="BOOK" >
+				<fk_column name="BOOK_ID" pk="ID" />
+			</fk>
+			<fk name="FK_BOOK_PUBLISHER_PUBLISHER" to_schema="TESTM2M" to_table="PUBLISHER" >
+				<fk_column name="PUBLISHER_ID" pk="ID" />
+			</fk>
+		</table>
+	</schema>
+	<layout name="Default Layout" id="Layout_18c3a02" show_relation="columns" >
+		<entity schema="TESTM2M" name="AUTHOR" color="c8daf5" x="45" y="45" />
+		<entity schema="TESTM2M" name="BOOK" color="c8daf5" x="210" y="45" />
+		<entity schema="TESTM2M" name="PUBLISHER" color="c8daf5" x="375" y="45" />
+		<entity schema="TESTM2M" name="BOOK_AUTHOR" color="c8daf5" x="45" y="210" />
+		<entity schema="TESTM2M" name="AUTHOR_PUBLISHER" color="c8daf5" x="210" y="210" />
+		<entity schema="TESTM2M" name="BOOK_PUBLISHER" color="c8daf5" x="375" y="210" />
+	</layout>
+</project>
