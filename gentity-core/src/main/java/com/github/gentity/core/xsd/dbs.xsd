@@ -155,8 +155,16 @@ limitations under the License.
   <xs:complexType name="Project">
     <xs:sequence>
       <xs:element type="Schema" name="schema"/>
-      <xs:element type="Connector" name="connector" minOccurs='0' maxOccurs='unbounded'/>
-      <xs:element type="Layout" name="layout" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>Everything after &lt;schema&gt; describes the diagrams
+          and the database connections of the DbSchema project. Gentity never reads
+          any of it, and DbSchema reshapes it between releases (up to 9.x it wrote
+          &lt;layout&gt; elements here, later versions wrap &lt;diagram&gt; elements
+          in a &lt;diagram_group&gt;). We therefore accept whatever appears here
+          instead of tracking each release.</xs:documentation>
+        </xs:annotation>
+      </xs:any>
     </xs:sequence>
     <xs:attribute type="xs:string" name="name"/>
     <xs:attribute type="xs:string" name="id"/>

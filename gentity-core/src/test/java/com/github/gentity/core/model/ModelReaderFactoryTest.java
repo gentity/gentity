@@ -40,11 +40,15 @@ public class ModelReaderFactoryTest {
 	
 	// file stored with Db Schema 9.3.0
 	private final String COMPANY_DBS_9_3_0_FILENAME = "company_9_3_0.dbs";
-	
+
+	// file stored with Db Schema 10.5.2
+	private final String COMPANY_DBS_10_5_2_FILENAME = "company_10_5_2.dbs";
+
 	private final String COMPANY_MWB_FILENAME = "company.mwb";
-	
+
 	private final ReaderContext COMPANY_DBS_SS = new ResourceReaderContextImpl(getClass(), COMPANY_DBS_FILENAME);
 	private final ReaderContext COMPANY_DBS_9_3_0_SS = new ResourceReaderContextImpl(getClass(), COMPANY_DBS_9_3_0_FILENAME);
+	private final ReaderContext COMPANY_DBS_10_5_2_SS = new ResourceReaderContextImpl(getClass(), COMPANY_DBS_10_5_2_FILENAME);
 	private final ReaderContext COMPANY_MWB_SS = new ResourceReaderContextImpl(getClass(), COMPANY_MWB_FILENAME);
 	
 	/**
@@ -58,6 +62,7 @@ public class ModelReaderFactoryTest {
 		
 		assertTrue(DBS_FACTORY.supportsReading(COMPANY_DBS_FILENAME, COMPANY_DBS_SS));
 		assertTrue(DBS_FACTORY.supportsReading(COMPANY_DBS_9_3_0_FILENAME, COMPANY_DBS_9_3_0_SS));
+		assertTrue(DBS_FACTORY.supportsReading(COMPANY_DBS_10_5_2_FILENAME, COMPANY_DBS_10_5_2_SS));
 		assertFalse(DBS_FACTORY.supportsReading(COMPANY_MWB_FILENAME, COMPANY_MWB_SS));
 		
 		assertTrue(MWB_FACTORY.supportsReading(COMPANY_MWB_FILENAME, COMPANY_MWB_SS));
@@ -82,6 +87,17 @@ public class ModelReaderFactoryTest {
 		testReadCompanyModel(DBS_FACTORY, COMPANY_DBS_9_3_0_FILENAME, COMPANY_DBS_9_3_0_SS);
 	}
 	
+	/**
+	 * Test reading a DbSchema 10.5.2 file. Such files keep the diagrams of a
+	 * project in a &lt;diagram_group&gt; element; the model itself is the same
+	 * as in the other company files.
+	 */
+	@Test
+	public void testRead_10_5_2_DBS() throws IOException {
+		System.out.println("testRead_10_5_2_DBS");
+		testReadCompanyModel(DBS_FACTORY, COMPANY_DBS_10_5_2_FILENAME, COMPANY_DBS_10_5_2_SS);
+	}
+
 	@Test
 	public void testRead_MWB() throws IOException {
 		System.out.println("testRead_MWB");
