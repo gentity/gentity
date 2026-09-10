@@ -22,6 +22,7 @@ import com.sun.codemodel.JAnnotationUse;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -161,14 +162,14 @@ public class SchemaModelImpl implements SchemaModel {
 		// NOTE: currently we're generating them while generating entity tables above..
 		
 		// TODO / FINISH: implement default table mappings not declared in configurations
-		Set<TableModel> tablesToMap = new HashSet<>(databaseModel.getTables());
+		Set<TableModel> tablesToMap = new LinkedHashSet<>(databaseModel.getTables());
 		tablesToMap.removeIf(t -> mappedTables.contains(t.getName()));
 		
 		// all tables with primary keys are mapped as root entities
 		Set<TableModel> defaultEntityMappedTables = 
 			tablesToMap.stream()
 				.filter(t -> t.getPrimaryKey()!=null)
-				.collect(Collectors.toSet());
+				.collect(Collectors.toCollection(LinkedHashSet::new));
 		defaultEntityMappedTables
 			.forEach(t -> {
 				entityInfos.add(new PlainEntityInfo(t, null));
@@ -180,7 +181,7 @@ public class SchemaModelImpl implements SchemaModel {
 		Set<TableModel> defaultJoinTables = 
 			tablesToMap.stream()
 			.filter(table -> table.getForeignKeys().size()==2 && foreignKeysCoverAllColumns(table))
-			.collect(Collectors.toSet());
+			.collect(Collectors.toCollection(LinkedHashSet::new));
 		defaultJoinTables.forEach(table -> {
 			List<ForeignKeyModel> fks = table.getForeignKeys();
 			fks = sortedFks(table, fks.get(0), fks.get(1));

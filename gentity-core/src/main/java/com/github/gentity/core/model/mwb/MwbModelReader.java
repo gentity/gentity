@@ -34,6 +34,7 @@ import com.github.upachler.mwbmodel.model.workbench.physical.Model;
 import java.io.IOException;
 import java.sql.JDBCType;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import com.github.gentity.core.model.ReaderContext;
@@ -82,7 +83,7 @@ public class MwbModelReader implements ModelReader{
 		Document doc = Loader.loadMwb(context.open());
 		
 			
-		Map<Table,MwbTableModel> tables = new HashMap<>();
+		Map<Table,MwbTableModel> tables = new LinkedHashMap<>();
 		for(Model pm : doc.getPhysicalModels()) {
 			SQLTypeParser typeParser = context.findTypeParser(pm.getRdbms().getName());
 
@@ -132,7 +133,12 @@ public class MwbModelReader implements ModelReader{
 		
 		
 		return new MwbDatabaseModel(tables.entrySet().stream()
-			.collect(Collectors.toMap(e->e.getKey().getName(), Entry::getValue))
+			.collect(Collectors.toMap(
+				e->e.getKey().getName(),
+				Entry::getValue,
+				(a, b) -> {throw new IllegalStateException("duplicate table name '" + a.getName() + "' in model");},
+				LinkedHashMap::new
+			))
 		);
 	}
 	
