@@ -8,6 +8,7 @@
     </parent>
     <artifactId>gentity-lib</artifactId>
     <packaging>jar</packaging>
+    <name>gentity-lib</name>
     <dependencies>
         <dependency>
             <groupId>junit</groupId>

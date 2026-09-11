@@ -8,6 +8,7 @@
 	</parent>
 	<artifactId>gentity-core</artifactId>
 	<packaging>jar</packaging>
+	<name>gentity-core</name>
 	<properties>
 		<netbeans.hint.licensePath>${basedir}/../license-template-netbeans.ftl</netbeans.hint.licensePath>
 	</properties>
