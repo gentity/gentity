@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.github.gentity</groupId>
 		<artifactId>gentity</artifactId>
-		<version>1.1-SNAPSHOT</version>
+		<version>1.1.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>gentity-test</artifactId>
 	<packaging>jar</packaging>
@@ -15,6 +15,14 @@
 	
 	<build>
 		<plugins>
+			<!-- test-only module: build artifact, never published to Maven Central -->
+			<plugin>
+				<groupId>org.sonatype.central</groupId>
+				<artifactId>central-publishing-maven-plugin</artifactId>
+				<configuration>
+					<skipPublishing>true</skipPublishing>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>com.github.gentity</groupId>
 				<artifactId>gentity-maven-plugin</artifactId>
