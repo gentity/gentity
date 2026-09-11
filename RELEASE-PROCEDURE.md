@@ -46,8 +46,52 @@ bundle and uploads that to the Portal. The root POM therefore has no
 
    See <https://central.sonatype.org/publish/requirements/gpg/>.
 
+   On Windows the key normally lives in Gpg4win's keyring (`%APPDATA%\gnupg`),
+   managed through Kleopatra. `maven-gpg-plugin` shells out to whichever `gpg`
+   is first on the `PATH`, so that has to be Gpg4win's one — see
+   [Running these commands on Windows](#running-these-commands-on-windows).
+
+   Signing is interactive by default: gpg-agent pops up a pinentry dialog to
+   ask for the passphrase. Where no console is attached this fails with
+   `gpg: signing failed: No Pinentry`. To sign unattended, put the passphrase
+   in `MAVEN_GPG_PASSPHRASE`; the plugin reads it from there and switches gpg
+   to `--pinentry-mode loopback`:
+
+   ```bash
+   export MAVEN_GPG_PASSPHRASE=<passphrase>
+   ```
+
+   Prefer that over `-Dgpg.passphrase=`, which exposes the passphrase in the
+   process list.
+
 5. **JDK and Maven.** Build with a current JDK (21 or newer is what the release
    plugins are verified against here) and Maven 3.6.3 or newer.
+
+## Running these commands on Windows
+
+The examples below are written for a POSIX shell. Two things differ.
+
+**Quote every `-D` argument in PowerShell.** `mvn` is `mvn.cmd`, and PowerShell
+hands the argument line to `cmd.exe`, which treats `=` as a token delimiter. An
+unquoted `-DnewVersion=1.1.0` therefore arrives split, and Maven silently sets
+the version to `1`:
+
+```powershell
+mvn versions:set "-DnewVersion=1.1.0"
+```
+
+This matters most for `-DcentralBaseUrl` in step 2: unquoted, the override is
+lost and the build talks to the real Central endpoint. Putting `--%` ahead of
+the arguments stops PowerShell's parsing for the rest of the line and has the
+same effect.
+
+**Run the release from PowerShell, not Git Bash.** Git for Windows ships its
+own `gpg` at `/usr/bin/gpg` and puts it ahead of Gpg4win's on the `PATH`. That
+one reads `%USERPROFILE%\.gnupg`, which is not where Kleopatra keeps keys, so
+signing fails with `gpg: no default secret key`. Either use PowerShell, where
+`gpg` resolves to `C:\Program Files (x86)\GnuPG\bin\gpg.exe`, or pass
+`-Dgpg.executable` explicitly. (`unzip` in step 2 is the other way round — it
+exists in Git Bash but not in PowerShell.)
 
 ## Version scheme
 
@@ -97,12 +141,33 @@ mvn clean generate-sources javadoc:jar
 ### 2. Optional: inspect the bundle without publishing
 
 To see exactly what would be uploaded, point the plugin at an unreachable
-endpoint. The build fails at the upload step, but the bundle is written first:
+endpoint. The build fails at the upload step, but the bundle is written first.
+
+A bundle is only produced on the **release** code path, so this needs a
+non-snapshot version: on a snapshot the plugin skips bundling altogether and
+deploys artifacts straight to the snapshot repository, leaving
+`target/central-publishing/` empty. Set the version temporarily and revert
+afterwards:
 
 ```bash
-mvn clean deploy -Prelease -DcentralBaseUrl=http://127.0.0.1:1
+mvn versions:set -DnewVersion=1.1.0
+mvn clean deploy -Prelease \
+    -DcentralBaseUrl=http://127.0.0.1:1 \
+    -DcentralSnapshotsUrl=http://127.0.0.1:1
 unzip -l target/central-publishing/central-bundle.zip
+mvn versions:revert
 ```
+
+`versions:revert` restores the POMs from the backups that `versions:set`
+leaves behind, so do not pass `-DgenerateBackupPoms=false` here. To keep the
+working tree untouched entirely, do the same in a throwaway
+`git worktree add ../gentity-bundlecheck HEAD`.
+
+Both URLs have to be overridden. `centralBaseUrl` only governs the release
+path; snapshot deployment reads a separate `centralSnapshotsUrl` that defaults
+to <https://central.sonatype.com/repository/maven-snapshots/> and is not
+derived from it. Overriding both means that forgetting the version bump fails
+the build locally instead of pushing a snapshot to Central.
 
 The bundle must contain, for `gentity` (POM only), `gentity-lib`,
 `gentity-core` and `gentity-maven-plugin`: the `.pom`, the main `.jar`, the
@@ -111,8 +176,8 @@ each. The three test modules (`gentity-test`, `gentity-test-eclipselink`,
 `gentity-test-hibernate`) must be absent — they set `<skipPublishing>true</skipPublishing>`
 on the publishing plugin in their own POMs.
 
-Note this only works on a non-snapshot version; snapshots bypass bundling and
-upload directly.
+The build ends in `BUILD FAILURE` at the last reactor module. That is the
+expected outcome — the bundle is already written by then.
 
 ### 3. Prepare
 
@@ -158,11 +223,16 @@ command-line properties are *not* inherited by it. Anything the forked build
 needs has to be passed through `-Darguments`:
 
 ```bash
-mvn release:perform -Darguments="-Dgpg.passphrase=<passphrase>"
+mvn release:perform -Darguments="-Dsome.property=value"
 ```
 
 (`-Dusername`/`-Dpassword` are consumed by the release plugin itself for SCM
 access and do not belong in `-Darguments`.)
+
+The GPG passphrase is the exception: environment variables *are* inherited by
+the forked build, so exporting `MAVEN_GPG_PASSPHRASE` as described under
+[Prerequisites](#prerequisites-one-time-manual) covers it, and nothing needs to
+go into `-Darguments`. Otherwise gpg-agent prompts for it interactively.
 
 The plugin's `waitUntil` default is `validated`, so the command blocks until
 Central has validated the upload. A missing signature, a missing javadoc jar or
